@@ -25,6 +25,14 @@ function buildAnaliseURLFromStorage(last) {
   const fibersParam = (last.fibers || []).map(f => `${f.name}:${f.pct || 0}`).join(',');
   if (fibersParam) params.set('fibras', fibersParam);
   if (last.url) params.set('origem', last.url);
+  // Metadados do produto + confiança (para o hero da landing)
+  const m = last.meta || {};
+  if (m.nome)   params.set('nome',   String(m.nome).slice(0, 120));
+  if (m.imagem) params.set('imagem', m.imagem);
+  if (m.preco)  params.set('preco',  m.preco);
+  if (m.moeda)  params.set('moeda',  m.moeda);
+  if (m.loja)   params.set('loja',   m.loja);
+  if (last.confianca != null) params.set('confianca', Math.round(last.confianca));
   return `https://lookmap.ai/analise?${params.toString()}`;
 }
 

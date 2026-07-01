@@ -6,7 +6,28 @@
 
   const LOOKMAP_BASE_URL = 'https://lookmap.ai/analise';
 
-  function buildAnaliseURL(scores, fibers, buy, verdictLabel, productUrl) {
+  // Extrai metadados do produto para a landing lookmap.ai/analise mostrar a peça
+  // concreta. Usa meta tags OG (fiáveis entre lojas), com fallbacks.
+  function getProductMeta() {
+    const meta = (sel) => document.querySelector(sel)?.getAttribute('content')?.trim() || '';
+    let nome = meta('meta[property="og:title"]') ||
+               document.querySelector('h1')?.textContent?.trim() ||
+               (document.title || '');
+    // Limpa sufixos da loja: "Top às riscas | MANGO", "Calças - Mulher | Zara"
+    nome = nome.split('|')[0].replace(/\s[-–]\s*(mulher|homem|women|men|unisex|criança|kids).*$/i, '').trim();
+    const imagem = meta('meta[property="og:image"]') || meta('meta[name="twitter:image"]') || '';
+    const preco = meta('meta[property="product:price:amount"]') ||
+                  meta('meta[property="og:price:amount"]') ||
+                  meta('meta[itemprop="price"]') ||
+                  (document.querySelector('[itemprop="price"]')?.getAttribute('content') || '');
+    const moeda = meta('meta[property="product:price:currency"]') ||
+                  meta('meta[property="og:price:currency"]') || '';
+    const loja = meta('meta[property="og:site_name"]') ||
+                 location.hostname.replace(/^www\./, '').split('.')[0];
+    return { nome, imagem, preco, moeda, loja };
+  }
+
+  function buildAnaliseURL(scores, fibers, buy, verdictLabel, productUrl, confidence) {
     const params = new URLSearchParams();
     params.set('score',     buy);
     params.set('verdict',   verdictLabel);
@@ -25,8 +46,15 @@
       .map(f => `${f.name}:${f.pct || 0}`)
       .join(',');
     if (fibersParam) params.set('fibras', fibersParam);
-    // Produto
+    // Produto: URL + metadados (nome/preço/imagem/loja) para o hero da landing
     if (productUrl) params.set('origem', productUrl);
+    const m = getProductMeta();
+    if (m.nome)   params.set('nome',   m.nome.slice(0, 120));
+    if (m.imagem) params.set('imagem', m.imagem);
+    if (m.preco)  params.set('preco',  m.preco);
+    if (m.moeda)  params.set('moeda',  m.moeda);
+    if (m.loja)   params.set('loja',   m.loja);
+    if (confidence != null) params.set('confianca', Math.round(confidence));
     return `${LOOKMAP_BASE_URL}?${params.toString()}`;
   }
 
@@ -443,16 +471,25 @@
     const showWarmth = warmthInfo && warmth >= 45;
     const bv = typeof buyVerdict === 'function' ? buyVerdict(buy) : { emoji:'', label:v.label, color:v.color, bg:'#f5f5f5' };
 
+    // Metadados do produto (nome/preço/imagem/loja) + confiança da análise —
+    // para a landing lookmap.ai mostrar a peça e um selo de confiança.
+    const productMeta = getProductMeta();
+    const conf = typeof confidenceScore === 'function'
+      ? confidenceScore({ hasComposition: fibers.length > 0, hasGarmentType: !!garmentType,
+                          hasCertification: !!(scores.certs && scores.certs.length),
+                          hasBrand: !!productMeta.loja }).score
+      : null;
+
     // Guardar no histórico e resultado atual partilhado com o popup
     if (typeof chrome !== 'undefined' && chrome.storage?.local) {
-      const entry = { fibers, score: scores?.overall || 0, grade: v.label, date: new Date().toLocaleDateString('pt-BR') };
+      const entry = { fibers, score: scores?.overall || 0, grade: v.label, date: new Date().toLocaleDateString('pt-BR'), nome: productMeta.nome, imagem: productMeta.imagem };
       chrome.storage.local.get('fqa-history', data => {
         const h = data['fqa-history'] || [];
         h.unshift(entry);
         chrome.storage.local.set({ 'fqa-history': h.slice(0, 20) });
       });
       // Guardar resultado atual por URL para o popup mostrar directamente
-      chrome.storage.local.set({ 'fqa-last-result': { url: location.href, fibers, scores, buyScore: buy, verdictLabel: bv.label, verdictColor: bv.color } });
+      chrome.storage.local.set({ 'fqa-last-result': { url: location.href, fibers, scores, buyScore: buy, verdictLabel: bv.label, verdictColor: bv.color, meta: productMeta, confianca: conf } });
     }
 
     card.innerHTML = `
@@ -529,7 +566,7 @@
           <button id="__fqa-share" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;font-weight:600;color:#fff;background:#FF009D;border:none;cursor:pointer;padding:9px 12px;border-radius:8px;letter-spacing:0.02em;font-family:inherit;white-space:nowrap;">
             <span>📷</span> ${t('card_share')}
           </button>
-          <a href="${buildAnaliseURL(scores, fibers, buy, bv.label, location.href)}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:600;color:#FF009D;text-decoration:none;background:none;border:1px solid #FF009D;padding:9px;border-radius:8px;letter-spacing:0.02em;white-space:nowrap;">
+          <a href="${buildAnaliseURL(scores, fibers, buy, bv.label, location.href, conf)}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:600;color:#FF009D;text-decoration:none;background:none;border:1px solid #FF009D;padding:9px;border-radius:8px;letter-spacing:0.02em;white-space:nowrap;">
             Ver análise completa →
           </a>
         </div>
