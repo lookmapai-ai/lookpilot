@@ -1,0 +1,42 @@
+{
+  "_meta": "Modificadores de qualidade dentro da mesma fibra. Detectados no texto da página, ajustam o score e geram explicação. Bónus aplicado às propriedades, não substitui a fibra.",
+  "algodao": {
+    "supima": {
+      "labels": ["supima"],
+      "nome": "Algodão Supima",
+      "bonus": { "quality": 12, "durability": 10, "comfort": 8 },
+      "explica": "Supima é algodão de fibra extra-longa cultivado nos EUA — só 1% do algodão mundial. Mais resistente, macio e bola muito menos que o comum."
+    },
+    "pima": {
+      "labels": ["pima"],
+      "nome": "Algodão Pima",
+      "bonus": { "quality": 10, "durability": 8, "comfort": 8 },
+      "explica": "Pima é algodão de fibra longa — mais forte, sedoso e durável que o algodão comum. Resiste melhor a bolinhas."
+    },
+    "egipcio": {
+      "labels": ["egípcio","egipcio","egyptian"],
+      "nome": "Algodão Egípcio",
+      "bonus": { "quality": 12, "durability": 9, "comfort": 9 },
+      "explica": "Algodão Egípcio tem a fibra mais longa do mundo — extremamente macio e durável, padrão de luxo em roupa de cama e camisaria."
+    },
+    "penteado": {
+      "labels": ["penteado","combed","peinado"],
+      "nome": "Algodão penteado",
+      "bonus": { "quality": 6, "durability": 5, "comfort": 6 },
+      "explica": "Algodão penteado (combed) tem as fibras curtas removidas — fica mais liso, forte e não pila como o algodão cardado comum."
+    },
+    "mercerizado": {
+      "labels": ["mercerizado","mercerized","mercerised"],
+      "nome": "Algodão mercerizado",
+      "bonus": { "quality": 5, "durability": 4, "comfort": 3 },
+      "explica": "A mercerização dá brilho acetinado, mais força e melhor fixação da cor ao algodão."
+    },
+    "organico": {
+      "labels": ["orgânico","organico","organic"],
+      "nome": "Algodão orgânico",
+      "bonus": { "sustainability": 0 },
+      "explica": "",
+      "_nota": "Já tratado pela promoção de fibra para variante orgânica — não duplicar bónus aqui."
+    }
+  }
+}

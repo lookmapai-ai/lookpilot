@@ -1,0 +1,30 @@
+{
+  "_meta": "Explicações em linguagem natural para misturas comuns. A chave é o par ordenado por dominância (fibra principal primeiro). Usado para gerar texto no card.",
+  "regras_por_fibra_secundaria": {
+    "elastano": {
+      "ate_5": "O elastano em pequena dose dá conforto e ajuste, mas é o componente que cede primeiro — com lavagens frequentes a peça pode perder a forma antes do tecido base.",
+      "acima_5": "A proporção de elastano garante stretch e recuperação de forma, ideal para peças justas. Lave a frio para prolongar a elasticidade."
+    },
+    "poliester": {
+      "ate_15": "O poliéster em pequena dose reforça a estrutura e reduz vincos, sem comprometer muito o toque do tecido principal.",
+      "acima_15": "A presença significativa de poliéster aumenta a durabilidade e a resistência a vincos, mas reduz a respirabilidade — a peça pode abafar em dias quentes."
+    },
+    "poliamida": {
+      "ate_15": "A poliamida reforça a resistência e reduz o desgaste sem alterar muito o caráter do tecido.",
+      "acima_15": "A poliamida adiciona resistência e secagem rápida; boa para uso intenso, com menos respirabilidade que fibras naturais."
+    },
+    "viscose": {
+      "ate_30": "A viscose adiciona caimento e fluidez ao tecido.",
+      "acima_30": "A viscose dá um caimento fluido e toque macio, mas reduz a durabilidade — a peça é mais delicada na lavagem."
+    },
+    "acrilico": {
+      "ate_100": "O acrílico barateia a peça e imita o volume da lã, mas tende a formar bolinhas e retém menos calor que fibras naturais."
+    }
+  },
+  "combinacoes_nobres": {
+    "algodao+linho": "A mistura de algodão e linho equilibra frescor e maciez — muito respirável, ideal para calor, ainda que amasse.",
+    "la+caxemira": "A lã reforça a caxemira, tornando-a mais durável e menos sujeita a bolinhas, mantendo o calor.",
+    "lyocell+algodao": "O lyocell eleva o algodão com toque mais sedoso, melhor caimento e maior resistência quando húmido.",
+    "seda+algodao": "A mistura torna a seda mais prática e resistente, sacrificando algum brilho pela facilidade de cuidado."
+  }
+}

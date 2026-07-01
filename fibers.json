@@ -1,0 +1,2481 @@
+{
+  "_meta": {
+    "versao": "1.0",
+    "descricao": "Base de conhecimento têxtil técnica. Propriedades 0-10 ancoradas em propriedades físicas mensuráveis e normas ISO/ASTM/AATCC.",
+    "escala": "0-10 onde 10 é o melhor desempenho NAQUELA propriedade (ex: bolinhas=10 significa NÃO forma bolinhas; amassa=10 significa NÃO amassa)",
+    "atualizado": "2026-06",
+    "fontes_primarias": [
+      "ASTM D1909 (moisture regain comercial)",
+      "ASTM D3822 (tenacidade/elongação fibra única)",
+      "ISO 12947 (abrasão Martindale)",
+      "ISO 12945 (pilling)",
+      "AATCC 66 (recuperação de vincos)",
+      "Textile Exchange Materials Market Report 2025"
+    ]
+  },
+  "fibras": {
+    "algodao": {
+      "id": "algodao",
+      "nome": "Algodão",
+      "categoria": "natural",
+      "origem": "celulose vegetal (Gossypium)",
+      "fibras_similares": [
+        "linho",
+        "viscose",
+        "modal"
+      ],
+      "propriedades": {
+        "respirabilidade": 9,
+        "isolamento_termico": 4,
+        "elasticidade": 2,
+        "resistencia": 6,
+        "bolinhas": 7,
+        "amassa": 3,
+        "absorcao_umidade": 8,
+        "secagem": 3,
+        "conforto": 9,
+        "peso": 5,
+        "facilidade_manutencao": 8,
+        "durabilidade": 6,
+        "sustentabilidade": 5
+      },
+      "propriedades_notas": {
+        "respirabilidade": "MR 7,5-8,5% (ASTM D1909). Fibra hidrofílica, alta troca de ar.",
+        "elasticidade": "Recuperação elástica baixa — deforma e amassa com facilidade.",
+        "amassa": "Vinca facilmente; recuperação de vincos baixa (AATCC 66). Mistura com elastano ou poliéster melhora.",
+        "absorcao_umidade": "Absorve até 8% do peso em água; demora a secar.",
+        "durabilidade": "Tenacidade média; resistência cai quando molhado é exceção (algodão FICA mais forte molhado).",
+        "sustentabilidade": "Convencional: alto uso de água e pesticidas. Orgânico (GOTS) ou reciclado tem score maior. Ver variantes."
+      },
+      "aplicacoes_ideais": {
+        "camiseta": 9,
+        "camisa": 8,
+        "blazer": 4,
+        "calca": 6,
+        "vestido": 7,
+        "casaco": 3,
+        "roupa_esportiva": 4,
+        "roupa_intima": 9
+      },
+      "climas": {
+        "verao": 9,
+        "inverno": 3,
+        "meia_estacao": 7,
+        "umido": 4,
+        "seco": 8
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": false,
+        "amassa": true,
+        "seca_rapido": false,
+        "suporta_uso_intenso": true,
+        "funciona_mala_capsula": true,
+        "combina_ocasioes": true,
+        "travel_score": 6,
+        "nota": "Confortável e versátil mas amassa e seca devagar. Leve peças que disfarçam vincos."
+      },
+      "gramatura": {
+        "leve": "Abaixo de 120 g/m²: transparente, fresco, ideal verão. Menor durabilidade.",
+        "media": "120-200 g/m²: equilíbrio conforto/durabilidade. Camisetas e camisas.",
+        "pesada": "Acima de 250 g/m²: opaco, estruturado, mais durável. Calças, casacos. Demora a secar."
+      },
+      "cuidados": {
+        "lavagem": "Máquina água fria a morna. Encolhe na primeira lavagem se não pré-encolhido (sanforizado).",
+        "secagem": "Secadora pode encolher. Secar ao ar preserva fibra.",
+        "ferro": "Tolera ferro quente. Engoma bem.",
+        "encolhimento": "Risco médio-alto se não tratado.",
+        "deformacao": "Pode deformar em peças de malha sem elastano."
+      },
+      "vida_util": {
+        "ocasional": "5-10 anos",
+        "frequente": "2-4 anos",
+        "intenso": "1-2 anos",
+        "ressalva": "Depende fortemente da gramatura, qualidade do fio e cuidados. Fio penteado (combed) dura mais."
+      },
+      "comportamento_em_misturas": [
+        {
+          "par": "algodão + elastano",
+          "melhora": [
+            "elasticidade",
+            "recuperação de forma"
+          ],
+          "piora": [
+            "respirabilidade levemente"
+          ],
+          "igual": [
+            "conforto"
+          ],
+          "nota": "2-5% elastano dá stretch sem perder o toque natural."
+        },
+        {
+          "par": "algodão + poliéster",
+          "melhora": [
+            "resistência",
+            "secagem",
+            "menos amassa"
+          ],
+          "piora": [
+            "respirabilidade",
+            "conforto"
+          ],
+          "igual": [],
+          "nota": "Clássico custo-benefício. 65/35 ou 50/50 reduz vincos e preço."
+        },
+        {
+          "par": "algodão + linho",
+          "melhora": [
+            "frescor",
+            "textura"
+          ],
+          "piora": [],
+          "igual": [
+            "amassa muito"
+          ],
+          "nota": "Ambos amassam; mistura mantém respirabilidade alta."
+        }
+      ],
+      "fontes": [
+        "ASTM D1909 (MR 7,5-8,5%)",
+        "ASTM D5867 (tenacidade HVI)",
+        "Textile Exchange 2025 (sustentabilidade)"
+      ]
+    },
+    "poliester": {
+      "id": "poliester",
+      "nome": "Poliéster",
+      "categoria": "sintetico",
+      "origem": "polímero PET de base fóssil (petróleo)",
+      "fibras_similares": [
+        "poliamida",
+        "nylon",
+        "acrilico"
+      ],
+      "propriedades": {
+        "respirabilidade": 3,
+        "isolamento_termico": 5,
+        "elasticidade": 6,
+        "resistencia": 9,
+        "bolinhas": 4,
+        "amassa": 8,
+        "absorcao_umidade": 1,
+        "secagem": 9,
+        "conforto": 4,
+        "peso": 7,
+        "facilidade_manutencao": 9,
+        "durabilidade": 9,
+        "sustentabilidade": 3
+      },
+      "propriedades_notas": {
+        "respirabilidade": "MR 0,4% (ASTM D1909) — hidrofóbico, baixa troca de ar. Pode abafar.",
+        "absorcao_umidade": "Quase não absorve água; afasta humidade da pele (wicking) mas retém odor.",
+        "secagem": "Seca muito rápido justamente por não absorver.",
+        "bolinhas": "Propenso a pilling porque as fibras quebradas não se soltam (alta tenacidade prende a bolinha).",
+        "amassa": "Resistente a vincos — termoplástico, mantém forma.",
+        "durabilidade": "Tenacidade alta, excelente abrasão Martindale.",
+        "sustentabilidade": "88% base fóssil (Textile Exchange 2025). Liberta microplásticos na lavagem. Reciclado (rPET) tem score maior."
+      },
+      "aplicacoes_ideais": {
+        "camiseta": 5,
+        "camisa": 5,
+        "blazer": 6,
+        "calca": 6,
+        "vestido": 6,
+        "casaco": 7,
+        "roupa_esportiva": 8,
+        "roupa_intima": 3
+      },
+      "climas": {
+        "verao": 3,
+        "inverno": 6,
+        "meia_estacao": 6,
+        "umido": 5,
+        "seco": 6
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": true,
+        "amassa": false,
+        "seca_rapido": true,
+        "suporta_uso_intenso": true,
+        "funciona_mala_capsula": true,
+        "combina_ocasioes": true,
+        "travel_score": 9,
+        "nota": "Excelente para viagem — não amassa, seca rápido, leve. Limitação é a baixa respirabilidade em calor."
+      },
+      "gramatura": {
+        "leve": "Microfibra: leve, wicking, roupa esportiva.",
+        "media": "Camisas e forros. Boa recuperação de forma.",
+        "pesada": "Casacos e estrutura. Pode reter calor."
+      },
+      "cuidados": {
+        "lavagem": "Máquina água fria. Usar saco de lavagem reduz libertação de microplásticos.",
+        "secagem": "Seca rápido ao ar. Evitar secadora muito quente (derrete/deforma).",
+        "ferro": "Ferro baixo ou nenhum — termoplástico, derrete com calor alto.",
+        "encolhimento": "Risco baixo — estável dimensionalmente.",
+        "deformacao": "Risco baixo — recupera forma bem."
+      },
+      "vida_util": {
+        "ocasional": "8-15 anos",
+        "frequente": "4-7 anos",
+        "intenso": "3-5 anos",
+        "ressalva": "Muito durável fisicamente, mas pode ganhar pilling e reter odor antes de desgastar."
+      },
+      "comportamento_em_misturas": [
+        {
+          "par": "poliéster + algodão",
+          "melhora": [
+            "resistência",
+            "secagem",
+            "menos amassa"
+          ],
+          "piora": [
+            "respirabilidade do algodão puro"
+          ],
+          "igual": [],
+          "nota": "Polialgodão: combina durabilidade do poliéster com conforto do algodão."
+        },
+        {
+          "par": "poliéster + viscose + elastano",
+          "melhora": [
+            "caimento",
+            "stretch",
+            "estrutura"
+          ],
+          "piora": [],
+          "igual": [],
+          "nota": "Trio comum em roupa social e vestidos — caimento fluido com baixa manutenção."
+        },
+        {
+          "par": "poliéster + lã",
+          "melhora": [
+            "resistência",
+            "menos amassa",
+            "preço"
+          ],
+          "piora": [
+            "respirabilidade",
+            "toque da lã"
+          ],
+          "igual": [],
+          "nota": "Comum em alfaiataria de entrada; mais durável mas menos nobre que lã pura."
+        }
+      ],
+      "fontes": [
+        "ASTM D1909 (MR 0,4%)",
+        "ISO 12947 (abrasão alta)",
+        "Textile Exchange 2025 (88% fóssil)"
+      ]
+    },
+    "la": {
+      "id": "la",
+      "nome": "Lã",
+      "categoria": "natural",
+      "origem": "proteína animal (queratina, ovelha)",
+      "fibras_similares": [
+        "caxemira",
+        "alpaca",
+        "merino"
+      ],
+      "propriedades": {
+        "respirabilidade": 8,
+        "isolamento_termico": 9,
+        "elasticidade": 7,
+        "resistencia": 6,
+        "bolinhas": 5,
+        "amassa": 8,
+        "absorcao_umidade": 9,
+        "secagem": 3,
+        "conforto": 8,
+        "peso": 5,
+        "facilidade_manutencao": 4,
+        "durabilidade": 7,
+        "sustentabilidade": 6
+      },
+      "propriedades_notas": {
+        "isolamento_termico": "Estrutura crimpada retém ar — melhor isolante natural. Aquece mesmo húmida.",
+        "absorcao_umidade": "MR 16% (ASTM D1909) — absorve até 1/3 do peso sem parecer molhada.",
+        "amassa": "Recuperação elástica natural — vincos saem pendurando ou com vapor.",
+        "bolinhas": "Fibras curtas (carded) formam pills; lã penteada (worsted) resiste mais.",
+        "facilidade_manutencao": "Exige lavagem delicada; encolhe e feltra com calor e fricção.",
+        "sustentabilidade": "Renovável e biodegradável, mas pecuária tem pegada de carbono. Responsible Wool Standard melhora."
+      },
+      "aplicacoes_ideais": {
+        "camiseta": 3,
+        "camisa": 4,
+        "blazer": 9,
+        "calca": 7,
+        "vestido": 6,
+        "casaco": 9,
+        "roupa_esportiva": 5,
+        "roupa_intima": 2
+      },
+      "climas": {
+        "verao": 2,
+        "inverno": 9,
+        "meia_estacao": 7,
+        "umido": 6,
+        "seco": 7
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": false,
+        "amassa": false,
+        "seca_rapido": false,
+        "suporta_uso_intenso": true,
+        "funciona_mala_capsula": true,
+        "combina_ocasioes": true,
+        "travel_score": 7,
+        "nota": "Não amassa e regula odor (pode usar várias vezes sem lavar), mas é volumosa e seca devagar. Merino é a melhor para viagem."
+      },
+      "gramatura": {
+        "leve": "Merino tropical/fresco lã: 150-200 g/m², usável em meia estação.",
+        "media": "Flanela, tweed leve: blazers e calças.",
+        "pesada": "Melton, casacos: 400+ g/m², muito quente."
+      },
+      "cuidados": {
+        "lavagem": "Lavar à mão ou ciclo lã, água fria. Nunca esfregar.",
+        "secagem": "Secar plana — pendurada deforma com o próprio peso molhado.",
+        "ferro": "Vapor, nunca ferro direto quente.",
+        "encolhimento": "Risco alto — feltra com calor + fricção + água.",
+        "deformacao": "Deforma se secar pendurada molhada."
+      },
+      "vida_util": {
+        "ocasional": "10-20 anos",
+        "frequente": "5-10 anos",
+        "intenso": "3-5 anos",
+        "ressalva": "Lã de qualidade (worsted, merino fino) dura décadas com cuidado. Traças são risco de armazenamento."
+      },
+      "comportamento_em_misturas": [
+        {
+          "par": "lã + poliamida",
+          "melhora": [
+            "resistência",
+            "menos bolinhas",
+            "durabilidade"
+          ],
+          "piora": [],
+          "igual": [
+            "isolamento"
+          ],
+          "nota": "10-20% poliamida reforça malhas de lã (meias, knitwear) sem perder calor."
+        },
+        {
+          "par": "lã + elastano",
+          "melhora": [
+            "elasticidade",
+            "recuperação"
+          ],
+          "piora": [],
+          "igual": [],
+          "nota": "Pequena % dá stretch a calças e blazers de lã."
+        },
+        {
+          "par": "lã + acrílico",
+          "melhora": [
+            "preço",
+            "facilidade de lavagem"
+          ],
+          "piora": [
+            "isolamento",
+            "respirabilidade",
+            "qualidade"
+          ],
+          "igual": [],
+          "nota": "Acrílico barateia mas reduz a performance térmica da lã pura."
+        }
+      ],
+      "fontes": [
+        "ASTM D1909 (MR 16%)",
+        "ISO 12945 (pilling worsted vs carded)",
+        "Responsible Wool Standard"
+      ]
+    },
+    "lyocell": {
+      "id": "lyocell",
+      "nome": "Lyocell (TENCEL™)",
+      "categoria": "semi-sintetico",
+      "origem": "celulose regenerada de madeira (MMCF), processo de circuito fechado",
+      "fibras_similares": [
+        "modal",
+        "viscose",
+        "bambu"
+      ],
+      "propriedades": {
+        "respirabilidade": 8,
+        "isolamento_termico": 4,
+        "elasticidade": 3,
+        "resistencia": 7,
+        "bolinhas": 7,
+        "amassa": 5,
+        "absorcao_umidade": 8,
+        "secagem": 5,
+        "conforto": 9,
+        "peso": 5,
+        "facilidade_manutencao": 7,
+        "durabilidade": 7,
+        "sustentabilidade": 9
+      },
+      "propriedades_notas": {
+        "respirabilidade": "MR ~11,5% — gere humidade melhor que algodão, toque fresco.",
+        "resistencia": "Mais forte que viscose, inclusive quando molhado (vantagem sobre rayon comum).",
+        "conforto": "Superfície lisa, toque sedoso, hipoalergénico.",
+        "amassa": "Amassa menos que linho mas mais que sintéticos; vinca moderadamente.",
+        "sustentabilidade": "Circuito fechado recupera ~99% do solvente (Textile Exchange). MMCF de menor impacto. TENCEL é certificado/rastreável."
+      },
+      "aplicacoes_ideais": {
+        "camiseta": 8,
+        "camisa": 8,
+        "blazer": 6,
+        "calca": 7,
+        "vestido": 9,
+        "casaco": 4,
+        "roupa_esportiva": 6,
+        "roupa_intima": 8
+      },
+      "climas": {
+        "verao": 8,
+        "inverno": 4,
+        "meia_estacao": 8,
+        "umido": 7,
+        "seco": 7
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": true,
+        "amassa": true,
+        "seca_rapido": false,
+        "suporta_uso_intenso": true,
+        "funciona_mala_capsula": true,
+        "combina_ocasioes": true,
+        "travel_score": 7,
+        "nota": "Leve, versátil e regula humidade, mas amassa moderado — leve dobrada ou num rolo. Seca mais devagar que sintéticos."
+      },
+      "gramatura": {
+        "leve": "Blusas fluidas e forros — caimento líquido.",
+        "media": "Camisas e vestidos estruturados.",
+        "pesada": "Misturada com algodão em denim sustentável."
+      },
+      "cuidados": {
+        "lavagem": "Máquina ciclo delicado água fria. Geralmente estável.",
+        "secagem": "Ao ar. Secadora baixa.",
+        "ferro": "Ferro médio com vapor.",
+        "encolhimento": "Risco baixo-médio — mais estável que viscose.",
+        "deformacao": "Boa recuperação; melhor que viscose."
+      },
+      "vida_util": {
+        "ocasional": "6-12 anos",
+        "frequente": "3-6 anos",
+        "intenso": "2-4 anos",
+        "ressalva": "Mais durável que viscose graças à resistência a húmido. Qualidade do acabamento importa."
+      },
+      "comportamento_em_misturas": [
+        {
+          "par": "lyocell + algodão",
+          "melhora": [
+            "toque",
+            "caimento",
+            "resistência a húmido"
+          ],
+          "piora": [],
+          "igual": [
+            "respirabilidade"
+          ],
+          "nota": "Eleva o algodão com toque mais sedoso e fresco."
+        },
+        {
+          "par": "lyocell + elastano",
+          "melhora": [
+            "elasticidade"
+          ],
+          "piora": [],
+          "igual": [
+            "conforto"
+          ],
+          "nota": "Dá stretch a vestidos e camisas fluidas."
+        },
+        {
+          "par": "lyocell + poliéster",
+          "melhora": [
+            "menos amassa",
+            "secagem",
+            "estrutura"
+          ],
+          "piora": [
+            "sustentabilidade",
+            "toque natural"
+          ],
+          "igual": [],
+          "nota": "Pequena % de poliéster reduz vincos do lyocell; muito poliéster anula o benefício ecológico."
+        }
+      ],
+      "fontes": [
+        "Textile Exchange 2025 (MMCF circuito fechado)",
+        "ASTM D1909 (MR ~11,5%)",
+        "TENCEL technical documentation (Lenzing)"
+      ]
+    },
+    "viscose": {
+      "id": "viscose",
+      "nome": "Viscose (Rayon)",
+      "categoria": "semi-sintetico",
+      "origem": "celulose regenerada (processo viscose convencional)",
+      "fibras_similares": [
+        "modal",
+        "lyocell",
+        "bambu"
+      ],
+      "propriedades": {
+        "respirabilidade": 8,
+        "isolamento_termico": 3,
+        "elasticidade": 3,
+        "resistencia": 3,
+        "bolinhas": 6,
+        "amassa": 4,
+        "absorcao_umidade": 8,
+        "secagem": 5,
+        "conforto": 8,
+        "peso": 4,
+        "facilidade_manutencao": 4,
+        "durabilidade": 3,
+        "sustentabilidade": 4
+      },
+      "propriedades_notas": {
+        "resistencia": "Perde até 50% da resistência quando molhada — ponto fraco crítico.",
+        "absorcao_umidade": "MR ~13% (ASTM D1909), muito absorvente.",
+        "durabilidade": "Frágil, especialmente húmida; encolhe e deforma.",
+        "sustentabilidade": "Processo viscose convencional usa solventes poluentes; versões EcoVero/circuito fechado são melhores."
+      },
+      "aplicacoes_ideais": {
+        "camiseta": 6,
+        "camisa": 7,
+        "blazer": 4,
+        "calca": 5,
+        "vestido": 8,
+        "casaco": 3,
+        "roupa_esportiva": 3,
+        "roupa_intima": 6
+      },
+      "climas": {
+        "verao": 8,
+        "inverno": 3,
+        "meia_estacao": 6,
+        "umido": 4,
+        "seco": 7
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": true,
+        "amassa": true,
+        "seca_rapido": false,
+        "suporta_uso_intenso": false,
+        "funciona_mala_capsula": true,
+        "combina_ocasioes": true,
+        "travel_score": 5,
+        "nota": "Caimento bonito e leve, mas amassa, encolhe e é frágil húmida. Cuidado na lavagem em viagem."
+      },
+      "gramatura": {
+        "leve": "Blusas fluidas, forros — caimento líquido.",
+        "media": "Vestidos estruturados.",
+        "pesada": "Raro; perde vantagem de caimento."
+      },
+      "cuidados": {
+        "lavagem": "Lavar à mão ou ciclo delicado frio; manuseio suave pois enfraquece molhada.",
+        "secagem": "Secar plana à sombra; pendurada deforma.",
+        "ferro": "Ferro médio com pano.",
+        "encolhimento": "Risco alto.",
+        "deformacao": "Risco alto, sobretudo molhada."
+      },
+      "vida_util": {
+        "ocasional": "4-8 anos",
+        "frequente": "2-3 anos",
+        "intenso": "1-2 anos",
+        "ressalva": "Vida curta entre semi-sintéticos. Lyocell/modal duram mais pela resistência a húmido."
+      },
+      "comportamento_em_misturas": [
+        {
+          "par": "viscose + elastano",
+          "melhora": [
+            "elasticidade",
+            "recuperação"
+          ],
+          "piora": [],
+          "igual": [
+            "caimento"
+          ],
+          "nota": "Stretch em vestidos e blusas."
+        },
+        {
+          "par": "viscose + poliéster",
+          "melhora": [
+            "resistência",
+            "menos amassa",
+            "durabilidade"
+          ],
+          "piora": [
+            "respirabilidade"
+          ],
+          "igual": [],
+          "nota": "Poliéster compensa a fragilidade da viscose."
+        }
+      ],
+      "fontes": [
+        "ASTM D1909 (MR 13%)",
+        "ASTM D3822 (resistência a húmido baixa)",
+        "Textile Exchange 2025"
+      ]
+    },
+    "linho": {
+      "id": "linho",
+      "nome": "Linho",
+      "categoria": "natural",
+      "origem": "celulose vegetal (caule do linho, Linum usitatissimum)",
+      "fibras_similares": [
+        "algodao",
+        "rami",
+        "canhamo"
+      ],
+      "propriedades": {
+        "respirabilidade": 10,
+        "isolamento_termico": 3,
+        "elasticidade": 1,
+        "resistencia": 8,
+        "bolinhas": 8,
+        "amassa": 1,
+        "absorcao_umidade": 9,
+        "secagem": 7,
+        "conforto": 7,
+        "peso": 4,
+        "facilidade_manutencao": 5,
+        "durabilidade": 8,
+        "sustentabilidade": 8
+      },
+      "propriedades_notas": {
+        "respirabilidade": "A mais respirável das fibras comuns; MR ~12%, dissipa calor rapidamente.",
+        "amassa": "Amassa extremamente — característica intrínseca, recuperação de vincos quase nula.",
+        "resistencia": "Tenacidade alta, mais forte que algodão; fica mais forte molhado.",
+        "sustentabilidade": "Cultivo de baixo input (pouca água/pesticida), fibra biodegradável."
+      },
+      "aplicacoes_ideais": {
+        "camiseta": 7,
+        "camisa": 9,
+        "blazer": 7,
+        "calca": 7,
+        "vestido": 8,
+        "casaco": 3,
+        "roupa_esportiva": 3,
+        "roupa_intima": 4
+      },
+      "climas": {
+        "verao": 10,
+        "inverno": 2,
+        "meia_estacao": 6,
+        "umido": 5,
+        "seco": 9
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": true,
+        "amassa": true,
+        "seca_rapido": true,
+        "suporta_uso_intenso": true,
+        "funciona_mala_capsula": true,
+        "combina_ocasioes": true,
+        "travel_score": 6,
+        "nota": "Fresco, leve, durável e seca rápido — mas amassa muito. Aceite os vincos como estética ou leve a vapor."
+      },
+      "gramatura": {
+        "leve": "Camisas e vestidos de verão — translúcido, muito fresco.",
+        "media": "Calças e blazers desestruturados.",
+        "pesada": "Peças utilitárias; menos comum."
+      },
+      "cuidados": {
+        "lavagem": "Máquina ciclo suave; amacia a cada lavagem.",
+        "secagem": "Ao ar; secadora amassa mais.",
+        "ferro": "Ferro quente com vapor enquanto húmido.",
+        "encolhimento": "Risco médio na primeira lavagem.",
+        "deformacao": "Baixo."
+      },
+      "vida_util": {
+        "ocasional": "10-20 anos",
+        "frequente": "5-10 anos",
+        "intenso": "3-6 anos",
+        "ressalva": "Extremamente durável; peças de linho passam de geração. Qualidade do fio define o toque."
+      },
+      "comportamento_em_misturas": [
+        {
+          "par": "linho + algodão",
+          "melhora": [
+            "menos amassa",
+            "preço",
+            "toque mais macio"
+          ],
+          "piora": [
+            "frescor levemente"
+          ],
+          "igual": [],
+          "nota": "Reduz vincos e custo mantendo respirabilidade."
+        },
+        {
+          "par": "linho + viscose",
+          "melhora": [
+            "caimento",
+            "menos rígido"
+          ],
+          "piora": [
+            "durabilidade"
+          ],
+          "igual": [
+            "amassa"
+          ],
+          "nota": "Caimento mais fluido para vestidos."
+        }
+      ],
+      "fontes": [
+        "ASTM D1909 (MR 12%)",
+        "literatura têxtil (tenacidade > algodão)",
+        "Textile Exchange 2025"
+      ]
+    },
+    "seda": {
+      "id": "seda",
+      "nome": "Seda",
+      "categoria": "natural",
+      "origem": "proteína animal (filamento do bicho-da-seda, fibroína)",
+      "fibras_similares": [
+        "caxemira"
+      ],
+      "propriedades": {
+        "respirabilidade": 7,
+        "isolamento_termico": 6,
+        "elasticidade": 4,
+        "resistencia": 5,
+        "bolinhas": 7,
+        "amassa": 5,
+        "absorcao_umidade": 7,
+        "secagem": 5,
+        "conforto": 10,
+        "peso": 3,
+        "facilidade_manutencao": 2,
+        "durabilidade": 4,
+        "sustentabilidade": 5
+      },
+      "propriedades_notas": {
+        "conforto": "Toque mais luxuoso entre as fibras; termorregulador (fresco no calor, quente no frio).",
+        "resistencia": "Forte a seco mas enfraquece molhada e degrada com luz solar e suor.",
+        "facilidade_manutencao": "Muito exigente — lavar à mão, sensível a manchas e desodorante.",
+        "sustentabilidade": "Renovável e biodegradável, mas sericultura é intensiva; seda da paz (peace silk) é alternativa."
+      },
+      "aplicacoes_ideais": {
+        "camiseta": 4,
+        "camisa": 7,
+        "blazer": 5,
+        "calca": 4,
+        "vestido": 9,
+        "casaco": 3,
+        "roupa_esportiva": 1,
+        "roupa_intima": 7
+      },
+      "climas": {
+        "verao": 7,
+        "inverno": 5,
+        "meia_estacao": 7,
+        "umido": 3,
+        "seco": 7
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": true,
+        "amassa": true,
+        "seca_rapido": false,
+        "suporta_uso_intenso": false,
+        "funciona_mala_capsula": true,
+        "combina_ocasioes": true,
+        "travel_score": 4,
+        "nota": "Leve e elegante, mas delicada: mancha com suor, exige lavagem à mão. Mais para ocasiões que uso intenso."
+      },
+      "gramatura": {
+        "leve": "Pongê, chiffon: blusas e vestidos fluidos.",
+        "media": "Cetim, crepe: vestidos estruturados.",
+        "pesada": "Dupioni: peças com corpo."
+      },
+      "cuidados": {
+        "lavagem": "Lavar à mão água fria com sabão neutro; nunca torcer.",
+        "secagem": "Plana à sombra; sol degrada.",
+        "ferro": "Ferro baixo pelo avesso.",
+        "encolhimento": "Risco médio.",
+        "deformacao": "Médio se mal seca."
+      },
+      "vida_util": {
+        "ocasional": "8-15 anos",
+        "frequente": "3-6 anos",
+        "intenso": "1-3 anos",
+        "ressalva": "Com cuidado dura muito; suor, perfume e sol são os maiores inimigos."
+      },
+      "comportamento_em_misturas": [
+        {
+          "par": "seda + elastano",
+          "melhora": [
+            "elasticidade",
+            "ajuste"
+          ],
+          "piora": [
+            "pureza do toque"
+          ],
+          "igual": [],
+          "nota": "Pequena % dá stretch a vestidos."
+        },
+        {
+          "par": "seda + algodão",
+          "melhora": [
+            "durabilidade",
+            "facilidade de cuidado"
+          ],
+          "piora": [
+            "brilho",
+            "toque"
+          ],
+          "igual": [],
+          "nota": "Mistura mais prática e resistente que seda pura."
+        }
+      ],
+      "fontes": [
+        "ASTM D1909 (MR ~11%)",
+        "literatura têxtil (degradação UV/suor)",
+        "peace silk (alternativa sustentável)"
+      ]
+    },
+    "caxemira": {
+      "id": "caxemira",
+      "nome": "Caxemira",
+      "categoria": "natural",
+      "origem": "proteína animal (subpelo da cabra caxemira)",
+      "fibras_similares": [
+        "la",
+        "alpaca",
+        "merino"
+      ],
+      "propriedades": {
+        "respirabilidade": 8,
+        "isolamento_termico": 10,
+        "elasticidade": 6,
+        "resistencia": 4,
+        "bolinhas": 4,
+        "amassa": 7,
+        "absorcao_umidade": 9,
+        "secagem": 3,
+        "conforto": 10,
+        "peso": 2,
+        "facilidade_manutencao": 3,
+        "durabilidade": 5,
+        "sustentabilidade": 4
+      },
+      "propriedades_notas": {
+        "isolamento_termico": "Isola até 3x mais que lã de ovelha com fração do peso.",
+        "conforto": "Fibra ultrafina (14-19 mícron), toque macio sem coçar.",
+        "bolinhas": "Propensa a pilling no início pela fibra curta e macia; estabiliza com uso.",
+        "durabilidade": "Delicada — fibra fina é menos resistente à abrasão que lã.",
+        "sustentabilidade": "Sobrepastoreio de cabras causa desertificação; Good Cashmere Standard mitiga."
+      },
+      "aplicacoes_ideais": {
+        "camiseta": 3,
+        "camisa": 2,
+        "blazer": 6,
+        "calca": 3,
+        "vestido": 5,
+        "casaco": 7,
+        "roupa_esportiva": 1,
+        "roupa_intima": 1
+      },
+      "climas": {
+        "verao": 1,
+        "inverno": 10,
+        "meia_estacao": 6,
+        "umido": 5,
+        "seco": 7
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": true,
+        "amassa": false,
+        "seca_rapido": false,
+        "suporta_uso_intenso": false,
+        "funciona_mala_capsula": true,
+        "combina_ocasioes": true,
+        "travel_score": 7,
+        "nota": "Leve, quente e compacta — ótima para viagem fria. Delicada: evite atrito que cause pilling."
+      },
+      "gramatura": {
+        "leve": "Tricô fino: suéteres leves, cachecóis.",
+        "media": "Suéteres e cardigans clássicos.",
+        "pesada": "Casacos de caxemira; luxo e calor máximo."
+      },
+      "cuidados": {
+        "lavagem": "Lavar à mão água fria com sabão de lã; ou seco profissional.",
+        "secagem": "Plana, nunca pendurada.",
+        "ferro": "Vapor leve.",
+        "encolhimento": "Risco alto com calor/fricção.",
+        "deformacao": "Estica se pendurada."
+      },
+      "vida_util": {
+        "ocasional": "10-20 anos",
+        "frequente": "5-8 anos",
+        "intenso": "2-4 anos",
+        "ressalva": "Caxemira de fios longos e finos dura décadas; peças baratas (fio curto) furam e pilam rápido."
+      },
+      "comportamento_em_misturas": [
+        {
+          "par": "caxemira + lã",
+          "melhora": [
+            "durabilidade",
+            "preço",
+            "menos pilling"
+          ],
+          "piora": [
+            "maciez levemente"
+          ],
+          "igual": [
+            "calor"
+          ],
+          "nota": "Mistura comum que torna a caxemira mais resistente e acessível."
+        },
+        {
+          "par": "caxemira + seda",
+          "melhora": [
+            "brilho",
+            "resistência",
+            "caimento"
+          ],
+          "piora": [],
+          "igual": [
+            "maciez"
+          ],
+          "nota": "Mistura nobre para tricô fino e cachecóis."
+        }
+      ],
+      "fontes": [
+        "literatura têxtil (finura 14-19 mícron)",
+        "ISO 12945 (pilling)",
+        "Good Cashmere Standard"
+      ]
+    },
+    "modal": {
+      "id": "modal",
+      "nome": "Modal",
+      "categoria": "semi-sintetico",
+      "origem": "celulose regenerada de faia (MMCF, processo modal)",
+      "fibras_similares": [
+        "lyocell",
+        "viscose",
+        "bambu"
+      ],
+      "propriedades": {
+        "respirabilidade": 8,
+        "isolamento_termico": 3,
+        "elasticidade": 3,
+        "resistencia": 5,
+        "bolinhas": 7,
+        "amassa": 6,
+        "absorcao_umidade": 8,
+        "secagem": 5,
+        "conforto": 9,
+        "peso": 4,
+        "facilidade_manutencao": 7,
+        "durabilidade": 5,
+        "sustentabilidade": 6
+      },
+      "propriedades_notas": {
+        "conforto": "Mais macio e sedoso que algodão; mantém maciez após muitas lavagens.",
+        "resistencia": "Mais resistente que viscose, inclusive húmido, por processo otimizado.",
+        "absorcao_umidade": "MR ~11,5%; absorve ~50% mais que algodão.",
+        "sustentabilidade": "Melhor que viscose convencional; TENCEL Modal (Lenzing) é certificado."
+      },
+      "aplicacoes_ideais": {
+        "camiseta": 9,
+        "camisa": 7,
+        "blazer": 4,
+        "calca": 5,
+        "vestido": 7,
+        "casaco": 3,
+        "roupa_esportiva": 6,
+        "roupa_intima": 9
+      },
+      "climas": {
+        "verao": 8,
+        "inverno": 3,
+        "meia_estacao": 7,
+        "umido": 6,
+        "seco": 7
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": true,
+        "amassa": true,
+        "seca_rapido": false,
+        "suporta_uso_intenso": true,
+        "funciona_mala_capsula": true,
+        "combina_ocasioes": true,
+        "travel_score": 7,
+        "nota": "Macio, resistente a lavagens e versátil; amassa moderado. Ótimo para básicos de viagem."
+      },
+      "gramatura": {
+        "leve": "Camisetas e roupa íntima — toque sedoso.",
+        "media": "Vestidos e pijamas.",
+        "pesada": "Misturado em moletons premium."
+      },
+      "cuidados": {
+        "lavagem": "Máquina morna; estável e fácil.",
+        "secagem": "Ao ar ou secadora baixa.",
+        "ferro": "Ferro médio.",
+        "encolhimento": "Risco baixo.",
+        "deformacao": "Boa recuperação."
+      },
+      "vida_util": {
+        "ocasional": "6-12 anos",
+        "frequente": "3-6 anos",
+        "intenso": "2-4 anos",
+        "ressalva": "Mantém maciez e cor por mais tempo que algodão; durabilidade depende do acabamento."
+      },
+      "comportamento_em_misturas": [
+        {
+          "par": "modal + algodão",
+          "melhora": [
+            "maciez",
+            "retenção de cor",
+            "menos encolhe"
+          ],
+          "piora": [],
+          "igual": [
+            "respirabilidade"
+          ],
+          "nota": "Eleva camisetas básicas com toque mais sedoso."
+        },
+        {
+          "par": "modal + elastano",
+          "melhora": [
+            "elasticidade"
+          ],
+          "piora": [],
+          "igual": [
+            "conforto"
+          ],
+          "nota": "Roupa íntima e camisetas justas."
+        }
+      ],
+      "fontes": [
+        "ASTM D1909 (MR ~11,5%)",
+        "TENCEL Modal technical docs (Lenzing)",
+        "Textile Exchange 2025"
+      ]
+    },
+    "poliamida": {
+      "id": "poliamida",
+      "nome": "Poliamida (Nylon)",
+      "categoria": "sintetico",
+      "origem": "polímero sintético de base fóssil (poliamida 6 / 6,6)",
+      "fibras_similares": [
+        "poliester",
+        "elastano"
+      ],
+      "propriedades": {
+        "respirabilidade": 4,
+        "isolamento_termico": 5,
+        "elasticidade": 7,
+        "resistencia": 10,
+        "bolinhas": 6,
+        "amassa": 8,
+        "absorcao_umidade": 3,
+        "secagem": 8,
+        "conforto": 6,
+        "peso": 6,
+        "facilidade_manutencao": 8,
+        "durabilidade": 9,
+        "sustentabilidade": 3
+      },
+      "propriedades_notas": {
+        "resistencia": "A fibra de maior tenacidade entre as comuns; excelente resistência à abrasão.",
+        "elasticidade": "Boa recuperação elástica, mais que poliéster.",
+        "absorcao_umidade": "MR ~4,5% — mais que poliéster, menos que naturais.",
+        "conforto": "Toque mais macio e sedoso que poliéster.",
+        "sustentabilidade": "Base fóssil, libera microplásticos; ECONYL (reciclado) reduz impacto."
+      },
+      "aplicacoes_ideais": {
+        "camiseta": 4,
+        "camisa": 4,
+        "blazer": 4,
+        "calca": 5,
+        "vestido": 5,
+        "casaco": 6,
+        "roupa_esportiva": 9,
+        "roupa_intima": 6
+      },
+      "climas": {
+        "verao": 4,
+        "inverno": 6,
+        "meia_estacao": 6,
+        "umido": 6,
+        "seco": 6
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": true,
+        "amassa": false,
+        "seca_rapido": true,
+        "suporta_uso_intenso": true,
+        "funciona_mala_capsula": true,
+        "combina_ocasioes": true,
+        "travel_score": 8,
+        "nota": "Muito resistente, leve, seca rápido e não amassa. Limitação é respirabilidade em calor."
+      },
+      "gramatura": {
+        "leve": "Meias, lingerie, roupa esportiva — resistência e elasticidade.",
+        "media": "Jaquetas leves, forros.",
+        "pesada": "Mochilas, peças técnicas."
+      },
+      "cuidados": {
+        "lavagem": "Máquina fria; saco de lavagem reduz microplásticos.",
+        "secagem": "Seca rápido ao ar.",
+        "ferro": "Ferro baixo — termoplástico.",
+        "encolhimento": "Risco baixo.",
+        "deformacao": "Baixo; recupera bem."
+      },
+      "vida_util": {
+        "ocasional": "8-15 anos",
+        "frequente": "4-8 anos",
+        "intenso": "3-6 anos",
+        "ressalva": "Fisicamente muito durável; pode amarelar com o tempo e luz."
+      },
+      "comportamento_em_misturas": [
+        {
+          "par": "poliamida + elastano",
+          "melhora": [
+            "elasticidade",
+            "ajuste",
+            "recuperação"
+          ],
+          "piora": [],
+          "igual": [
+            "resistência"
+          ],
+          "nota": "Base de roupa esportiva, meias e lingerie de qualidade."
+        },
+        {
+          "par": "poliamida + lã",
+          "melhora": [
+            "durabilidade",
+            "menos pilling"
+          ],
+          "piora": [],
+          "igual": [
+            "calor"
+          ],
+          "nota": "Reforça malhas de lã sem perder isolamento."
+        }
+      ],
+      "fontes": [
+        "ASTM D3822 (tenacidade máxima)",
+        "ASTM D1909 (MR 4,5%)",
+        "ECONYL (reciclado)"
+      ]
+    },
+    "elastano": {
+      "id": "elastano",
+      "nome": "Elastano (Lycra/Spandex)",
+      "categoria": "sintetico",
+      "origem": "polímero poliuretano sintético elastomérico",
+      "fibras_similares": [
+        "poliamida"
+      ],
+      "propriedades": {
+        "respirabilidade": 3,
+        "isolamento_termico": 4,
+        "elasticidade": 10,
+        "resistencia": 5,
+        "bolinhas": 6,
+        "amassa": 8,
+        "absorcao_umidade": 2,
+        "secagem": 8,
+        "conforto": 6,
+        "peso": 5,
+        "facilidade_manutencao": 6,
+        "durabilidade": 5,
+        "sustentabilidade": 2
+      },
+      "propriedades_notas": {
+        "elasticidade": "Estica até 5-8x e recupera — sem rival nesta propriedade.",
+        "uso": "Quase nunca usado puro; 2-20% em mistura confere stretch.",
+        "durabilidade": "Degrada com calor, cloro e tempo — perde elasticidade antes do tecido base.",
+        "sustentabilidade": "Difícil de reciclar e dificulta reciclagem do tecido todo; alternativas bio em desenvolvimento."
+      },
+      "aplicacoes_ideais": {
+        "camiseta": 5,
+        "camisa": 5,
+        "blazer": 5,
+        "calca": 6,
+        "vestido": 6,
+        "casaco": 4,
+        "roupa_esportiva": 9,
+        "roupa_intima": 8
+      },
+      "climas": {
+        "verao": 4,
+        "inverno": 5,
+        "meia_estacao": 6,
+        "umido": 5,
+        "seco": 6
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": true,
+        "amassa": false,
+        "seca_rapido": true,
+        "suporta_uso_intenso": true,
+        "funciona_mala_capsula": true,
+        "combina_ocasioes": true,
+        "travel_score": 7,
+        "nota": "Em pequena %, dá conforto e ajuste a peças de viagem. Sozinho não se usa."
+      },
+      "gramatura": {
+        "leve": "Sempre em mistura: 2-5% em jeans/camisas dá conforto.",
+        "media": "5-15% em activewear.",
+        "pesada": "15-25% em peças de compressão."
+      },
+      "cuidados": {
+        "lavagem": "Máquina fria; calor degrada a elasticidade.",
+        "secagem": "Ao ar — secadora quente arruína.",
+        "ferro": "Evitar ferro direto.",
+        "encolhimento": "Baixo.",
+        "deformacao": "Perde elasticidade com calor e cloro (piscina)."
+      },
+      "vida_util": {
+        "ocasional": "5-10 anos",
+        "frequente": "2-4 anos",
+        "intenso": "1-3 anos",
+        "ressalva": "É o primeiro componente a falhar numa mistura — a peça 'arria' quando o elastano morre."
+      },
+      "comportamento_em_misturas": [
+        {
+          "par": "elastano + algodão",
+          "melhora": [
+            "conforto",
+            "ajuste"
+          ],
+          "piora": [
+            "respirabilidade levemente"
+          ],
+          "igual": [],
+          "nota": "2-5% transforma jeans e camisetas rígidas em confortáveis."
+        },
+        {
+          "par": "elastano + poliamida",
+          "melhora": [
+            "compressão",
+            "recuperação"
+          ],
+          "piora": [],
+          "igual": [],
+          "nota": "Base do activewear de performance."
+        }
+      ],
+      "fontes": [
+        "literatura têxtil (recuperação elástica)",
+        "degradação por cloro/calor documentada"
+      ]
+    },
+    "acrilico": {
+      "id": "acrilico",
+      "nome": "Acrílico",
+      "categoria": "sintetico",
+      "origem": "polímero sintético de base fóssil (poliacrilonitrila)",
+      "fibras_similares": [
+        "la",
+        "poliester"
+      ],
+      "propriedades": {
+        "respirabilidade": 3,
+        "isolamento_termico": 7,
+        "elasticidade": 4,
+        "resistencia": 4,
+        "bolinhas": 2,
+        "amassa": 7,
+        "absorcao_umidade": 2,
+        "secagem": 8,
+        "conforto": 5,
+        "peso": 5,
+        "facilidade_manutencao": 7,
+        "durabilidade": 4,
+        "sustentabilidade": 2
+      },
+      "propriedades_notas": {
+        "isolamento_termico": "Imita a lã no calor a baixo custo — usado como substituto.",
+        "bolinhas": "Forma bolinhas com muita facilidade — ponto fraco mais visível.",
+        "absorcao_umidade": "MR ~1,5%, quase não absorve; pode abafar e reter odor.",
+        "sustentabilidade": "Base fóssil, libera microplásticos, difícil reciclagem."
+      },
+      "aplicacoes_ideais": {
+        "camiseta": 3,
+        "camisa": 2,
+        "blazer": 3,
+        "calca": 3,
+        "vestido": 4,
+        "casaco": 5,
+        "roupa_esportiva": 3,
+        "roupa_intima": 2
+      },
+      "climas": {
+        "verao": 2,
+        "inverno": 7,
+        "meia_estacao": 5,
+        "umido": 4,
+        "seco": 6
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": true,
+        "amassa": false,
+        "seca_rapido": true,
+        "suporta_uso_intenso": false,
+        "funciona_mala_capsula": true,
+        "combina_ocasioes": false,
+        "travel_score": 5,
+        "nota": "Leve, quente e seca rápido, mas bola rápido e pode abafar. Alternativa econômica à lã."
+      },
+      "gramatura": {
+        "leve": "Tricô leve de baixo custo.",
+        "media": "Suéteres e cardigans baratos.",
+        "pesada": "Cobertores, mantas."
+      },
+      "cuidados": {
+        "lavagem": "Máquina fria.",
+        "secagem": "Seca rápido; evitar calor alto (deforma).",
+        "ferro": "Ferro baixo — termoplástico.",
+        "encolhimento": "Baixo.",
+        "deformacao": "Pode esticar e não recuperar."
+      },
+      "vida_util": {
+        "ocasional": "4-8 anos",
+        "frequente": "2-3 anos",
+        "intenso": "1-2 anos",
+        "ressalva": "O pilling costuma 'matar' a aparência antes da fibra desgastar."
+      },
+      "comportamento_em_misturas": [
+        {
+          "par": "acrílico + lã",
+          "melhora": [
+            "preço",
+            "facilidade de lavagem"
+          ],
+          "piora": [
+            "qualidade",
+            "isolamento",
+            "pilling"
+          ],
+          "igual": [],
+          "nota": "Barateia a lã mas reduz performance e aumenta bolinhas."
+        },
+        {
+          "par": "acrílico + poliéster",
+          "melhora": [
+            "resistência",
+            "menos pilling"
+          ],
+          "piora": [],
+          "igual": [
+            "isolamento"
+          ],
+          "nota": "Mistura econômica para tricô casual."
+        }
+      ],
+      "fontes": [
+        "ASTM D1909 (MR 1,5%)",
+        "ISO 12945 (pilling alto)"
+      ]
+    },
+    "algodao_organico": {
+      "id": "algodao_organico",
+      "nome": "Algodão Orgânico",
+      "categoria": "natural",
+      "origem": "celulose vegetal cultivada sem pesticidas sintéticos (certificável GOTS)",
+      "fibras_similares": [
+        "algodao",
+        "linho"
+      ],
+      "propriedades": {
+        "respirabilidade": 9,
+        "isolamento_termico": 4,
+        "elasticidade": 2,
+        "resistencia": 6,
+        "bolinhas": 7,
+        "amassa": 3,
+        "absorcao_umidade": 8,
+        "secagem": 3,
+        "conforto": 9,
+        "peso": 5,
+        "facilidade_manutencao": 8,
+        "durabilidade": 6,
+        "sustentabilidade": 7
+      },
+      "propriedades_notas": {
+        "propriedades_fisicas": "Idênticas ao algodão convencional — a diferença está no cultivo, não na fibra.",
+        "sustentabilidade": "Sem pesticidas/fertilizantes sintéticos; menor impacto na água e solo. GOTS certifica toda a cadeia."
+      },
+      "aplicacoes_ideais": {
+        "camiseta": 9,
+        "camisa": 8,
+        "blazer": 4,
+        "calca": 6,
+        "vestido": 7,
+        "casaco": 3,
+        "roupa_esportiva": 4,
+        "roupa_intima": 9
+      },
+      "climas": {
+        "verao": 9,
+        "inverno": 3,
+        "meia_estacao": 7,
+        "umido": 4,
+        "seco": 8
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": false,
+        "amassa": true,
+        "seca_rapido": false,
+        "suporta_uso_intenso": true,
+        "funciona_mala_capsula": true,
+        "combina_ocasioes": true,
+        "travel_score": 6,
+        "nota": "Mesmo comportamento do algodão comum em viagem; vantagem é ambiental, não funcional."
+      },
+      "gramatura": {
+        "leve": "Camisetas e roupa íntima.",
+        "media": "Camisas e vestidos.",
+        "pesada": "Calças e casacos."
+      },
+      "cuidados": {
+        "lavagem": "Igual ao algodão; água fria a morna.",
+        "secagem": "Ao ar preserva fibra.",
+        "ferro": "Tolera ferro quente.",
+        "encolhimento": "Médio se não sanforizado.",
+        "deformacao": "Em malha sem elastano."
+      },
+      "vida_util": {
+        "ocasional": "5-10 anos",
+        "frequente": "2-4 anos",
+        "intenso": "1-2 anos",
+        "ressalva": "Durabilidade igual ao convencional; cuidado e gramatura é que mandam."
+      },
+      "comportamento_em_misturas": [
+        {
+          "par": "algodão orgânico + elastano",
+          "melhora": [
+            "elasticidade"
+          ],
+          "piora": [
+            "reciclabilidade"
+          ],
+          "igual": [
+            "conforto"
+          ],
+          "nota": "Mesmo efeito do algodão comum + stretch."
+        }
+      ],
+      "fontes": [
+        "GOTS (Global Organic Textile Standard)",
+        "Textile Exchange 2025 (menor impacto que convencional)"
+      ]
+    },
+    "poliester_reciclado": {
+      "id": "poliester_reciclado",
+      "nome": "Poliéster Reciclado (rPET)",
+      "categoria": "sintetico",
+      "origem": "PET reciclado (98% de garrafas plásticas)",
+      "fibras_similares": [
+        "poliester",
+        "poliamida"
+      ],
+      "propriedades": {
+        "respirabilidade": 3,
+        "isolamento_termico": 5,
+        "elasticidade": 6,
+        "resistencia": 9,
+        "bolinhas": 4,
+        "amassa": 8,
+        "absorcao_umidade": 1,
+        "secagem": 9,
+        "conforto": 4,
+        "peso": 7,
+        "facilidade_manutencao": 9,
+        "durabilidade": 9,
+        "sustentabilidade": 5
+      },
+      "propriedades_notas": {
+        "propriedades_fisicas": "Desempenho praticamente igual ao poliéster virgem.",
+        "sustentabilidade": "Reduz uso de petróleo virgem e desvia plástico de aterros, mas ainda libera microplásticos. Score acima do virgem mas não 'verde'.",
+        "limitacao": "Maioria vem de garrafas (98%), não de têxtil-para-têxtil; reciclagem em ciclo fechado ainda limitada."
+      },
+      "aplicacoes_ideais": {
+        "camiseta": 5,
+        "camisa": 5,
+        "blazer": 6,
+        "calca": 6,
+        "vestido": 6,
+        "casaco": 7,
+        "roupa_esportiva": 8,
+        "roupa_intima": 3
+      },
+      "climas": {
+        "verao": 3,
+        "inverno": 6,
+        "meia_estacao": 6,
+        "umido": 5,
+        "seco": 6
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": true,
+        "amassa": false,
+        "seca_rapido": true,
+        "suporta_uso_intenso": true,
+        "funciona_mala_capsula": true,
+        "combina_ocasioes": true,
+        "travel_score": 9,
+        "nota": "Mesmas vantagens de viagem do poliéster virgem, com menor pegada de produção."
+      },
+      "gramatura": {
+        "leve": "Activewear e camadas técnicas.",
+        "media": "Casacos e forros.",
+        "pesada": "Peças estruturadas."
+      },
+      "cuidados": {
+        "lavagem": "Fria; saco de lavagem reduz microplásticos.",
+        "secagem": "Rápida ao ar.",
+        "ferro": "Baixo.",
+        "encolhimento": "Baixo.",
+        "deformacao": "Baixo."
+      },
+      "vida_util": {
+        "ocasional": "8-15 anos",
+        "frequente": "4-7 anos",
+        "intenso": "3-5 anos",
+        "ressalva": "Durabilidade física igual ao virgem; pilling e odor antes do desgaste."
+      },
+      "comportamento_em_misturas": [
+        {
+          "par": "rPET + algodão",
+          "melhora": [
+            "resistência",
+            "secagem"
+          ],
+          "piora": [
+            "respirabilidade"
+          ],
+          "igual": [],
+          "nota": "Versão mais sustentável do polialgodão."
+        },
+        {
+          "par": "rPET + elastano",
+          "melhora": [
+            "stretch"
+          ],
+          "piora": [
+            "reciclabilidade"
+          ],
+          "igual": [],
+          "nota": "Activewear sustentável."
+        }
+      ],
+      "fontes": [
+        "Textile Exchange 2025 (rPET 98% garrafas)",
+        "GRS (Global Recycled Standard)"
+      ]
+    },
+    "merino": {
+      "id": "merino",
+      "nome": "Lã Merino",
+      "categoria": "natural",
+      "origem": "proteína animal (ovelha merino, fibra ultrafina <22 mícron)",
+      "fibras_similares": [
+        "la",
+        "caxemira",
+        "alpaca"
+      ],
+      "propriedades": {
+        "respirabilidade": 9,
+        "isolamento_termico": 9,
+        "elasticidade": 7,
+        "resistencia": 6,
+        "bolinhas": 6,
+        "amassa": 8,
+        "absorcao_umidade": 9,
+        "secagem": 4,
+        "conforto": 9,
+        "peso": 4,
+        "facilidade_manutencao": 6,
+        "durabilidade": 7,
+        "sustentabilidade": 6
+      },
+      "propriedades_notas": {
+        "conforto": "Fibra fina (<22 mícron) não coça como lã comum; pode usar junto à pele.",
+        "absorcao_umidade": "MR ~16%; absorve suor e regula temperatura excepcionalmente.",
+        "odor": "Antibacteriana natural — pode usar várias vezes sem lavar nem cheirar.",
+        "sustentabilidade": "Renovável; Responsible Wool Standard garante bem-estar animal e manejo do solo."
+      },
+      "aplicacoes_ideais": {
+        "camiseta": 7,
+        "camisa": 5,
+        "blazer": 6,
+        "calca": 5,
+        "vestido": 5,
+        "casaco": 7,
+        "roupa_esportiva": 8,
+        "roupa_intima": 6
+      },
+      "climas": {
+        "verao": 5,
+        "inverno": 9,
+        "meia_estacao": 8,
+        "umido": 7,
+        "seco": 8
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": true,
+        "amassa": false,
+        "seca_rapido": false,
+        "suporta_uso_intenso": true,
+        "funciona_mala_capsula": true,
+        "combina_ocasioes": true,
+        "travel_score": 9,
+        "nota": "A melhor fibra natural para viagem: regula temperatura, resiste a odor (lava menos), leve e não amassa."
+      },
+      "gramatura": {
+        "leve": "Camisetas merino 150-200 g/m²: base layer versátil.",
+        "media": "Suéteres e meias.",
+        "pesada": "Casacos e tricô grosso."
+      },
+      "cuidados": {
+        "lavagem": "Muitas peças aceitam ciclo lã na máquina; água fria.",
+        "secagem": "Plana.",
+        "ferro": "Vapor.",
+        "encolhimento": "Risco com calor/fricção.",
+        "deformacao": "Recupera bem se seca plana."
+      },
+      "vida_util": {
+        "ocasional": "8-15 anos",
+        "frequente": "4-8 anos",
+        "intenso": "3-5 anos",
+        "ressalva": "Merino fino de qualidade é durável e versátil; tratamento superwash facilita lavagem mas usa químicos."
+      },
+      "comportamento_em_misturas": [
+        {
+          "par": "merino + poliamida",
+          "melhora": [
+            "durabilidade",
+            "menos furos",
+            "resistência"
+          ],
+          "piora": [],
+          "igual": [
+            "regulação térmica"
+          ],
+          "nota": "Padrão em meias e base layers de trekking."
+        },
+        {
+          "par": "merino + elastano",
+          "melhora": [
+            "ajuste",
+            "recuperação"
+          ],
+          "piora": [],
+          "igual": [],
+          "nota": "Base layers esportivas justas."
+        }
+      ],
+      "fontes": [
+        "ASTM D1909 (MR 16%)",
+        "literatura têxtil (finura <22 mícron)",
+        "Responsible Wool Standard"
+      ]
+    },
+    "canhamo": {
+      "id": "canhamo",
+      "nome": "Cânhamo",
+      "categoria": "natural",
+      "origem": "celulose vegetal (caule do cânhamo, Cannabis sativa)",
+      "fibras_similares": [
+        "linho",
+        "algodao",
+        "rami"
+      ],
+      "propriedades": {
+        "respirabilidade": 9,
+        "isolamento_termico": 3,
+        "elasticidade": 1,
+        "resistencia": 9,
+        "bolinhas": 8,
+        "amassa": 2,
+        "absorcao_umidade": 8,
+        "secagem": 6,
+        "conforto": 6,
+        "peso": 5,
+        "facilidade_manutencao": 6,
+        "durabilidade": 9,
+        "sustentabilidade": 9
+      },
+      "propriedades_notas": {
+        "resistencia": "Uma das fibras naturais mais resistentes; fica mais forte molhada como o linho.",
+        "amassa": "Amassa como o linho — característica das fibras de caule.",
+        "conforto": "Inicialmente rígido, amacia muito com lavagens.",
+        "sustentabilidade": "Cultivo de baixíssimo input — pouca água, sem pesticidas, melhora o solo, alta captura de carbono."
+      },
+      "aplicacoes_ideais": {
+        "camiseta": 6,
+        "camisa": 8,
+        "blazer": 6,
+        "calca": 7,
+        "vestido": 6,
+        "casaco": 4,
+        "roupa_esportiva": 4,
+        "roupa_intima": 4
+      },
+      "climas": {
+        "verao": 9,
+        "inverno": 3,
+        "meia_estacao": 6,
+        "umido": 5,
+        "seco": 8
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": true,
+        "amassa": true,
+        "seca_rapido": true,
+        "suporta_uso_intenso": true,
+        "funciona_mala_capsula": true,
+        "combina_ocasioes": true,
+        "travel_score": 6,
+        "nota": "Muito durável, fresco e antibacteriano, mas amassa. Similar ao linho em viagem."
+      },
+      "gramatura": {
+        "leve": "Camisas de verão; translúcido.",
+        "media": "Calças e camisas estruturadas.",
+        "pesada": "Peças utilitárias muito duráveis."
+      },
+      "cuidados": {
+        "lavagem": "Máquina; amacia a cada lavagem.",
+        "secagem": "Ao ar.",
+        "ferro": "Quente com vapor.",
+        "encolhimento": "Médio inicial.",
+        "deformacao": "Baixo."
+      },
+      "vida_util": {
+        "ocasional": "15-25 anos",
+        "frequente": "7-12 anos",
+        "intenso": "4-8 anos",
+        "ressalva": "Das fibras mais duráveis que existem; peças passam de geração."
+      },
+      "comportamento_em_misturas": [
+        {
+          "par": "cânhamo + algodão",
+          "melhora": [
+            "maciez",
+            "menos rígido"
+          ],
+          "piora": [
+            "durabilidade levemente"
+          ],
+          "igual": [
+            "respirabilidade"
+          ],
+          "nota": "Mistura comum que suaviza o cânhamo mantendo durabilidade."
+        },
+        {
+          "par": "cânhamo + elastano",
+          "melhora": [
+            "elasticidade",
+            "conforto"
+          ],
+          "piora": [],
+          "igual": [],
+          "nota": "Dá stretch a calças resistentes."
+        }
+      ],
+      "fontes": [
+        "literatura têxtil (tenacidade alta)",
+        "Textile Exchange 2025 (baixo input)"
+      ]
+    },
+    "rami": {
+      "id": "rami",
+      "nome": "Rami",
+      "categoria": "natural",
+      "origem": "celulose vegetal (urtigueira, Boehmeria nivea)",
+      "fibras_similares": [
+        "linho",
+        "canhamo",
+        "algodao"
+      ],
+      "propriedades": {
+        "respirabilidade": 9,
+        "isolamento_termico": 2,
+        "elasticidade": 1,
+        "resistencia": 8,
+        "bolinhas": 8,
+        "amassa": 2,
+        "absorcao_umidade": 8,
+        "secagem": 7,
+        "conforto": 6,
+        "peso": 4,
+        "facilidade_manutencao": 5,
+        "durabilidade": 7,
+        "sustentabilidade": 7
+      },
+      "propriedades_notas": {
+        "resistencia": "Muito forte e com brilho sedoso natural; resiste a bactérias e mofo.",
+        "amassa": "Amassa e tem baixa elasticidade — quebra se vincado sempre no mesmo lugar.",
+        "conforto": "Leve e fresco mas pode ser levemente áspero.",
+        "sustentabilidade": "Planta perene de alto rendimento, mas processamento é trabalhoso e químico."
+      },
+      "aplicacoes_ideais": {
+        "camiseta": 6,
+        "camisa": 8,
+        "blazer": 5,
+        "calca": 6,
+        "vestido": 7,
+        "casaco": 3,
+        "roupa_esportiva": 3,
+        "roupa_intima": 4
+      },
+      "climas": {
+        "verao": 9,
+        "inverno": 2,
+        "meia_estacao": 5,
+        "umido": 5,
+        "seco": 8
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": true,
+        "amassa": true,
+        "seca_rapido": true,
+        "suporta_uso_intenso": true,
+        "funciona_mala_capsula": true,
+        "combina_ocasioes": true,
+        "travel_score": 6,
+        "nota": "Fresco, leve e resistente a mofo — bom para clima quente. Amassa como linho."
+      },
+      "gramatura": {
+        "leve": "Blusas e vestidos de verão.",
+        "media": "Camisas estruturadas.",
+        "pesada": "Raro."
+      },
+      "cuidados": {
+        "lavagem": "Máquina suave; estável.",
+        "secagem": "Rápida ao ar.",
+        "ferro": "Quente.",
+        "encolhimento": "Baixo-médio.",
+        "deformacao": "Pode quebrar fibra em vincos repetidos."
+      },
+      "vida_util": {
+        "ocasional": "10-18 anos",
+        "frequente": "5-9 anos",
+        "intenso": "3-5 anos",
+        "ressalva": "Durável mas frágil a vincos repetidos no mesmo ponto; quase sempre vem em mistura."
+      },
+      "comportamento_em_misturas": [
+        {
+          "par": "rami + algodão",
+          "melhora": [
+            "maciez",
+            "menos quebradiço"
+          ],
+          "piora": [],
+          "igual": [
+            "frescor"
+          ],
+          "nota": "Mistura mais comum; algodão compensa a fragilidade a vincos."
+        },
+        {
+          "par": "rami + viscose",
+          "melhora": [
+            "caimento"
+          ],
+          "piora": [
+            "durabilidade"
+          ],
+          "igual": [
+            "amassa"
+          ],
+          "nota": "Vestidos fluidos de verão."
+        }
+      ],
+      "fontes": [
+        "literatura têxtil (resistência a mofo)",
+        "Textile Exchange 2025"
+      ]
+    },
+    "poliamida_reciclada": {
+      "id": "poliamida_reciclada",
+      "nome": "Poliamida reciclada (ECONYL)",
+      "categoria": "sintetico",
+      "origem": "nylon regenerado de resíduos (redes de pesca, tecidos, tapetes)",
+      "fibras_similares": [
+        "poliamida",
+        "poliester_reciclado"
+      ],
+      "propriedades": {
+        "respirabilidade": 4,
+        "isolamento_termico": 5,
+        "elasticidade": 7,
+        "resistencia": 10,
+        "bolinhas": 6,
+        "amassa": 8,
+        "absorcao_umidade": 3,
+        "secagem": 8,
+        "conforto": 6,
+        "peso": 6,
+        "facilidade_manutencao": 8,
+        "durabilidade": 9,
+        "sustentabilidade": 5
+      },
+      "propriedades_notas": {
+        "propriedades_fisicas": "Desempenho idêntico à poliamida virgem; ECONYL regenera infinitamente sem perda.",
+        "sustentabilidade": "Reaproveita resíduos marinhos e desvia de aterros, mas ainda libera microplásticos.",
+        "uso": "Comum em moda praia e activewear sustentável."
+      },
+      "aplicacoes_ideais": {
+        "camiseta": 4,
+        "camisa": 4,
+        "blazer": 4,
+        "calca": 5,
+        "vestido": 5,
+        "casaco": 6,
+        "roupa_esportiva": 9,
+        "roupa_intima": 6
+      },
+      "climas": {
+        "verao": 4,
+        "inverno": 6,
+        "meia_estacao": 6,
+        "umido": 6,
+        "seco": 6
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": true,
+        "amassa": false,
+        "seca_rapido": true,
+        "suporta_uso_intenso": true,
+        "funciona_mala_capsula": true,
+        "combina_ocasioes": true,
+        "travel_score": 8,
+        "nota": "Mesmas vantagens da poliamida virgem, com menor pegada. Ótimo em moda praia de viagem."
+      },
+      "gramatura": {
+        "leve": "Moda praia, lingerie, activewear.",
+        "media": "Jaquetas leves.",
+        "pesada": "Peças técnicas."
+      },
+      "cuidados": {
+        "lavagem": "Fria; saco de lavagem reduz microplásticos.",
+        "secagem": "Rápida.",
+        "ferro": "Baixo.",
+        "encolhimento": "Baixo.",
+        "deformacao": "Recupera bem."
+      },
+      "vida_util": {
+        "ocasional": "8-15 anos",
+        "frequente": "4-8 anos",
+        "intenso": "3-6 anos",
+        "ressalva": "Durabilidade igual à virgem; vantagem é ambiental."
+      },
+      "comportamento_em_misturas": [
+        {
+          "par": "ECONYL + elastano",
+          "melhora": [
+            "elasticidade",
+            "compressão"
+          ],
+          "piora": [],
+          "igual": [
+            "resistência"
+          ],
+          "nota": "Base de moda praia e activewear sustentável."
+        }
+      ],
+      "fontes": [
+        "ECONYL technical docs (Aquafil)",
+        "GRS (Global Recycled Standard)"
+      ]
+    }
+  },
+  "materiais_calcados_bolsas": {
+    "_meta": {
+      "descricao": "Materiais de calçados, bolsas e acessórios. Mesmo esquema 0-10, adaptado: propriedades como 'isolamento' viram 'respirabilidade do pé/conteúdo'.",
+      "escala": "0-10, 10 = melhor desempenho naquela propriedade"
+    },
+    "couro": {
+      "id": "couro",
+      "nome": "Couro / Pele genuína",
+      "categoria": "natural_animal",
+      "origem": "pele animal curtida (bovina, ovina, suína)",
+      "materiais_similares": [
+        "camurca",
+        "nubuck",
+        "couro_sintetico"
+      ],
+      "propriedades": {
+        "respirabilidade": 7,
+        "resistencia": 9,
+        "flexibilidade": 7,
+        "resistencia_agua": 4,
+        "durabilidade": 9,
+        "facilidade_manutencao": 5,
+        "conforto": 8,
+        "peso": 5,
+        "envelhecimento": 9,
+        "sustentabilidade": 4
+      },
+      "propriedades_notas": {
+        "respirabilidade": "Poros naturais deixam o pé respirar — vantagem sobre sintéticos.",
+        "envelhecimento": "Desenvolve pátina e amolda-se ao uso; melhora com o tempo.",
+        "resistencia_agua": "Absorve água se não tratado; mancha e racha se secar mal.",
+        "durabilidade": "Com cuidado, dura décadas; couro full-grain é o mais durável.",
+        "sustentabilidade": "Subproduto da pecuária mas curtimento com cromo é poluente; couro vegetal-tan é melhor."
+      },
+      "aplicacoes_ideais": {
+        "sapato": 9,
+        "bota": 9,
+        "bolsa": 9,
+        "carteira": 9,
+        "cinto": 9,
+        "jaqueta": 8
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": false,
+        "resiste_uso_intenso": true,
+        "facil_limpar": false,
+        "versatil_ocasioes": true,
+        "travel_score": 7,
+        "nota": "Durável e elegante mas pesado e sensível à chuva. Trate antes de viajar para clima úmido."
+      },
+      "cuidados": {
+        "limpeza": "Pano húmido + condicionador de couro periódico.",
+        "secagem": "À sombra, longe de calor direto.",
+        "agua": "Impermeabilizar; secar molhado lentamente.",
+        "racha": "Racha se ressecar — hidratar.",
+        "deformacao": "Mantém forma; usar forma para sapatos."
+      },
+      "vida_util": {
+        "ocasional": "15-30 anos",
+        "frequente": "7-15 anos",
+        "intenso": "4-8 anos",
+        "ressalva": "Full-grain > top-grain > genuine leather (camadas inferiores). Qualidade do curtimento define tudo."
+      },
+      "fontes": [
+        "literatura de curtumes",
+        "Leather Working Group (sustentabilidade)"
+      ]
+    },
+    "couro_sintetico": {
+      "id": "couro_sintetico",
+      "nome": "Couro sintético (PU)",
+      "categoria": "sintetico",
+      "origem": "poliuretano sobre base têxtil (imita couro)",
+      "materiais_similares": [
+        "couro",
+        "pvc"
+      ],
+      "propriedades": {
+        "respirabilidade": 2,
+        "resistencia": 5,
+        "flexibilidade": 6,
+        "resistencia_agua": 7,
+        "durabilidade": 4,
+        "facilidade_manutencao": 8,
+        "conforto": 5,
+        "peso": 5,
+        "envelhecimento": 2,
+        "sustentabilidade": 3
+      },
+      "propriedades_notas": {
+        "respirabilidade": "Não respira — pé/conteúdo abafa.",
+        "envelhecimento": "Não desenvolve pátina; racha e descasca com o tempo (hidrólise do PU).",
+        "durabilidade": "Vida limitada — a camada de PU degrada em 2-5 anos típicos.",
+        "facilidade_manutencao": "Fácil de limpar (pano húmido), não precisa condicionar.",
+        "sustentabilidade": "Base fóssil; alternativas vegetais (cactus, maçã) emergem mas com PU ainda."
+      },
+      "aplicacoes_ideais": {
+        "sapato": 5,
+        "bota": 5,
+        "bolsa": 5,
+        "carteira": 5,
+        "cinto": 4,
+        "jaqueta": 5
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": false,
+        "resiste_uso_intenso": false,
+        "facil_limpar": true,
+        "versatil_ocasioes": true,
+        "travel_score": 6,
+        "nota": "Leve, resiste à água e fácil de limpar, mas racha com uso intenso e não respira."
+      },
+      "cuidados": {
+        "limpeza": "Pano húmido.",
+        "secagem": "Ao ar.",
+        "agua": "Resiste razoavelmente.",
+        "racha": "Racha/descasca com tempo e dobras.",
+        "deformacao": "Pode vincar permanentemente."
+      },
+      "vida_util": {
+        "ocasional": "3-6 anos",
+        "frequente": "1-3 anos",
+        "intenso": "1-2 anos",
+        "ressalva": "PU de alta qualidade (microfibra) dura mais; PU barato descasca em 1-2 anos."
+      },
+      "fontes": [
+        "literatura de polímeros (hidrólise PU)"
+      ]
+    },
+    "camurca": {
+      "id": "camurca",
+      "nome": "Camurça / Suede",
+      "categoria": "natural_animal",
+      "origem": "lado interno da pele animal (couro escovado)",
+      "materiais_similares": [
+        "couro",
+        "nubuck"
+      ],
+      "propriedades": {
+        "respirabilidade": 8,
+        "resistencia": 6,
+        "flexibilidade": 8,
+        "resistencia_agua": 2,
+        "durabilidade": 6,
+        "facilidade_manutencao": 3,
+        "conforto": 8,
+        "peso": 4,
+        "envelhecimento": 6,
+        "sustentabilidade": 4
+      },
+      "propriedades_notas": {
+        "resistencia_agua": "Muito sensível à água e manchas — ponto fraco crítico.",
+        "facilidade_manutencao": "Exige escova específica e spray protetor; mancha fácil.",
+        "conforto": "Macia e flexível, toque agradável.",
+        "durabilidade": "Menos durável que couro liso; desgasta nas áreas de atrito."
+      },
+      "aplicacoes_ideais": {
+        "sapato": 7,
+        "bota": 7,
+        "bolsa": 6,
+        "carteira": 4,
+        "cinto": 5,
+        "jaqueta": 7
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": false,
+        "resiste_uso_intenso": false,
+        "facil_limpar": false,
+        "versatil_ocasioes": false,
+        "travel_score": 4,
+        "nota": "Bonita e confortável mas frágil: chuva e manchas arruínam. Evite para viagem em clima úmido."
+      },
+      "cuidados": {
+        "limpeza": "Escova de camurça; borracha para manchas secas.",
+        "secagem": "À sombra.",
+        "agua": "Impermeabilizar antes do uso; evitar chuva.",
+        "racha": "Não racha mas amassa o pelo.",
+        "deformacao": "Mantém forma razoável."
+      },
+      "vida_util": {
+        "ocasional": "8-15 anos",
+        "frequente": "3-6 anos",
+        "intenso": "2-4 anos",
+        "ressalva": "Durabilidade depende muito da proteção contra água e do tráfego de uso."
+      },
+      "fontes": [
+        "literatura de curtumes"
+      ]
+    },
+    "lona_canvas": {
+      "id": "lona_canvas",
+      "nome": "Lona / Canvas",
+      "categoria": "natural_vegetal",
+      "origem": "tecido de algodão ou linho de trama densa",
+      "materiais_similares": [
+        "nylon_balistico"
+      ],
+      "propriedades": {
+        "respirabilidade": 8,
+        "resistencia": 7,
+        "flexibilidade": 7,
+        "resistencia_agua": 3,
+        "durabilidade": 7,
+        "facilidade_manutencao": 8,
+        "conforto": 7,
+        "peso": 6,
+        "envelhecimento": 6,
+        "sustentabilidade": 7
+      },
+      "propriedades_notas": {
+        "respirabilidade": "Algodão respira; bom para calçado casual de verão.",
+        "resistencia_agua": "Absorve água a menos que tratado/encerado.",
+        "facilidade_manutencao": "Lavável; tênis de lona vão à máquina.",
+        "sustentabilidade": "Fibra natural se algodão; biodegradável."
+      },
+      "aplicacoes_ideais": {
+        "sapato": 7,
+        "bota": 4,
+        "bolsa": 8,
+        "carteira": 5,
+        "cinto": 4,
+        "jaqueta": 6
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": true,
+        "resiste_uso_intenso": true,
+        "facil_limpar": true,
+        "versatil_ocasioes": true,
+        "travel_score": 8,
+        "nota": "Leve, lavável e versátil — ótimo para bolsas e tênis casuais de viagem. Não impermeável."
+      },
+      "cuidados": {
+        "limpeza": "Lavável à mão ou máquina (peças sem couro).",
+        "secagem": "Ao ar.",
+        "agua": "Encerar para resistência.",
+        "racha": "Não racha.",
+        "deformacao": "Pode amassar mas recupera."
+      },
+      "vida_util": {
+        "ocasional": "8-15 anos",
+        "frequente": "3-6 anos",
+        "intenso": "2-4 anos",
+        "ressalva": "Trama densa (ex: lona de algodão pesada) dura muito; sola é o que costuma falhar primeiro."
+      },
+      "fontes": [
+        "literatura têxtil (tecidos de trama densa)"
+      ]
+    },
+    "nylon_balistico": {
+      "id": "nylon_balistico",
+      "nome": "Nylon balístico",
+      "categoria": "sintetico",
+      "origem": "tecido de poliamida de alta tenacidade",
+      "materiais_similares": [
+        "lona_canvas",
+        "poliester"
+      ],
+      "propriedades": {
+        "respirabilidade": 4,
+        "resistencia": 10,
+        "flexibilidade": 7,
+        "resistencia_agua": 7,
+        "durabilidade": 9,
+        "facilidade_manutencao": 9,
+        "conforto": 6,
+        "peso": 7,
+        "envelhecimento": 7,
+        "sustentabilidade": 3
+      },
+      "propriedades_notas": {
+        "resistencia": "Altíssima resistência a rasgo e abrasão — origem militar.",
+        "resistencia_agua": "Repele água; com revestimento fica impermeável.",
+        "durabilidade": "Excelente para malas e mochilas de uso pesado.",
+        "sustentabilidade": "Base fóssil; versões recicladas existem."
+      },
+      "aplicacoes_ideais": {
+        "sapato": 3,
+        "bota": 4,
+        "bolsa": 9,
+        "carteira": 6,
+        "cinto": 5,
+        "jaqueta": 6
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": true,
+        "resiste_uso_intenso": true,
+        "facil_limpar": true,
+        "versatil_ocasioes": true,
+        "travel_score": 10,
+        "nota": "O melhor material para malas de viagem: leve, quase indestrutível, resiste água e limpa fácil."
+      },
+      "cuidados": {
+        "limpeza": "Pano húmido ou lavagem leve.",
+        "secagem": "Rápida ao ar.",
+        "agua": "Repele; ótimo em chuva.",
+        "racha": "Não racha.",
+        "deformacao": "Recupera bem."
+      },
+      "vida_util": {
+        "ocasional": "15-25 anos",
+        "frequente": "8-15 anos",
+        "intenso": "5-10 anos",
+        "ressalva": "Material mais durável para bagagem; zíperes e costuras falham antes do tecido."
+      },
+      "fontes": [
+        "literatura têxtil (nylon alta tenacidade)",
+        "origem militar (ballistic nylon)"
+      ]
+    },
+    "borracha": {
+      "id": "borracha",
+      "nome": "Borracha (solas)",
+      "categoria": "natural_ou_sintetico",
+      "origem": "látex natural ou borracha sintética (SBS/SBR)",
+      "materiais_similares": [
+        "eva",
+        "tr"
+      ],
+      "propriedades": {
+        "respirabilidade": 1,
+        "resistencia": 8,
+        "flexibilidade": 7,
+        "resistencia_agua": 10,
+        "durabilidade": 8,
+        "facilidade_manutencao": 9,
+        "conforto": 7,
+        "peso": 7,
+        "envelhecimento": 7,
+        "sustentabilidade": 5
+      },
+      "propriedades_notas": {
+        "resistencia_agua": "Impermeável — ideal para solas.",
+        "aderencia": "Boa tração; borracha natural adere melhor.",
+        "durabilidade": "Resistente à abrasão do solo; borracha vulcanizada dura muito.",
+        "peso": "Mais pesada que EVA; usada onde durabilidade importa mais que leveza."
+      },
+      "aplicacoes_ideais": {
+        "sola_sapato": 9,
+        "sola_bota": 9,
+        "sola_tenis": 8
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": false,
+        "resiste_uso_intenso": true,
+        "facil_limpar": true,
+        "versatil_ocasioes": true,
+        "travel_score": 8,
+        "nota": "Sola durável e impermeável; ideal para caminhar muito em viagem. Mais pesada que EVA."
+      },
+      "cuidados": {
+        "limpeza": "Água e sabão.",
+        "secagem": "Ao ar.",
+        "agua": "Impermeável.",
+        "racha": "Pode ressecar e rachar após anos.",
+        "deformacao": "Mantém forma."
+      },
+      "vida_util": {
+        "ocasional": "10-20 anos",
+        "frequente": "3-7 anos",
+        "intenso": "2-4 anos",
+        "ressalva": "Sola de borracha pode ser ressolada, estendendo a vida do calçado."
+      },
+      "fontes": [
+        "literatura de materiais (vulcanização)"
+      ]
+    },
+    "eva": {
+      "id": "eva",
+      "nome": "EVA (entressolas)",
+      "categoria": "sintetico",
+      "origem": "espuma de etileno-acetato de vinila",
+      "materiais_similares": [
+        "borracha",
+        "tr"
+      ],
+      "propriedades": {
+        "respirabilidade": 3,
+        "resistencia": 5,
+        "flexibilidade": 9,
+        "resistencia_agua": 8,
+        "durabilidade": 5,
+        "facilidade_manutencao": 8,
+        "conforto": 9,
+        "peso": 10,
+        "envelhecimento": 4,
+        "sustentabilidade": 4
+      },
+      "propriedades_notas": {
+        "peso": "Extremamente leve — base de tênis modernos.",
+        "conforto": "Amortece muito bem o impacto.",
+        "durabilidade": "Comprime e perde amortecimento com o tempo (packing out).",
+        "envelhecimento": "Perde resiliência; entressola 'morre' antes do cabedal."
+      },
+      "aplicacoes_ideais": {
+        "sola_tenis": 9,
+        "entressola": 10,
+        "sandalia": 8,
+        "chinelo": 8
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": false,
+        "resiste_uso_intenso": false,
+        "facil_limpar": true,
+        "versatil_ocasioes": true,
+        "travel_score": 9,
+        "nota": "Ultra-leve e confortável para caminhar — ideal em viagem. Perde amortecimento com uso intenso."
+      },
+      "cuidados": {
+        "limpeza": "Pano húmido.",
+        "secagem": "Ao ar, longe de calor (deforma).",
+        "agua": "Resiste; não absorve.",
+        "racha": "Pode rasgar sob estresse.",
+        "deformacao": "Comprime permanentemente com uso."
+      },
+      "vida_util": {
+        "ocasional": "5-8 anos",
+        "frequente": "1-3 anos",
+        "intenso": "6 meses-1 ano",
+        "ressalva": "Amortecimento degrada antes da aparência; corredores trocam por perda de suporte."
+      },
+      "fontes": [
+        "literatura de calçados esportivos (EVA midsole)"
+      ]
+    },
+    "couro_vegetal": {
+      "id": "couro_vegetal",
+      "nome": "Couro vegetal (cactus/maçã/cogumelo)",
+      "categoria": "biobased",
+      "origem": "biomassa vegetal (nopal, resíduo de maçã, micélio) + ligante PU",
+      "materiais_similares": [
+        "couro",
+        "couro_sintetico"
+      ],
+      "propriedades": {
+        "respirabilidade": 4,
+        "resistencia": 5,
+        "flexibilidade": 7,
+        "resistencia_agua": 7,
+        "durabilidade": 5,
+        "facilidade_manutencao": 8,
+        "conforto": 6,
+        "peso": 4,
+        "envelhecimento": 3,
+        "sustentabilidade": 6
+      },
+      "propriedades_notas": {
+        "origem": "Parte de matéria vegetal renovável, mas a maioria ainda usa ligante de poliuretano — não é 100% bio.",
+        "durabilidade": "Mais nova no mercado; durabilidade de longo prazo ainda em avaliação. Geralmente entre PU e couro.",
+        "envelhecimento": "Não desenvolve pátina como couro animal.",
+        "sustentabilidade": "Menor impacto que couro animal e PU puro, mas o ligante PU limita biodegradabilidade. Score sobe conforme % bio."
+      },
+      "aplicacoes_ideais": {
+        "sapato": 5,
+        "bota": 5,
+        "bolsa": 7,
+        "carteira": 6,
+        "cinto": 5,
+        "jaqueta": 6
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": false,
+        "resiste_uso_intenso": false,
+        "facil_limpar": true,
+        "versatil_ocasioes": true,
+        "travel_score": 6,
+        "nota": "Leve, resiste à água e fácil de limpar; durabilidade de longo prazo ainda menos comprovada que couro."
+      },
+      "cuidados": {
+        "limpeza": "Pano húmido.",
+        "secagem": "Ao ar.",
+        "agua": "Resiste razoavelmente.",
+        "racha": "Pode rachar conforme o ligante.",
+        "deformacao": "Variável."
+      },
+      "vida_util": {
+        "ocasional": "4-8 anos",
+        "frequente": "2-4 anos",
+        "intenso": "1-3 anos",
+        "ressalva": "Material recente; durabilidade varia muito por marca e % de bio vs PU."
+      },
+      "fontes": [
+        "documentação de fabricantes (Desserto, Piñatex, Mylo)",
+        "análises de ciclo de vida emergentes"
+      ]
+    }
+  }
+}
