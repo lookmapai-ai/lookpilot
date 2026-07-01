@@ -72,10 +72,6 @@ function checkContext() {
 
 function showProductReady() {
   showOnly('product-ready');
-  chrome.storage.local.get('fqa-history', data => {
-    const hasHistory = (data['fqa-history'] || []).length > 0;
-    document.getElementById('history-cta').style.display = hasHistory ? '' : 'none';
-  });
 }
 
 function showWrongContext(reason) {
@@ -118,38 +114,22 @@ const TYPE_LABEL = { natural: 'Natural', semi: 'Semi-sint.', synthetic: 'Sintét
 
 let fibers = [];
 
-// --- Tabs ---
-function switchTab(tabName) {
-  document.getElementById('tab-analyze').style.display = tabName === 'analyze' ? 'block' : 'none';
-  document.getElementById('tab-history').style.display = tabName === 'history' ? 'block' : 'none';
-  if (tabName === 'history') renderHistory();
+// Só existe a aba de análise (o histórico vive agora na landing lookmap.ai).
+function switchTab() {
+  document.getElementById('tab-analyze').style.display = 'block';
 }
 
-// Clock icon → history
-document.getElementById('hist-btn').addEventListener('click', () => {
-  showOnly('app');
-  const histTab = document.getElementById('tab-history');
-  const isShowing = histTab.style.display === 'block';
-  switchTab(isShowing ? 'analyze' : 'history');
-});
-
-// --- Product ready CTAs ---
+// --- Product ready CTA ---
 document.getElementById('analyze-cta').addEventListener('click', () => {
   showOnly('app');
-  switchTab('analyze');
+  switchTab();
   triggerScan();
-});
-
-document.getElementById('history-cta').addEventListener('click', () => {
-  markSeen();
-  showOnly('app');
-  switchTab('history');
 });
 
 // --- Wrong context: force manual ---
 document.getElementById('force-open').addEventListener('click', () => {
   showOnly('app');
-  switchTab('analyze');
+  switchTab();
   showManualSection();
 });
 
@@ -248,7 +228,6 @@ function analyze() {
   const v = verdict(s);
   btn.disabled = false;
   btn.textContent = t('analyze_btn');
-  saveHistory({ fibers: [...fibers], score: s?.overall || 0, grade: v.label, date: new Date().toLocaleDateString('pt-BR') });
   renderResult(details, s, false);
 }
 
@@ -307,47 +286,6 @@ function renderResult(details, s, showEditLink = true) {
 
   document.getElementById('scanning-state').style.display = 'none';
   document.getElementById('edit-manual-wrap').style.display = showEditLink ? 'block' : 'none';
-}
-
-// --- History ---
-function saveHistory(entry) {
-  chrome.storage.local.get('fqa-history', data => {
-    const h = data['fqa-history'] || [];
-    h.unshift(entry);
-    chrome.storage.local.set({ 'fqa-history': h.slice(0, 20) });
-  });
-}
-
-function renderHistory() {
-  const el = document.getElementById('history-list');
-  el.innerHTML = `<div style="padding:12px;text-align:center;color:#ccc;font-size:12px;">…</div>`;
-  chrome.storage.local.get('fqa-history', data => {
-    const h = data['fqa-history'] || [];
-    if (!h.length) {
-      el.innerHTML = `<div class="empty">${t('history_empty')}</div>`;
-      return;
-    }
-    el.innerHTML = h.map((e, i) => `
-      <div class="history-item" tabindex="0" data-history="${i}" role="button" aria-label="Recarregar análise de ${e.date}">
-        <div>
-          <div style="font-weight:500;">${e.fibers.map(f => f.name + (f.pct ? ' ' + f.pct + '%' : '')).join(', ')}</div>
-          <div style="font-size:11px;color:#aaa;margin-top:2px;">${e.grade} · ${e.date}</div>
-        </div>
-        <div style="font-weight:700;font-size:15px;color:${e.score >= 70 ? '#16a34a' : e.score >= 50 ? '#d97706' : '#dc2626'}">${e.score}</div>
-      </div>
-    `).join('');
-    el.querySelectorAll('[data-history]').forEach(item => {
-      const load = () => {
-        const entry = h[parseInt(item.dataset.history)];
-        fibers = entry.fibers;
-        switchTab('analyze');
-        renderFibers();
-        analyze();
-      };
-      item.addEventListener('click', load);
-      item.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') load(); });
-    });
-  });
 }
 
 // --- Scan ---

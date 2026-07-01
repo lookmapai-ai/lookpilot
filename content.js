@@ -480,15 +480,9 @@
                           hasBrand: !!productMeta.loja }).score
       : null;
 
-    // Guardar no histórico e resultado atual partilhado com o popup
+    // Guarda só o resultado atual por URL (para o popup redirecionar à landing).
+    // O histórico deixou de viver na extensão — vive na landing lookmap.ai (com login).
     if (typeof chrome !== 'undefined' && chrome.storage?.local) {
-      const entry = { fibers, score: scores?.overall || 0, grade: v.label, date: new Date().toLocaleDateString('pt-BR'), nome: productMeta.nome, imagem: productMeta.imagem };
-      chrome.storage.local.get('fqa-history', data => {
-        const h = data['fqa-history'] || [];
-        h.unshift(entry);
-        chrome.storage.local.set({ 'fqa-history': h.slice(0, 20) });
-      });
-      // Guardar resultado atual por URL para o popup mostrar directamente
       chrome.storage.local.set({ 'fqa-last-result': { url: location.href, fibers, scores, buyScore: buy, verdictLabel: bv.label, verdictColor: bv.color, meta: productMeta, confianca: conf } });
     }
 
@@ -518,61 +512,26 @@
       <div style="height:1px;background:#E0DBD4;"></div>
 
       <div style="padding:12px 14px;">
-        ${mismatch}
-
-        <div style="font-size:11px;color:#6B6460;line-height:1.5;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #f0f0f0;">
+        <!-- Card = gancho: só o veredito + uma linha. O detalhe completo
+             (dimensões, fibras, travel, guardar, histórico) vive na landing. -->
+        <div style="font-size:12px;color:#5A5450;line-height:1.55;margin-bottom:12px;">
           ${(category === 'shoes' || category === 'bags') && typeof getCategoryConclusion === 'function' ? getCategoryConclusion(scores, category, (scores.fibers||fibers)[0]?.data?.label || (scores.fibers||fibers)[0]?.name) : conclusionText(scores, scores.fibers || [...fibers])}
         </div>
 
-        ${scores.qualityModifier ? `
-        <div style="font-size:11px;color:#7a5c00;line-height:1.5;margin-bottom:10px;padding:8px 10px;background:#fdf6e3;border-radius:8px;">
-          <span style="font-weight:600;">⭐ ${scores.qualityModifier.nome}:</span> ${scores.qualityModifier.explica}
+        ${conf != null ? `
+        <div style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#6B6460;background:#F0EDE8;border-radius:20px;padding:4px 9px;margin-bottom:12px;">
+          <span style="color:#166534;">✓</span> Baseado na composição da etiqueta · ${conf}%
         </div>` : ''}
 
-        ${typeof blendText === 'function' && blendText(scores.fibers || fibers) ? `
-        <div style="font-size:11px;color:#6b5b95;line-height:1.5;margin-bottom:10px;padding:8px 10px;background:#f5f3fa;border-radius:8px;">
-          <span style="font-weight:600;">A mistura:</span> ${blendText(scores.fibers || fibers)}
-        </div>` : ''}
+        <a href="${buildAnaliseURL(scores, fibers, buy, bv.label, location.href, conf)}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:600;color:#fff;background:#FF009D;text-decoration:none;border:none;padding:11px;border-radius:9px;letter-spacing:0.02em;margin-bottom:8px;">
+          Ver análise completa →
+        </a>
+        <button id="__fqa-share" style="display:flex;width:100%;align-items:center;justify-content:center;gap:5px;font-size:11px;font-weight:600;color:#FF009D;background:none;border:1px solid #FF009D;cursor:pointer;padding:9px;border-radius:9px;letter-spacing:0.02em;font-family:inherit;">
+          <span>📷</span> ${t('card_share')}
+        </button>
 
-        ${scores.certs && scores.certs.length ? `
-        <div style="font-size:11px;color:#0F6E56;line-height:1.5;margin-bottom:10px;padding:8px 10px;background:#E1F5EE;border-radius:8px;">
-          ✓ Certificação ${scores.certs.join(', ')} — origem verificada
-        </div>` : ''}
-
-        ${showWarmth ? `
-        <div style="background:#FFF4ED;border-radius:8px;padding:9px 11px;margin-bottom:10px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
-            <span style="font-size:11px;font-weight:600;color:#9A3412;">🔥 Calor: ${warmthInfo.label}</span>
-            <span style="font-size:10px;color:#C2683A;">${toTen(warmth)}/10</span>
-          </div>
-          <div style="height:5px;background:#F3D9C8;border-radius:3px;overflow:hidden;">
-            <div style="height:100%;width:${warmth}%;background:linear-gradient(90deg,#F59E0B,#DC2626);border-radius:3px;"></div>
-          </div>
-          <div style="font-size:11px;color:#B45309;line-height:1.5;margin-top:5px;">${warmthInfo.txt}.</div>
-        </div>` : ''}
-
-        ${scores.travel >= 72 ? `
-        <div style="background:#f8f4ff;border-radius:8px;padding:9px 11px;margin-bottom:10px;">
-          <div style="font-size:11px;font-weight:600;color:#6b21a8;margin-bottom:3px;">✈️ Travel Score: ${toTen(scores.travel)}/10</div>
-          <div style="font-size:11px;color:#7e22ce;line-height:1.5;">${travelText(scores, scores.fibers || fibers)}</div>
-        </div>` : `
-        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#9a8fb0;margin-bottom:10px;padding:0 2px;">
-          <span>✈️ Viagem: ${toTen(scores.travel)}/10</span>
-          <span style="color:#C9C2D6;">·</span>
-          <span style="color:#8a8194;">${travelText(scores, scores.fibers || fibers)}</span>
-        </div>`}
-
-        <div style="display:flex;gap:8px;margin-bottom:10px;">
-          <button id="__fqa-share" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;font-weight:600;color:#fff;background:#FF009D;border:none;cursor:pointer;padding:9px 12px;border-radius:8px;letter-spacing:0.02em;font-family:inherit;white-space:nowrap;">
-            <span>📷</span> ${t('card_share')}
-          </button>
-          <a href="${buildAnaliseURL(scores, fibers, buy, bv.label, location.href, conf)}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:600;color:#FF009D;text-decoration:none;background:none;border:1px solid #FF009D;padding:9px;border-radius:8px;letter-spacing:0.02em;white-space:nowrap;">
-            Ver análise completa →
-          </a>
-        </div>
-
-        <div style="font-size:10px;color:#ccc;text-align:center;border-top:1px solid #f5f5f5;padding-top:8px;">
-          LookPilot
+        <div style="font-size:10px;color:#B0ABA4;text-align:center;border-top:1px solid #f0ede8;padding-top:8px;margin-top:10px;">
+          LookPilot · LookMap
         </div>
       </div>
     `;
