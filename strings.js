@@ -39,7 +39,7 @@ const UI = {
     // Analyze tab
     fibers_label:  'Fibras comuns',
     analyze_btn:   'Devo comprar essa peça?',
-    analyzing_btn: 'A analisar…',
+    analyzing_btn: 'Analisando…',
     total_label:   'Total',
 
     // History
@@ -47,7 +47,7 @@ const UI = {
     history_empty: 'Você ainda não analisou nenhuma peça.<br>Comece pela aba Analisar!',
 
     // Scan states
-    scanning:        'A analisar a peça...',
+    scanning:        'Analisando a peça...',
     scan_error:      'Não consegui ler essa página. Recarregue a página e tente de novo, ou insira a composição manualmente abaixo.',
     scan_not_found:  'Composição não encontrada nessa página.<br>Insira manualmente abaixo.',
     scan_no_access:  'Essa página não permite análise. Tente numa página de produto de loja.',
@@ -64,7 +64,7 @@ const UI = {
     fiber_unknown:'Fibra não reconhecida',
 
     // Card
-    card_share:     'Partilhar',
+    card_share:     'Compartilhar',
     card_waitlist:  'Lista de espera ↗',
     card_not_found: 'Composição não encontrada nessa página.\nUse o popup para inserir manualmente.',
   },
