@@ -2,7 +2,7 @@
 
 > Copiloto de compras de moda. Antes de comprar, responde: **esta peça vale o preço? Vai durar? É boa para viajar?**
 
-Última atualização: 2026-06-27
+Última atualização: 2026-07-17 · **Em transição para o sistema visual "Apple White"** (ver §7)
 
 ---
 
@@ -108,66 +108,56 @@ Extra: **Travel Score** (destacado se ≥72), **Calor** (só em peças de invern
 
 ## 6. Identidade de marca
 
-| Asset | Uso |
-|-------|-----|
-| `logo/logo-lookpilot.svg` | Wordmark completo "**Look**Pilot" (Look preto + Pilot #EF23A1). Usado no header do popup e nos cards do content.js. |
-| `logo/lookpilot-mini.svg` | Ícone "lp" — quadrado rosa #FF009D + letterform branca. Fonte dos ícones da toolbar. |
-| `icon16/48/128.png` | Ícones da extensão na toolbar, gerados a partir do mini SVG. |
+> ⚠️ **Em transição (2026-07-17).** A landing de resultados foi redesenhada para o sistema **"Apple White"** (v15, ver §7). A extensão ainda usa o sistema quente/magenta antigo. A decisão é migrar a extensão para a Apple White; esta seção e a §7 descrevem o **alvo**, com o sistema antigo preservado como "atual (a migrar)". Enquanto a migração não acontece, o código da extensão é a fonte de verdade do que está no ar.
 
-Nota: o wordmark `logo-lookpilot.svg` inclui um `<rect fill="white">` de fundo que é **removido** ao embutir inline nos cards/popup (senão tapa o fundo bege).
+| Asset | Uso | Estado |
+|-------|-----|--------|
+| `logo/logo-lookpilot.svg` | Wordmark "**Look**Pilot" (Look tinta + Pilot #EF23A1) | Magenta — **decisão em aberto** (ver §7) |
+| `logo/lookpilot-mini.svg` | Ícone "lp" — quadrado #FF009D + letterform branca. Fonte dos ícones da toolbar | Magenta — **decisão em aberto** |
+| `icon16/48/128.png` | Ícones da extensão na toolbar | **Gerados à mão**, não pelo `build.py` (que só recalcula scores). Trocar a cor de marca implica redesenhá-los fora do código |
+
+Nota: o wordmark `logo-lookpilot.svg` inclui um `<rect fill="white">` de fundo que é **removido** ao embutir inline nos cards/popup.
 
 ---
 
 ## 7. Paleta de cores
 
-### Marca
-| Cor | Hex | Uso |
-|-----|-----|-----|
-| 🟣 Rosa primário | `#FF009D` | **Token único de marca.** CTAs, "Pilot" no wordmark, score, links, bordas de destaque, fundo do ícone da toolbar |
-| 🟣 Rosa hover | `#D6007F` | Estado hover do botão primário (tom mais escuro do primário) |
-| ⚫ Tinta | `#1E1A16` | "Look" no wordmark, texto principal |
+### 7.1 Sistema-alvo: **Apple White** (da landing v15)
 
-### Superfície (tons quentes neutros)
-| Cor | Hex | Uso |
-|-----|-----|-----|
-| Fundo | `#FAFAF8` | Fundo de cards e popup |
-| Borda | `#E0DBD4` | Bordas de cards, divisórias |
-| Borda clara | `#F0EDE8` | Divisória no header do popup |
-| Texto secundário | `#5A5450` (7.1:1) · `#6B6460` (5.6:1) | Descrições, labels, conclusão — **mín. para texto** |
-| Texto terciário | `#8A8078` (3.7:1) | Apenas unidades decorativas (`/100`) — não usar em texto essencial |
-| Decorativo | `#CCC` | Só ícones com hover (ex: × remover) |
+Extraído de `landing/analise-v15.html`. **9 cores, uma superfície.** Contrastes medidos (script em scratchpad, 2026-07-17):
 
-> Contraste AA (4.5:1) foi auditado. Cinzas claros `#9B9390`/`#888`/`#BBB` foram removidos de texto significativo (passavam a `#6B6460`).
+| Papel | Hex | Sobre branco | Sobre superfície | Uso |
+|-------|-----|--------------|------------------|-----|
+| Tinta | `#1D1D1F` | 16.83:1 ✓ | 15.46:1 ✓ | Texto principal, veredito, score, botão primário (fundo) |
+| Texto secundário | `#6E6E73` | 5.07:1 ✓ | 4.66:1 ✓ | Descrições, subtítulos — **mín. para texto corrido** |
+| Texto terciário | `#86868B` | 3.62:1 ✗ | 3.33:1 ✗ | ⚠️ **Falha AA para texto normal.** Só micro-labels 12–13px uppercase (eyebrows, meta). Não usar em texto essencial |
+| Link | `#0066CC` | 5.57:1 ✓ | — | Links |
+| Link hover | `#004499` | 9.18:1 ✓ | — | Hover de link |
+| Erro | `#D70015` | 5.38:1 ✓ | — | Mensagens de erro (ex: email inválido) |
+| Branco | `#FFFFFF` | — | — | Fundo base, texto sobre botão primário (16.83:1 ✓) |
+| Superfície | `#F5F5F7` | — | — | Cards, blocos, campos de input |
+| Divisória | `#E8E8ED` | — | — | Bordas sutis |
 
-### Veredito (semáforo) — **dois papéis, dois tons**
-O semáforo tem uma versão **viva** (barras/badges/fundos) e uma **escura acessível** (texto), porque os vivos não atingem 4.5:1 como texto sobre fundo claro.
+**Raios:** `999px` (pílulas/CTAs), `28px` (cards grandes), `18/16/14px` (miniaturas, inputs).
+**Tipografia:** `-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif`. **Sem Google Fonts** → elimina o problema de CSP do DM Serif (§2.1) e o fallback para Georgia.
 
-| Faixa | Texto (AA ✓) | Barra/fill (vivo) |
-|-------|--------------|-------------------|
-| Bom | 🟢 `#166534` (6.8:1) | `#16A34A` |
-| Médio | 🟠 `#B45309` (4.8:1) | `#D97706` |
-| Fraco | 🔴 `#C0392B` (5.2:1) | `#DC2626` |
+> **⚠️ Alerta de contraste herdado da v15:** `#86868B` a 12px é o padrão dos eyebrows na landing e **reprova AA para texto normal** (3.62:1). Aceitável só por serem labels decorativos curtos; ao migrar a extensão, não replicar essa cor em texto informativo.
 
-`buyVerdict`/`verdict` (texto) usam os tons escuros. `scoreColor`/`scoreBar` (barras) usam os vivos.
+**🔶 Decisões em aberto (dependem de ver a v15 renderizada):**
+- **Magenta `#FF009D`** — a Apple White não o tem. Sai de vez, ou fica como único acento de marca (CTAs, wordmark, ícone)? Tirar exige redesenhar wordmark + ícone da toolbar à mão.
+- **Semáforo do veredito** — a v15 não tem semáforo (veredito é tinta preta). Manter a cor dá legibilidade (elogiada no relatório de julho); tirar dá pureza. Decidir.
+- **Acentos por bloco** (Travel violeta, certificação verde, calor laranja) — a Apple White tem só `#F5F5F7`. Achatar custa a taxonomia visual do card.
 
-### Acentos por bloco (fundos suaves + texto a condizer)
-| Bloco | Fundo | Texto |
-|-------|-------|-------|
-| ✈️ Travel Score | `#F8F4FF` | `#6B21A8` / `#7E22CE` |
-| A mistura | `#F5F3FA` | `#6B5B95` |
-| ⭐ Modificador qualidade | `#FDF6E3` | `#7A5C00` |
-| ✓ Certificação | `#E1F5EE` | `#0F6E56` |
-| 🔥 Calor | `#FFF4ED` | `#9A3412` / `#B45309` (barra `#F59E0B`→`#DC2626`) |
+### 7.2 Sistema atual da extensão (a migrar)
 
-### Barra de progresso (composição manual, popup)
-Usa o **mesmo conjunto semáforo** do veredito (unificado):
-| Estado | Cor |
-|--------|-----|
-| Completo (=100%) | 🟢 `#16A34A` |
-| Incompleto (<100%) | 🟠 `#D97706` |
-| Excesso (>100%) | 🔴 `#DC2626` |
+Ainda no código (`content.js`, `popup.html/js`, `shared.js`). São **54 cores hex distintas** — metade não documentada. Dívida a limpar na migração: `#333`, `#555`, `#666`, `#777`, `#999`, `#1a1a1a`, `#f5f5f5`, `#fafafa` e um `#ff1493` (deep pink) solto que **não** é o token de marca `#FF009D`.
 
-O semáforo `#16A34A` / `#D97706` / `#DC2626` é o **token único** para verde/âmbar/vermelho em toda a UI (veredito, histórico, barra de progresso, erros de input). A única exceção é o gradiente de **Calor** (`#F59E0B`→`#DC2626`), deliberadamente quente.
+**Marca:** rosa primário `#FF009D` · hover `#D6007F` · tinta `#1E1A16`.
+**Superfície quente:** fundo `#FAFAF8` · borda `#E0DBD4` · divisória `#F0EDE8` · texto `#5A5450` (7.1:1) / `#6B6460` (5.6:1) · terciário `#8A8078` (3.7:1).
+
+**Semáforo (dois tons):** texto `#166534` / `#B45309` / `#C0392B` (escuros, AA ✓) · barras `#16a34a` / `#d97706` / `#dc2626` (vivos). `buyVerdict`/`verdict` usam texto; `scoreColor`/`scoreBar` usam barras.
+
+**Acentos por bloco:** Travel `#F8F4FF`+`#6B21A8`/`#7E22CE` · mistura `#F5F3FA`+`#6B5B95` · qualidade `#FDF6E3`+`#7A5C00` · certificação `#E1F5EE`+`#0F6E56` · calor `#FFF4ED`+`#9A3412` (gradiente `#F59E0B`→`#DC2626`).
 
 ---
 
@@ -181,7 +171,7 @@ https://lookmap.ai/analise?score=...&verdict=...&qualidade=...&durabilidade=...
   &fibras=Poliéster:93,Elastano:7&origem=<url-produto>
 ```
 
-Página ainda **não existe** — os params já vão preparados para quando a landing for criada (sem backend, tudo via query string). O botão "Ver análise completa →" no card aponta para aqui.
+A landing agora existe (`landing/analise-v15.html`, sistema Apple White — §7), mas ainda **não consome estes params**: o template recalcula o próprio veredito a partir do `score` em vez de ler `verdict=`, o que faz card e landing discordarem no mesmo score. Reconciliar isto é a decisão de vereditos ainda em aberto. O botão "Ver análise completa →" no card aponta para aqui; sem backend, tudo via query string.
 
 ---
 
