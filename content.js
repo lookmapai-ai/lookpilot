@@ -522,14 +522,11 @@
           <span style="color:#166534;">✓</span> Baseado na composição da etiqueta · ${conf}%
         </div>` : ''}
 
-        <a href="${buildAnaliseURL(scores, fibers, buy, bv.label, location.href, conf)}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:600;color:#fff;background:#1D1D1F;text-decoration:none;border:none;padding:11px;border-radius:9px;letter-spacing:0.02em;margin-bottom:8px;">
+        <a href="${buildAnaliseURL(scores, fibers, buy, bv.label, location.href, conf)}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:600;color:#fff;background:#1D1D1F;text-decoration:none;border:none;padding:11px;border-radius:9px;letter-spacing:0.02em;">
           Ver análise completa →
         </a>
-        <button id="__fqa-share" style="display:flex;width:100%;align-items:center;justify-content:center;gap:5px;font-size:11px;font-weight:600;color:#1D1D1F;background:#F5F5F7;border:none;cursor:pointer;padding:9px;border-radius:9px;letter-spacing:0.02em;font-family:inherit;">
-          <span>📷</span> ${t('card_share')}
-        </button>
 
-        <div style="font-size:10px;color:#86868B;text-align:center;border-top:1px solid #F5F5F7;padding-top:8px;margin-top:10px;">
+        <div style="font-size:10px;color:#86868B;text-align:center;border-top:1px solid #F5F5F7;padding-top:8px;margin-top:14px;">
           LookPilot · LookMap
         </div>
       </div>
@@ -538,8 +535,8 @@
     document.body.appendChild(card);
     avoidCartButton(card);
     card.querySelector('#__fqa-close').addEventListener('click', () => { removeCard(); setBadge('','#FF009D'); });
-    const shareBtn = card.querySelector('#__fqa-share');
-    if (shareBtn) shareBtn.addEventListener('click', () => generateShareCard(scores, fibers, buy, v, catInfo, warmth, warmthInfo, showWarmth));
+    // Compartilhar adiado para a 2ª fase: o botão foi removido do card, mas
+    // generateShareCard() fica intacto para religar depois (basta repor o botão).
     setBadge('✓', '#16a34a');
   }
 
@@ -700,6 +697,7 @@
   });
 
   // ─── Card partilhável: desenha o resultado num canvas e faz download ──
+  // eslint-disable-next-line no-unused-vars -- 2ª fase: religar quando o botão Compartilhar voltar ao card
   function generateShareCard(scores, fibers, buy, v, catInfo, warmth, warmthInfo, showWarmth) {
     const bv = typeof buyVerdict === 'function' ? buyVerdict(buy) : { label: v.label };
     const conclusion = typeof conclusionText === 'function' ? conclusionText(scores, scores.fibers || fibers) : '';
