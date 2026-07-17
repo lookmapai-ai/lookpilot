@@ -188,7 +188,7 @@ function renderFibers() {
     hint.textContent = `A mais ${total - 100}% — confira os valores.`;
     btn.disabled = true;
   } else if (total > 0 && total < 100) {
-    hint.style.display = ''; hint.style.color = '#999';
+    hint.style.display = ''; hint.style.color = '#86868B';
     hint.textContent = `Faltam ${100 - total}% para completar a composição.`;
     btn.disabled = false;
   } else { hint.style.display = 'none'; btn.disabled = false; }
@@ -238,10 +238,10 @@ function renderResult(details, s, showEditLink = true) {
       <div style="margin-bottom:12px;">
         <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;">
           <span style="font-size:32px;font-weight:700;color:${v.color};line-height:1;">${s?.overall ?? ''}</span>
-          <span style="font-size:13px;color:#8A8078;font-weight:500;">/100</span>
+          <span style="font-size:13px;color:#86868B;font-weight:500;">/100</span>
           <span style="font-size:14px;font-weight:600;color:${v.color};">${v.label}</span>
         </div>
-        <div style="font-size:12px;color:#6B6460;line-height:1.6;">${conclusionText(s, details)}</div>
+        <div style="font-size:12px;color:#6E6E73;line-height:1.6;">${conclusionText(s, details)}</div>
         ${s && s.qualityModifier ? `<div style="font-size:11px;color:#7a5c00;line-height:1.5;margin-top:8px;padding:8px 10px;background:#fdf6e3;border-radius:8px;"><span style="font-weight:600;">⭐ ${s.qualityModifier.nome}:</span> ${s.qualityModifier.explica}</div>` : ''}
         ${typeof blendText === 'function' && blendText(details) ? `<div style="font-size:11px;color:#6b5b95;line-height:1.5;margin-top:8px;padding:8px 10px;background:#f5f3fa;border-radius:8px;"><span style="font-weight:600;">${t('blend_label')}</span> ${blendText(details)}</div>` : ''}
       </div>
@@ -257,9 +257,9 @@ function renderResult(details, s, showEditLink = true) {
           [t('cost_benefit'), toTen(s.costBenefit)],
         ].map(([label, val]) => `
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px;">
-            <span style="min-width:118px;color:#555;">${label}</span>
+            <span style="min-width:118px;color:#6E6E73;">${label}</span>
             ${scoreBar(val, 10)}
-            <span style="min-width:18px;text-align:right;font-weight:600;color:#333;">${val}</span>
+            <span style="min-width:18px;text-align:right;font-weight:600;color:#1D1D1F;">${val}</span>
           </div>
         `).join('')}
       </div>
@@ -270,7 +270,7 @@ function renderResult(details, s, showEditLink = true) {
       </div>
       ` : ''}
 
-      <div style="border-top:1px solid #f0f0f0;padding-top:10px;margin-top:2px;margin-bottom:4px;">
+      <div style="border-top:1px solid #F5F5F7;padding-top:10px;margin-top:2px;margin-bottom:4px;">
         ${details.map(d => `
           <div class="fiber-detail">
             <div>
@@ -298,7 +298,7 @@ function triggerScan() {
       document.getElementById('scanning-state').style.display = 'none';
       document.getElementById('manual-section').style.display = 'block';
       const hint = document.getElementById('total-hint');
-      if (hint) { hint.style.display = ''; hint.style.color = '#6B6460'; hint.textContent = t(msgKey); }
+      if (hint) { hint.style.display = ''; hint.style.color = '#6E6E73'; hint.textContent = t(msgKey); }
     };
 
     const send = () => {

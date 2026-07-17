@@ -108,13 +108,13 @@ Extra: **Travel Score** (destacado se ≥72), **Calor** (só em peças de invern
 
 ## 6. Identidade de marca
 
-> ⚠️ **Em transição (2026-07-17).** A landing de resultados foi redesenhada para o sistema **"Apple White"** (v15, ver §7). A extensão ainda usa o sistema quente/magenta antigo. A decisão é migrar a extensão para a Apple White; esta seção e a §7 descrevem o **alvo**, com o sistema antigo preservado como "atual (a migrar)". Enquanto a migração não acontece, o código da extensão é a fonte de verdade do que está no ar.
+> **Sistema "Apple White" (2026-07-17).** Landing e extensão partilham agora a mesma paleta (§7): branco, tinta `#1D1D1F`, `-apple-system`, com o magenta `#FF009D` reduzido a acento de marca (wordmark, ícone, foco). A migração da extensão foi aplicada nesta data — ver §7.2.
 
 | Asset | Uso | Estado |
 |-------|-----|--------|
-| `logo/logo-lookpilot.svg` | Wordmark "**Look**Pilot" (Look tinta + Pilot #EF23A1) | Magenta — **decisão em aberto** (ver §7) |
-| `logo/lookpilot-mini.svg` | Ícone "lp" — quadrado #FF009D + letterform branca. Fonte dos ícones da toolbar | Magenta — **decisão em aberto** |
-| `icon16/48/128.png` | Ícones da extensão na toolbar | **Gerados à mão**, não pelo `build.py` (que só recalcula scores). Trocar a cor de marca implica redesenhá-los fora do código |
+| `logo/logo-lookpilot.svg` | Wordmark "**Look**Pilot" (Look tinta + Pilot #EF23A1) | Mantido — magenta é o acento de marca |
+| `logo/lookpilot-mini.svg` | Ícone "lp" — quadrado #FF009D + letterform branca. Fonte dos ícones da toolbar | Mantido |
+| `icon16/48/128.png` | Ícones da extensão na toolbar | Mantidos. **Gerados à mão**, não pelo `build.py` (que só recalcula scores) — se um dia o magenta sair, têm de ser redesenhados fora do código |
 
 Nota: o wordmark `logo-lookpilot.svg` inclui um `<rect fill="white">` de fundo que é **removido** ao embutir inline nos cards/popup.
 
@@ -143,21 +143,16 @@ Extraído de `landing/analise-v15.html`. **9 cores, uma superfície.** Contraste
 
 > **⚠️ Alerta de contraste herdado da v15:** `#86868B` a 12px é o padrão dos eyebrows na landing e **reprova AA para texto normal** (3.62:1). Aceitável só por serem labels decorativos curtos; ao migrar a extensão, não replicar essa cor em texto informativo.
 
-**🔶 Decisões em aberto (dependem de ver a v15 renderizada):**
-- **Magenta `#FF009D`** — a Apple White não o tem. Sai de vez, ou fica como único acento de marca (CTAs, wordmark, ícone)? Tirar exige redesenhar wordmark + ícone da toolbar à mão.
-- **Semáforo do veredito** — a v15 não tem semáforo (veredito é tinta preta). Manter a cor dá legibilidade (elogiada no relatório de julho); tirar dá pureza. Decidir.
-- **Acentos por bloco** (Travel violeta, certificação verde, calor laranja) — a Apple White tem só `#F5F5F7`. Achatar custa a taxonomia visual do card.
+**Decisões (resolvidas 2026-07-17, ao aplicar a Apple White à extensão):**
+- **Magenta `#FF009D`** → **fica como acento único de marca**, não como cor de fundo. Vive só no **wordmark** (letras "pilot"), no **ícone da toolbar**, no **badge de scan** (`setBadge('…','#FF009D')`) e nas **bordas de foco** de input. Não se redesenhou nenhum asset. Os **CTAs deixaram de ser magenta e passaram a tinta** `#1D1D1F` com texto branco (16.83:1 ✓) — o botão primário da v15. Motivo: branco sobre magenta é só 3.66:1 (reprova AA), tinta resolve e alinha com a v15.
+- **Semáforo do veredito** → **mantido.** Todos os tons passam AA sobre o branco novo (medido: verde 7.13 · âmbar 5.02 · vermelho 5.44). A pureza da v15 não valia perder a legibilidade que o relatório de julho elogiou.
+- **Acentos por bloco** (Travel violeta, cert verde, calor laranja) → **mantidos.** Passam AA sobre `#F5F5F7` (6.4–8.0:1) e preservam a taxonomia visual do card.
 
-### 7.2 Sistema atual da extensão (a migrar)
+### 7.2 Estado da migração
 
-Ainda no código (`content.js`, `popup.html/js`, `shared.js`). São **54 cores hex distintas** — metade não documentada. Dívida a limpar na migração: `#333`, `#555`, `#666`, `#777`, `#999`, `#1a1a1a`, `#f5f5f5`, `#fafafa` e um `#ff1493` (deep pink) solto que **não** é o token de marca `#FF009D`.
+**Aplicada à extensão a 2026-07-17** (`content.js`, `popup.html/js`, `shared.js`). Paleta reduzida de **54 → ~35 cores**. A rampa quente antiga foi mapeada para a Apple White: `#FAFAF8`→`#FFFFFF` · `#E0DBD4`→`#E8E8ED` · `#F0EDE8`→`#F5F5F7` · `#1E1A16`→`#1D1D1F` · `#5A5450`/`#6B6460`→`#6E6E73` · `#8A8078`→`#86868B`. Dívida limpa: cinzas soltos (`#333`/`#555`/`#666`/`#777`/`#999`/`#1a1a1a`) colapsados na rampa; `#ff1493` (deep pink solto) unificado em `#FF009D`. Tipografia: DM Serif Display → `-apple-system` (elimina o `@import` do Google Fonts e o problema de CSP em lojas como a Reserved).
 
-**Marca:** rosa primário `#FF009D` · hover `#D6007F` · tinta `#1E1A16`.
-**Superfície quente:** fundo `#FAFAF8` · borda `#E0DBD4` · divisória `#F0EDE8` · texto `#5A5450` (7.1:1) / `#6B6460` (5.6:1) · terciário `#8A8078` (3.7:1).
-
-**Semáforo (dois tons):** texto `#166534` / `#B45309` / `#C0392B` (escuros, AA ✓) · barras `#16a34a` / `#d97706` / `#dc2626` (vivos). `buyVerdict`/`verdict` usam texto; `scoreColor`/`scoreBar` usam barras.
-
-**Acentos por bloco:** Travel `#F8F4FF`+`#6B21A8`/`#7E22CE` · mistura `#F5F3FA`+`#6B5B95` · qualidade `#FDF6E3`+`#7A5C00` · certificação `#E1F5EE`+`#0F6E56` · calor `#FFF4ED`+`#9A3412` (gradiente `#F59E0B`→`#DC2626`).
+**Verificado:** 120 testes passam; popup renderizado (onboarding + product-ready) com fundo `rgb(255,255,255)`, tinta `rgb(29,29,31)`, botões tinta, wordmark com "pilot" magenta. O **card injetado** (`content.js`) não foi renderizado standalone — só validado por sintaxe e inspeção do código.
 
 ---
 

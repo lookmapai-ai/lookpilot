@@ -351,7 +351,7 @@ function toTen(v) { return Math.round((v || 0) / 10); }
 
 function verdict(scores) {
   const en = typeof LP_LANG !== 'undefined' && LP_LANG === 'en';
-  if (!scores) return { label: '—', color: '#6B6460' };
+  if (!scores) return { label: '—', color: '#6E6E73' };
   if (scores.overall >= 80) return { label: en ? 'Good buy ✓'         : 'Boa compra ✓',       color: '#166534' };
   if (scores.overall >= 65) return { label: en ? 'Decent buy'         : 'Compra ok',          color: '#B45309' };
   if (scores.overall >= 50) return { label: en ? 'Buy with caution'   : 'Compra com cautela', color: '#B45309' };
@@ -875,5 +875,5 @@ function blendText(fibers) {
 function scoreBar(val, max = 10) {
   const pct = Math.round(val / max * 100);
   const color = pct >= 75 ? '#16a34a' : pct >= 55 ? '#d97706' : '#dc2626';
-  return `<div style="flex:1;height:4px;background:#f0f0f0;border-radius:2px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${color};border-radius:2px;"></div></div>`;
+  return `<div style="flex:1;height:4px;background:#F5F5F7;border-radius:2px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${color};border-radius:2px;"></div></div>`;
 }
