@@ -29,6 +29,7 @@ function buildAnaliseURLFromStorage(last) {
   const m = last.meta || {};
   if (m.nome)   params.set('nome',   String(m.nome).slice(0, 120));
   if (m.imagem) params.set('imagem', m.imagem);
+  if (m.galeria && m.galeria.length > 1) params.set('galeria', m.galeria.join('|'));
   if (m.preco)  params.set('preco',  m.preco);
   if (m.moeda)  params.set('moeda',  m.moeda);
   if (m.loja)   params.set('loja',   m.loja);

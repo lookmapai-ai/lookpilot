@@ -2,3 +2,8 @@ files.zip
 .DS_Store
 *.log
 .claude/
+
+# Exports de design do Claude design (não pertencem ao repo da extensão)
+*.zip
+LookMap.html
+LookPilot*.html

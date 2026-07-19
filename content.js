@@ -24,7 +24,57 @@
                   meta('meta[property="og:price:currency"]') || '';
     const loja = meta('meta[property="og:site_name"]') ||
                  location.hostname.replace(/^www\./, '').split('.')[0];
-    return { nome, imagem, preco, moeda, loja };
+    return { nome, imagem, preco, moeda, loja, galeria: getGallery(imagem) };
+  }
+
+  // Reúne 2–3 fotos do produto (não só a og:image) para dar ritmo visual aos
+  // quatro cartões da landing. Fontes, por ordem de fiabilidade:
+  //   1) JSON-LD schema.org Product (campo `image`, string ou array)
+  //   2) todas as <meta property="og:image">
+  //   3) <img> da galeria do produto (heurística por atributos comuns)
+  // Devolve URLs absolutos, sem duplicados, no máximo 3 — para o URL não estourar.
+  function getGallery(primeira) {
+    const urls = [];
+    const push = (u) => {
+      if (!u) return;
+      try { u = new URL(u, location.href).href; } catch (e) { return; }
+      if (/^https?:/.test(u) && !urls.includes(u)) urls.push(u);
+    };
+    push(primeira);
+
+    // 1) JSON-LD
+    try {
+      document.querySelectorAll('script[type="application/ld+json"]').forEach((s) => {
+        let data; try { data = JSON.parse(s.textContent); } catch (e) { return; }
+        const nodes = Array.isArray(data) ? data : (data['@graph'] || [data]);
+        nodes.forEach((n) => {
+          if (!n || !/product/i.test(n['@type'] || '')) return;
+          const img = n.image;
+          if (typeof img === 'string') push(img);
+          else if (Array.isArray(img)) img.forEach((i) => push(typeof i === 'string' ? i : i && i.url));
+          else if (img && img.url) push(img.url);
+        });
+      });
+    } catch (e) {}
+
+    // 2) várias og:image
+    document.querySelectorAll('meta[property="og:image"],meta[property="og:image:url"]')
+      .forEach((m) => push(m.getAttribute('content')));
+
+    // 3) galeria no DOM (só se ainda faltarem fotos)
+    if (urls.length < 3) {
+      const sel = 'picture img, img[class*="product" i], img[class*="gallery" i], img[data-testid*="image" i], .swiper-slide img, [class*="carousel" i] img';
+      const vistos = new Set(urls);
+      document.querySelectorAll(sel).forEach((img) => {
+        if (urls.length >= 3) return;
+        const src = img.currentSrc || img.src ||
+          (img.getAttribute('srcset') || '').split(',').pop().trim().split(' ')[0];
+        if (!src || vistos.has(src)) return;
+        if ((img.naturalWidth && img.naturalWidth < 200) || /sprite|icon|logo|placeholder/i.test(src)) return;
+        vistos.add(src); push(src);
+      });
+    }
+    return urls.slice(0, 3);
   }
 
   function buildAnaliseURL(scores, fibers, buy, verdictLabel, productUrl, confidence) {
@@ -51,6 +101,8 @@
     const m = getProductMeta();
     if (m.nome)   params.set('nome',   m.nome.slice(0, 120));
     if (m.imagem) params.set('imagem', m.imagem);
+    // Galeria (2–3 fotos separadas por "|") — a landing usa-as nos 4 cartões.
+    if (m.galeria && m.galeria.length > 1) params.set('galeria', m.galeria.join('|'));
     if (m.preco)  params.set('preco',  m.preco);
     if (m.moeda)  params.set('moeda',  m.moeda);
     if (m.loja)   params.set('loja',   m.loja);

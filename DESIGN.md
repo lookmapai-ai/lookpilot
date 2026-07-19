@@ -34,10 +34,10 @@ Três estados visuais:
 | **Resultado** | Composição encontrada (`injectCard`) | Buy Score /100, veredito, dimensões, Travel Score, fibras, botões Partilhar / Ver análise completa |
 | **Não encontrado** | Scan falha (`injectEmptyCard`) | Mensagem para inserir composição manualmente via popup |
 
-Identidade visual do card de resultado:
-- Tipografia de display: **DM Serif Display** (itálico) no veredito e score, via `@import` do Google Fonts. Fallback `Georgia,serif` em lojas com CSP estrita que bloqueiam o Google Fonts (ex: Reserved).
-- Cor de marca: **#FF009D** (rosa)
-- Fundo: `#FAFAF8`, borda `#E0DBD4`
+Identidade visual do card de resultado (migrado para Apple White — §7):
+- Tipografia: **`-apple-system`/SF Pro** no veredito e score (sem Google Fonts → elimina o problema de CSP da Reserved).
+- Fundo `#FFFFFF`, borda `#E8E8ED`, CTA "Ver análise completa →" em tinta `#1D1D1F` (branco 16.83:1 ✓). Magenta `#FF009D` só no wordmark.
+- Veredito colorido pelo semáforo (`buyVerdict`), mantido por legibilidade.
 
 ### 2.2 Popup (`popup.html` + `popup.js`) — camada de disparo
 
@@ -163,10 +163,15 @@ Extraído de `landing/analise-v15.html`. **9 cores, uma superfície.** Contraste
 ```
 https://lookmap.ai/analise?score=...&verdict=...&qualidade=...&durabilidade=...
   &conforto=...&versatilidade=...&manutencao=...&custo=...&viagem=...
-  &fibras=Poliéster:93,Elastano:7&origem=<url-produto>
+  &fibras=Poliéster:93,Elastano:7&nome=...&imagem=...&galeria=<url1>|<url2>|<url3>
+  &preco=...&moeda=...&loja=...&confianca=...&origem=<url-produto>
 ```
 
-A landing agora existe (`landing/analise-v15.html`, sistema Apple White — §7), mas ainda **não consome estes params**: o template recalcula o próprio veredito a partir do `score` em vez de ler `verdict=`, o que faz card e landing discordarem no mesmo score. Reconciliar isto é a decisão de vereditos ainda em aberto. O botão "Ver análise completa →" no card aponta para aqui; sem backend, tudo via query string.
+**A página de resultado consome estes params** (repo `lookmap`, `landing/index.html`, portada de `LookMap.html` do Claude design). Ligações:
+- `score`→nota (countup) · `verdict`→título (lê o param; só recalcula se ausente — card e página deixaram de discordar) · `nome`/`loja`/`preco`/`moeda`/`imagem`→hero e miniatura.
+- `fibras` + 7 dimensões → as 4 respostas, geradas por `landing/cards.js` a partir de `fibers.json`+`blends.json`. Sem params, cai no exemplo (suéter de lã).
+- `galeria` (2–3 fotos por `|`, via `getGallery` em content.js) → imagens dos 4 cartões.
+- Guardar → histórico em `localStorage`. Sem backend, tudo via query string.
 
 ---
 
