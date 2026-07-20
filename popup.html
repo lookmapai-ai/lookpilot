@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { width: 320px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #FFFFFF; color: #1D1D1F; font-size: 14px; }
+  body { width: 320px; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; background: #FFFFFF; color: #1D1D1F; font-size: 14px; }
+  /* botões e inputs não herdam a fonte por omissão (sairiam em Arial) */
+  button, input, select, textarea { font-family: inherit; }
 
   /* ── Header ── */
   .lp-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 11px; border-bottom: 1px solid #F5F5F7; }
