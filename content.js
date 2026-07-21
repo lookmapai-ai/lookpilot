@@ -89,6 +89,8 @@
       if (historia.mistura)    params.set('mistura',    historia.mistura.slice(0, 320));
       if (historia.modNome)    params.set('modnome',    historia.modNome.slice(0, 60));
       if (historia.modExplica) params.set('modexplica', historia.modExplica.slice(0, 320));
+      if (historia.fibraNome)  params.set('fibra',      historia.fibraNome.slice(0, 40));
+      if (historia.fibraTip)   params.set('fibratip',   historia.fibraTip.slice(0, 240));
     }
     // Dimensões (0–100)
     if (scores) {
@@ -528,7 +530,12 @@
     const historia = {
       mistura:    typeof blendText === 'function' ? blendText(fibrasHist) : '',
       modNome:    mod?.nome || '',
-      modExplica: mod?.explica || ''
+      modExplica: mod?.explica || '',
+      // `tip` da fibra principal: prosa calibrada por fibra, específica de
+      // verdade ("não amassa e regula odor, mas é volumosa e seca devagar").
+      // Sem isto os capítulos 02-04 caem sempre nas mesmas frases por faixa.
+      fibraNome:  principal?.data?.label || principal?.name || '',
+      fibraTip:   principal?.data?.tip || ''
     };
     const total = fibers.reduce((acc,f)=>acc+(f.pct||0),0);
     const mismatch = '';

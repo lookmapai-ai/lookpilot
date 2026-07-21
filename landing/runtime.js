@@ -65,6 +65,8 @@
   var mistura = Q.get('mistura') || '';
   var modNome = Q.get('modnome') || '';
   var modExplica = Q.get('modexplica') || '';
+  var fibraNome = Q.get('fibra') || '';
+  var fibraTip = Q.get('fibratip') || '';
   var viagem100 = has('viagem') ? clamp(int('viagem', 80), 0, 100) : DEFAULT.viagem * 10;
   var vg = Math.round(viagem100 / 10); // o design trabalha o selo em 0–10
 
@@ -173,18 +175,35 @@
                        : ' É aqui que a nota perde pontos.';
     }
 
-    // 02 · O corpo
-    var t2 = [
-      'Pesa no uso. ' + (mix.sin >= 70 ? 'Fibra sintética ==retém calor e respira pouco==: num dia longo ou lugar fechado, abafa.' : 'Não é a peça que você vai querer vestir o dia inteiro.'),
-      'Veste bem, sem encantar. Cumpre o dia sem incomodar, mas ' + (mix.sin >= 50 ? 'a parte sintética cobra em dias quentes.' : 'não é a peça mais confortável do armário.'),
-      (principal ? principal.nome + ' ' : '') + '==veste bem de verdade==: aquece ou refresca conforme o dia e respira em vez de virar estufa.'
-    ][faixa(conf, 70, 45)];
+    // 02 · O corpo — quando a extensão manda o `tip` da fibra, a substância
+    // vem dele (é calibrado por fibra, específico de verdade) e a nota desta
+    // peça entra como consequência. Sem tip, cai nas frases por faixa.
+    var t2;
+    if (fibraTip) {
+      // o tip às vezes traz conselho de viagem ("Merino é a melhor para
+      // viagem") — isso pertence ao selo de viagem, não ao capítulo do corpo
+      var tip = fibraTip.split(/(?<=\.)\s+/)
+        .filter(function (s) { return !/viagem|viajar|mala/i.test(s); })
+        .join(' ').replace(/\s*$/, '').replace(/\.$/, '');
+      if (!tip) tip = fibraTip.replace(/\.$/, '');
+      t2 = tip + '. ' + [
+        'Nesta peça é o que mais pesa contra.',
+        'Nesta peça dá pra conviver com isso.',
+        'Nesta peça isso joga a favor.'
+      ][faixa(conf, 70, 45)];
+    } else {
+      t2 = [
+        'Pesa no uso. ' + (mix.sin >= 70 ? 'Fibra sintética ==retém calor e respira pouco==: num dia longo ou lugar fechado, abafa.' : 'Não é a peça que você vai querer vestir o dia inteiro.'),
+        'Veste bem, sem encantar. Cumpre o dia sem incomodar, mas ' + (mix.sin >= 50 ? 'a parte sintética cobra em dias quentes.' : 'não é a peça mais confortável do armário.'),
+        (principal ? principal.nome + ' ' : '') + '==veste bem de verdade==: aquece ou refresca conforme o dia e respira em vez de virar estufa.'
+      ][faixa(conf, 70, 45)];
+    }
 
     // 03 · O tempo
     var t3 = [
       'Pouco. ' + (mix.sin >= 50 ? 'O sintético ==forma bolinhas== com o atrito e desbota.' : 'A malha cede com o uso.') + ' É peça pra meses, não pra anos.',
       'Dura, com cuidado. Aguenta a temporada se você respeitar a lavagem — ' + (man >= 60 ? 'e a manutenção é simples.' : 'mas ==a manutenção é exigente==.'),
-      'Vai durar. Gola, punho e barra voltam ao lugar em vez de arriar' + (man >= 60 ? ', e o cuidado é fácil: água fria, secar à sombra.' : ' — desde que você respeite a lavagem.') + ' É peça pra ==durar temporadas==.'
+      'Vai durar. ' + (fibraNome ? fibraNome + ' aguenta' : 'A fibra aguenta') + ' o uso repetido sem perder a forma' + (man >= 60 ? ', e o cuidado é simples.' : ' — desde que você respeite a lavagem.') + ' É peça pra ==durar temporadas==.'
     ][faixa(dur, 70, 45)];
 
     // 04 · No dia a dia

@@ -28,6 +28,16 @@ duas superfícies se contradizem) · `nome` · `loja` · `preco` · `moeda` ·
 capítulos) · `fibras` (vira a composição da etiqueta) · `viagem` (0–100, define
 o selo de viagem) · `confianca`.
 
+**A história da peça** — conhecimento que só a extensão tem, e sem o qual os
+capítulos caem sempre nas mesmas frases:
+
+| Parâmetro | O que carrega | Onde entra |
+|---|---|---|
+| `mistura` | o efeito da fibra secundária naquela dose (`blends.json`) | ato 01 |
+| `modnome` / `modexplica` | modificador detectado na página (ex.: Supima) | ato 01 |
+| `fibra` | nome da fibra principal | atos 02, 03 e selo de viagem |
+| `fibratip` | prosa calibrada por fibra (`FIBER_DB.tip`) | ato 02 |
+
 Sem parâmetros, a página mostra o conteúdo de demonstração do design.
 
 ## Prosa adaptada à peça
@@ -53,6 +63,8 @@ Sem parâmetros, o texto se mantém original do design.
 
 ### O que continua por fazer
 
-A prosa é gerada por faixas, não por conhecimento de fibra: não sabe que o
-acrílico forma bolinhas mais depressa que o poliéster, por exemplo. A base
-técnica para isso existe na extensão (`fibers.json`), mas não é enviada.
+O ato 04 (versatilidade) ainda é só por faixa de nota — repete entre peças. E a
+prosa não desce ao nível da propriedade medida: não sabe que o acrílico forma
+bolinhas mais depressa que o poliéster. As 13 propriedades por fibra existem em
+`fibers.json`, mas o `build.py` da extensão achata-as em 5 scores + `tip`, e só
+o `tip` chega aqui.
