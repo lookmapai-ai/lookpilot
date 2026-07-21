@@ -253,7 +253,16 @@
            secundaria.nome.toLowerCase() + ' não estão ali por acaso: ' +
            mistura.charAt(0).toLowerCase() + mistura.slice(1);
     } else if (mix.nat >= 90) {
-      t1 = 'De ' + principal.nome.toLowerCase() + ', e só. A etiqueta foi lida fio por fio: ==' + comp + '==, sem nenhuma fibra sintética escondida.';
+      // três formas de contar a mesma verdade — a fórmula repetida em todas as
+      // peças era o que mais denunciava texto gerado. A escolha é estável por
+      // peça (não muda a cada recarregamento).
+      var f = principal.nome.toLowerCase();
+      var variantes = [
+        'De ' + f + ', e só. A etiqueta foi lida fio por fio: ==' + comp + '==, sem nenhuma fibra sintética escondida.',
+        '==' + comp.charAt(0).toUpperCase() + comp.slice(1) + '.== Sem mistura, sem sintético escondido no meio — o que está no rótulo é o que você veste.',
+        'É ' + f + ' de verdade. Lemos o rótulo inteiro à procura de sintético escondido e não achamos nada: ==' + comp + '==.'
+      ];
+      t1 = variantes[(f.length + score) % variantes.length];
       t1 += qual >= 70 ? ' É o que puxa a nota pra cima.' : ' A matéria segura a nota, sem a levantar.';
     } else if (mix.sin >= 70) {
       var traco = lista.find(function (f) {
@@ -285,12 +294,15 @@
         })
         .join(' ').replace(/\s*$/, '').replace(/\.$/, '');
       if (!tip) tip = fibraTip.replace(/\.$/, '');
-      // o fecho fala do conforto DESTA peça — não de "isso", que ficaria
-      // ambíguo quando o tip mistura elogio e defeito
+      // O tip costuma terminar numa ressalva ("...mas amassa muito"). Sem um
+      // conector, o fecho positivo soa contraditório: "amassa muito. É das que
+      // você esquece que está usando."
+      var temRessalva = /\bmas\b|porém|no entanto|limitação/i.test(tip);
       t2 = tip + '. ' + [
-        'Aqui é onde ' + tipoArt + ' ' + tipo + ' perde: o conforto ficou baixo.',
-        'N' + tipoArt + ' ' + tipo + ', o conforto fica no meio-termo.',
-        'N' + tipoArt + ' ' + tipo + ', o conforto é ponto forte.'
+        'No corpo é onde ela perde — você sente isso ao longo do dia.',
+        (temRessalva ? 'Fora isso, cumpre' : 'Cumpre') + ' o dia sem incomodar, sem virar a favorita.',
+        (temRessalva ? 'Ainda assim, é das que você esquece que está usando.'
+                     : 'É das que você esquece que está usando.')
       ][faixa(conf, 70, 45)];
     } else {
       t2 = [
@@ -304,18 +316,18 @@
     // é o defeito concreto (bolinhas) em vez da faixa da nota.
     var t3;
     if (props.bol !== undefined && props.bol <= 4) {
-      t3 = (fibraNome || 'Essa fibra') + ' ==forma bolinhas==: o tecido encaroça onde roça — cintura, axilas, alça da bolsa' +
-        (props.ama !== undefined && props.ama <= 4 ? ' — e ainda amarrota' : '') + '. ' +
-        (dur >= 60 ? 'O tecido aguenta; é o aspecto que envelhece primeiro.'
-                   : 'É o que encurta a vida ' + (tipo === 'peça' ? 'da peça' : 'd' + (tipoArt === 'este' ? 'este ' : 'esta ') + tipo) + ': temporadas, não anos.');
+      t3 = '==Vai criar bolinhas.== Onde a roupa roça o dia inteiro — cintura, axila, alça da bolsa — o tecido encaroça' +
+        (props.ama !== undefined && props.ama <= 4 ? ', e ainda sai amassada da gaveta' : '') + '. ' +
+        (dur >= 60 ? 'O tecido em si aguenta bem; o que cansa antes é a aparência.'
+                   : 'É o que faz ' + (tipoArt === 'este' ? 'este ' : 'esta ') + tipo + ' parecer velh' + (tipoArt === 'este' ? 'o' : 'a') + ' antes da hora.');
     } else if (props.bol !== undefined && props.bol >= 8 && dur >= 60) {
-      t3 = (fibraNome || 'Essa fibra') + ' ==não bola==: mesmo no atrito do uso diário a superfície continua lisa. ' +
-        (man >= 60 ? 'Com cuidado simples, é ' + tipo + ' pra durar temporadas.'
-                   : 'Dura — desde que você respeite a lavagem.');
+      t3 = 'Envelhece bem. Depois de muita lavagem continua com a mesma cara — ==não é do tipo que enche de bolinhas==. ' +
+        (man >= 60 ? 'E não pede nada de especial: lavagem normal e pronto.'
+                   : 'Só cobra atenção na hora de lavar.');
     } else t3 = [
       'Pouco. ' + (mix.sin >= 50 ? 'O sintético ==forma bolinhas== com o atrito e desbota.' : 'A malha cede com o uso.') + ' É peça pra meses, não pra anos.',
       'Dura, com cuidado. Aguenta a temporada se você respeitar a lavagem — ' + (man >= 60 ? 'e a manutenção é simples.' : 'mas ==a manutenção é exigente==.'),
-      'Vai durar. ' + (fibraNome ? fibraNome + ' aguenta' : 'A fibra aguenta') + ' o uso repetido sem perder a forma' + (man >= 60 ? ', e o cuidado é simples.' : ' — desde que você respeite a lavagem.') + ' É ' + tipo + ' pra ==durar temporadas==.'
+      'Vai durar. ' + (fibraNome ? 'A ' + fibraNome.toLowerCase() + ' aguenta' : 'A fibra aguenta') + ' o uso repetido sem perder a forma' + (man >= 60 ? ', e o cuidado é simples.' : ' — desde que você respeite a lavagem.') + ' É ' + tipo + ' pra ==durar temporadas==.'
     ][faixa(dur, 70, 45)];
 
     // 04 · No dia a dia — a cor e o padrão são o maior fator de combinação,
@@ -326,11 +338,20 @@
       t4 = 'Depende do resto do armário. ==Estampado pede peças lisas à volta== — não entra em qualquer look. ' +
         (ver >= 60 ? 'Ainda assim rende: o estampado vira o ponto de partida do look, não o obstáculo.'
                    : 'Sai menos que ' + (tipoArt === 'este' ? 'um ' : 'uma ') + tipo + ' lisa, e o preço por uso sobe junto.');
+    } else if (/neutr/i.test(corNota)) {
+      // cor neutra e lisa — não repetir "combina com tudo" duas vezes
+      t4 = [
+        'Combina fácil, mas mesmo assim fica no cabide: o que segura ' + tipoArt + ' ' + tipo + ' não é a cor.',
+        'Entra em quase tudo que você já tem. Não é a primeira escolha da manhã, mas resolve.',
+        'Entra em qualquer combinação. É ' + tipoArt + ' ' + tipo + ' que você ==veste sem pensar== — e é sempre essa que mais sai do armário.'
+      ][faixa(ver, 70, 45)];
     } else if (corNota) {
-      t4 = corNota.charAt(0).toUpperCase() + corNota.slice(1) + '. ' +
-        (ver >= 70 ? 'É o tipo de ' + tipo + ' que ==combina sem você pensar== — e a que combina sozinha acaba sendo a mais barata que você tem.'
-       : ver >= 45 ? 'Combina com o que você já tem, sem ser a primeira escolha.'
-                   : 'Mesmo assim, sai pouco: é ' + tipo + ' de ocasião.');
+      // cor marcante: a cor é que decide a frequência de uso
+      t4 = [
+        'A cor manda aqui: ==pede o resto do look em volta== e por isso sai pouco. O preço por uso sobe.',
+        'A cor pede um pouco de intenção, mas cabe no que você já tem.',
+        'Mesmo com cor marcante, ==sai muito==: funciona com o que você já usa e ainda dá o ponto de cor.'
+      ][faixa(ver, 70, 45)];
     } else {
       t4 = [
         'Pouco. É peça de ocasião: ==pede combinação específica== e acaba parada no cabide. Custe o que custar, o preço por uso sobe.',
