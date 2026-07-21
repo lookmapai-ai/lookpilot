@@ -365,7 +365,11 @@
         : DEFAULT.heroIntro),
       verdict: verdictParam || (score >= 75 ? 'Vale a pena.' : score >= 50 ? 'Compra ponderada.' : 'Deixa ficar.'),
       scoreTo: score,
-      scoreCor: score >= 75 ? '#FF009D' : '#A67C3B',
+      // A cor tem de virar no MESMO ponto que o veredito, senão a página diz
+      // "Vale a pena" e pinta o número de âmbar (cautela). O design usava 75
+      // porque o veredito dele também virava em 75; o veredito agora vem da
+      // extensão, cujas faixas viram em 70 ("Vale a pena" e acima = positivo).
+      scoreCor: score >= 70 ? '#FF009D' : '#A67C3B',
       lojaUrl: origem,
       // fotografia
       heroMediaEl: mediaEl(imagem, nome, 'display:block;width:100%;aspect-ratio:21/10;object-fit:cover;object-position:' + DEFAULT.heroPos + ';filter:saturate(1.08) sepia(.06) contrast(1.03)'),
