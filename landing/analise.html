@@ -49,7 +49,7 @@ a:hover{color:#000000}
 
   
   <header data-screen-label="Cabeçalho" style="position:sticky;top:0;z-index:70;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:10px clamp(20px,5vw,64px);background:rgba(255,255,255,.8);backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);border-bottom:1px solid rgba(0,0,0,.06)">
-    <a href="LookMap%20Landing%20Extensao.dc.html" title="Início" style="display:inline-flex;align-items:center;text-decoration:none;transition:opacity .2s ease" data-hovercls="h0"><img src="images/lookpilot-wordmark.svg" alt="LookPilot" style="display:block;height:34px;width:auto"></a>
+    <a href="#topo" data-on-click="onDetalhe" title="Início" style="display:inline-flex;align-items:center;text-decoration:none;transition:opacity .2s ease" data-hovercls="h0"><img src="images/lookpilot-wordmark.svg" alt="LookPilot" style="display:block;height:34px;width:auto"></a>
     <div style="display:flex;align-items:center;gap:14px">
       <button data-on-click="onHistorico" title="Suas peças salvas" style="display:inline-flex;align-items:center;min-height:44px;padding:8px 10px;background:none;border:none;font-family:inherit;font-size:14px;font-weight:500;letter-spacing:-.01em;color:#6E6E73;cursor:pointer;white-space:nowrap;touch-action:manipulation;transition:color .2s ease" data-hovercls="h1">Minhas peças</button>
     </div>
@@ -219,7 +219,7 @@ a:hover{color:#000000}
   
   <div data-if="isHistorico" style="display:contents">
     <section data-screen-label="Peças salvas" style="flex:1;width:100%;margin:0 auto;box-sizing:border-box;padding:clamp(16px,2.5vh,28px) clamp(20px,5vw,64px) clamp(56px,9vh,110px);display:flex;flex-direction:column;gap:26px;animation:apFade .4s ease">
-      <a href="LookMap%20Landing%20Extensao.dc.html" style="align-self:flex-start;display:inline-flex;align-items:center;gap:5px;text-decoration:none;min-height:44px;padding:8px 0;font-family:inherit;font-size:14px;letter-spacing:-.005em;color:#6E6E73;cursor:pointer;touch-action:manipulation;transition:color .2s ease" data-hovercls="h6"><span aria-hidden="true" style="font-size:16px;line-height:1">‹</span> Voltar</a>
+      <a href="#topo" data-on-click="onDetalhe" style="align-self:flex-start;display:inline-flex;align-items:center;gap:5px;text-decoration:none;min-height:44px;padding:8px 0;font-family:inherit;font-size:14px;letter-spacing:-.005em;color:#6E6E73;cursor:pointer;touch-action:manipulation;transition:color .2s ease" data-hovercls="h6"><span aria-hidden="true" style="font-size:16px;line-height:1">‹</span> Voltar</a>
       <div style="display:flex;flex-direction:column;gap:6px">
         <h1 style="margin:0;font-size:clamp(30px,4.5vw,46px);font-weight:700;letter-spacing:-.026em;line-height:1.05">Minhas peças</h1>
         <p style="margin:0;font-size:15px;line-height:1.5;color:#6E6E73;text-wrap:pretty">As peças que você marcou para manter à vista — salvas neste navegador.</p>
@@ -233,7 +233,7 @@ a:hover{color:#000000}
       </div>
       <div data-if="temGuardadas" style="display:contents">
         <div style="background:#F5F5F7;border-radius:28px;padding:clamp(20px,3vw,34px)">
-          <p style="margin:0 0 clamp(16px,2.4vw,26px);font-size:13px;font-weight:600;letter-spacing:.13em;color:#57575C;text-transform:uppercase">Minhas peças · <span data-txt="nGuardadas"></span> peças</p>
+          <p style="margin:0 0 clamp(16px,2.4vw,26px);font-size:13px;font-weight:600;letter-spacing:.13em;color:#57575C;text-transform:uppercase">Minhas peças · <span data-txt="nGuardadasLabel"></span></p>
           <div style="display:flex;flex-wrap:wrap;gap:clamp(16px,2.4vw,26px)">
             <template data-for="guardadas" data-as="h">
               <div data-tpl-role="{{ h.role }}" data-tpl-tabIndex="{{ h.tabIx }}" data-tpl-aria-label="{{ h.ariaLabel }}" data-on-click="h.abrir" data-on-keydown="h.abrirKey" data-tpl-title="{{ h.tipo }}" data-tpl-style="position:relative;flex:0 1 clamp(280px,32vw,380px);aspect-ratio:3/4;border-radius:26px;overflow:hidden;background:{{ h.cor }};cursor:{{ h.cursor }};touch-action:manipulation;box-shadow:{{ h.cardShadow }};outline:{{ h.cardOutline }};outline-offset:-1px;transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s cubic-bezier(.16,1,.3,1)" data-hovercls="h7" style-active="transform:scale(.985)">
@@ -254,7 +254,7 @@ a:hover{color:#000000}
   <footer data-screen-label="Rodapé" style="margin-top:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:22px clamp(20px,5vw,64px);border-top:1px solid rgba(0,0,0,.06)">
     <img src="images/lookpilot-wordmark.svg" alt="LookPilot" style="display:block;height:22px;width:auto;opacity:.55">
     <div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px">
-      <a href="LookMap%20Landing%20Extensao.dc.html#como" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h8">Como funciona</a>
+      <a href="#topo" data-on-click="onDetalhe" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h8">Como funciona</a>
       <a href="#pecas" data-on-click="onHistorico" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h9">Minhas peças</a>
     </div>
     <p style="margin:0;font-size:12px;letter-spacing:.01em;color:#6E6E73">A qualidade se descobre</p>
@@ -262,6 +262,6 @@ a:hover{color:#000000}
 </div>
 
 
-<script src="runtime.js"></script>
+<script src="runtime.js?v=1784668262"></script>
 </body>
 </html>

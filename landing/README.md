@@ -29,6 +29,16 @@ O destino do botão é controlado por `LOOKMAP_DEV` no `content.js` **e** no
 | `true` (padrão hoje) | `http://localhost:8777/analise.html` |
 | `false` | `https://lookmap.ai/analise` — só depois de publicar a página lá |
 
+## Minhas peças
+
+O botão "Minhas peças" no cabeçalho troca para a vista de peças salvas. Salvar
+é o botão no fim do relatório; as peças ficam no `localStorage` do navegador
+(chave `lookpilot-guardadas`, máx. 24), como o próprio design promete —
+"salvas neste navegador". Clicar num cartão reabre aquela análise, porque se
+guarda a query string inteira junto.
+
+Não há backend: limpar os dados do navegador apaga as peças salvas.
+
 ## Regenerar
 
 ```sh

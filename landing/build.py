@@ -94,6 +94,9 @@ body = "".join(
 # fica errado (dizia "Etiqueta · ZARA" numa peça da UNIQLO). Aqui só se troca
 # o texto fixo por um binding — o design, os estilos e a frase se mantêm.
 _fixos = [
+    # contador: o design escreve "peças" fixo e sai "1 peças"
+    ('Minhas peças · <span data-txt="nGuardadas"></span> peças',
+     'Minhas peças · <span data-txt="nGuardadasLabel"></span>'),
     # pill do hero: "… ZARA ↗ …"
     ('>ZARA <span aria-hidden', '><span data-txt="loja"></span> <span aria-hidden'),
     # cartão da etiqueta
@@ -108,6 +111,13 @@ _fixos = [
      'Dá pra levar, mas prepare-se pra passar a ferro e lavar mais vezes na volta.',
      '<span data-txt="seloLeadCautelaEl"></span>'),
 ]
+# Links para outro arquivo do projeto de design (o logo do cabeçalho, o
+# "Voltar" da vista Minhas peças), que não existe fora da ferramenta. Todos
+# devem levar de volta ao relatório desta peça.
+body, _n_links = re.subn(
+    r'href="LookMap%20Landing%20Extensao\.dc\.html[^"]*"',
+    'href="#topo" data-on-click="onDetalhe"', body)
+
 for _de, _para in _fixos:
     if _de not in body:
         print("  AVISO: texto fixo não encontrado (design mudou?): " + _de[:45])
@@ -118,6 +128,11 @@ body = body.replace("</img>", "")          # <img></img> é inválido
 body = re.sub(r"<!--.*?-->", "", body, flags=re.S)
 
 # ---- 9. montagem --------------------------------------------------
+# versão do runtime.js: evita o navegador servir uma cópia em cache depois de
+# um build (custou um bom bocado de depuração a descobrir)
+_rt = HERE / "runtime.js"
+_rt_ver = int(_rt.stat().st_mtime) if _rt.exists() else 0
+
 hover_css = "\n".join(
     '[data-hovercls="%s"]:hover{%s}' % (c, d.replace("&quot;", '"'))
     for c, d in hover_rules)
@@ -135,7 +150,7 @@ html = f"""<!DOCTYPE html>
 </head>
 <body>
 {body}
-<script src="runtime.js"></script>
+<script src="runtime.js?v={_rt_ver}"></script>
 </body>
 </html>
 """

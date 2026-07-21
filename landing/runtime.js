@@ -310,9 +310,50 @@
     return { titulo: t.titulo, texto: t.texto, cor: seloAcc, icon: seloIcon };
   });
 
-  var guardado = false;
+  /* ---------- peças salvas (o design diz "salvas neste navegador") ---- */
+  var STORE = 'lookpilot-guardadas';
+  function lerGuardadas() {
+    try { return JSON.parse(localStorage.getItem(STORE)) || []; } catch (e) { return []; }
+  }
+  function gravarGuardadas(l) {
+    try { localStorage.setItem(STORE, JSON.stringify(l.slice(0, 24))); } catch (e) {}
+  }
+  // identidade da peça: o link da loja é o mais estável; senão, nome+loja
+  var pecaId = (Q.get('origem') || (nome + '|' + loja)).slice(0, 200);
+  function estaGuardada() {
+    return lerGuardadas().some(function (h) { return h.id === pecaId; });
+  }
+  function salvarPeca() {
+    if (!has('score') || estaGuardada()) return;
+    var l = lerGuardadas();
+    l.unshift({
+      id: pecaId, tipo: nome, nota: score, loja: loja,
+      thumb: imagem, verdict: verdictParam || '', quando: Date.now(),
+      url: location.search
+    });
+    gravarGuardadas(l);
+  }
+
+  var view = 'detalhe';
+  var guardado = estaGuardada();
 
   function vals() {
+    // cartões da vista "Minhas peças" — cada um reabre a análise guardada
+    var guardadas = lerGuardadas().map(function (h) {
+      var cor = h.nota >= 75 ? '#E8E3DA' : h.nota >= 50 ? '#EDE9E2' : '#E6E6E9';
+      return {
+        tipo: h.tipo || 'Peça', nota: h.nota, cor: cor,
+        role: 'button', tabIx: 0, cursor: 'pointer',
+        ariaLabel: (h.tipo || 'Peça') + ', nota ' + h.nota + ' de 100' + (h.verdict ? ' — ' + h.verdict : ''),
+        cardOutline: '1px solid rgba(0,0,0,.05)',
+        cardShadow: '0 8px 22px rgba(0,0,0,.06)',
+        badgeBg: '#FFFFFF', badgeColor: '#1D1D1F',
+        mediaEl: mediaEl(h.thumb, h.tipo || '',
+          'width:100%;height:100%;object-fit:cover;object-position:50% 30%;filter:saturate(1.06) sepia(.06)'),
+        abrir: function () { if (h.url) location.search = h.url; },
+        abrirKey: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (h.url) location.search = h.url; } }
+      };
+    });
     return {
       // hero
       heroFibra: nome,
@@ -383,14 +424,18 @@
       pecaSemFoto: !temFoto,
       naoGuardado: !guardado,
       guardado: guardado,
-      onSalvar: function () { guardado = true; render(); },
-      // vistas
-      isDetalhe: true,
-      isHistorico: false,
+      onSalvar: function () { salvarPeca(); guardado = true; render(); },
+      // vistas: relatório desta peça <-> "Minhas peças"
+      isDetalhe: view === 'detalhe',
+      isHistorico: view === 'historico',
       voltarPecas: false,
-      onHistorico: function () { var e = document.getElementById('lookmap'); if (e) e.scrollIntoView({ behavior: 'smooth' }); },
-      onDetalhe: function () {},
-      guardadas: [], nGuardadas: 0, temGuardadas: false, semGuardadas: true
+      onHistorico: function () { view = 'historico'; render(); window.scrollTo(0, 0); },
+      onDetalhe: function () { view = 'detalhe'; render(); window.scrollTo(0, 0); },
+      guardadas: guardadas,
+      nGuardadas: guardadas.length,
+      nGuardadasLabel: guardadas.length + (guardadas.length === 1 ? ' peça' : ' peças'),
+      temGuardadas: guardadas.length > 0,
+      semGuardadas: guardadas.length === 0
     };
   }
 
@@ -462,14 +507,24 @@
       el.textContent = '';
       if (v) el.appendChild(v.nodeType ? v : document.createTextNode(''));
     });
-    // handlers
+    // handlers — o escopo é relido a cada evento, por isso continua correto
+    // depois de um re-render (o item da lista pode ter mudado)
     sel(root, '[data-on-click]').forEach(function (el) {
       if (el.__bound) return; el.__bound = true;
-      el.addEventListener('click', function () {
-        var fn = get(scope, el.getAttribute('data-on-click'));
-        if (typeof fn === 'function') fn();
+      el.addEventListener('click', function (ev) {
+        var fn = get(el.__scope || scope, el.getAttribute('data-on-click'));
+        if (typeof fn === 'function') { ev.preventDefault(); fn(); }
       });
     });
+    sel(root, '[data-on-keydown]').forEach(function (el) {
+      if (el.__boundKey) return; el.__boundKey = true;
+      el.addEventListener('keydown', function (ev) {
+        var fn = get(el.__scope || scope, el.getAttribute('data-on-keydown'));
+        if (typeof fn === 'function') fn(ev);
+      });
+    });
+    // guarda o escopo para os handlers acima
+    sel(root, '[data-on-click],[data-on-keydown]').forEach(function (el) { el.__scope = scope; });
   }
 
   var mounted = false;
