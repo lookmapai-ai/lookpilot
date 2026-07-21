@@ -88,6 +88,26 @@ body = "".join(
     p if p.startswith("<") else re.sub(r"\{\{\s*([\w.]+)\s*\}\}", _txt, p)
     for p in parts)
 
+# ---- 7.5 conteúdo preso à peça de demonstração --------------------
+# O design tem a loja ("ZARA") e a fibra ("Lã") escritas à mão, porque foi
+# desenhado sobre o suéter da Zara. Numa página que serve qualquer peça isso
+# fica errado (dizia "Etiqueta · ZARA" numa peça da UNIQLO). Aqui só se troca
+# o texto fixo por um binding — o design, os estilos e a frase mantêm-se.
+_fixos = [
+    # pill do hero: "… ZARA ↗ …"
+    ('>ZARA <span aria-hidden', '><span data-txt="loja"></span> <span aria-hidden'),
+    # cartão da etiqueta
+    ('>Etiqueta · ZARA<', '>Etiqueta · <span data-txt="loja"></span><'),
+    # abertura do selo de viagem (a variante de cautela já diz "Essa fibra")
+    ('Lã é a fibra que mais viaja: <strong style="font-weight:700;color:#1D1D1F">não amarrota</strong>, '
+     'aquece e respira no mesmo casaco, e disfarça o uso. Você leva menos peças — e lava menos ainda.',
+     '<span data-txt="seloLeadEl"></span>'),
+]
+for _de, _para in _fixos:
+    if _de not in body:
+        print("  AVISO: texto fixo não encontrado (design mudou?): " + _de[:45])
+    body = body.replace(_de, _para)
+
 # ---- 8. limpezas de HTML -----------------------------------------
 body = body.replace("</img>", "")          # <img></img> é inválido
 body = re.sub(r"<!--.*?-->", "", body, flags=re.S)

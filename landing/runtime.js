@@ -56,8 +56,15 @@
   var loja = Q.get('loja') || 'ZARA';
   var preco = Q.get('preco') || DEFAULT.preco;
   var moeda = Q.get('moeda') || '€';
-  var origem = Q.get('origem') || DEFAULT.url;
+  // sem origem numa análise real, o link fica inerte — nunca cair no zara.com
+  // da demonstração quando a peça é de outra loja
+  var origem = Q.get('origem') || (has('score') ? '#' : DEFAULT.url);
   var fibras = Q.get('fibras') || '';
+  // história vinda da extensão (conhecimento que só ela tem: blends.json e
+  // os modificadores de qualidade detectados no texto da página)
+  var mistura = Q.get('mistura') || '';
+  var modNome = Q.get('modnome') || '';
+  var modExplica = Q.get('modexplica') || '';
   var viagem100 = has('viagem') ? clamp(int('viagem', 80), 0, 100) : DEFAULT.viagem * 10;
   var vg = Math.round(viagem100 / 10); // o design trabalha o selo em 0–10
 
@@ -134,20 +141,37 @@
     var qual = int('qualidade', 50), conf = int('conforto', 50);
     var dur = int('durabilidade', 50), man = int('manutencao', 50), ver = int('versatilidade', 50);
 
-    // 01 · A matéria
+    // 01 · A matéria — o ato é fixo, a HISTÓRIA que ele conta é que muda.
+    // Ordem de prioridade: o que for mais específico desta peça ganha.
     var t1;
+    var secundaria = lista.slice().sort(function (a, b) { return b.pct - a.pct; })[1];
     if (!lista.length) {
       t1 = 'A composição não veio na página da loja. Sem etiqueta, a nota apoia-se no resto — e é por isso que ela não sobe mais.';
+    } else if (modNome && modExplica) {
+      // história "não é a fibra comum": o modificador detectado na página
+      t1 = 'Não é ' + principal.nome.toLowerCase() + ' qualquer: é ==' + modNome + '==. ' + modExplica;
+    } else if (mistura && secundaria) {
+      // história da mistura: o que a fibra secundária faz NESTA dose
+      t1 = 'Na etiqueta, ==' + comp + '==. Os ' + secundaria.pct + '% de ' +
+           secundaria.nome.toLowerCase() + ' não estão ali por acaso: ' +
+           mistura.charAt(0).toLowerCase() + mistura.slice(1);
     } else if (mix.nat >= 90) {
       t1 = 'De ' + principal.nome.toLowerCase() + ', e só. A etiqueta foi lida fio por fio: ==' + comp + '==, sem nenhuma fibra sintética escondida.';
+      t1 += qual >= 70 ? ' É o que puxa a nota pra cima.' : ' A matéria segura a nota, sem a levantar.';
     } else if (mix.sin >= 70) {
-      t1 = 'Quase toda de sintético. A etiqueta diz ==' + comp + '==. O toque até engana; a composição, não.';
+      var traco = lista.find(function (f) {
+        return NATURAIS.some(function (x) { return f.nome.toLowerCase().indexOf(x) === 0; });
+      });
+      t1 = traco
+        ? 'Tem ' + traco.nome.toLowerCase() + ' na etiqueta — ==' + traco.pct + '%==. O suficiente pra escrever no rótulo e não o suficiente pra mudar nada: quem manda são os sintéticos.'
+        : 'Quase toda de sintético. A etiqueta diz ==' + comp + '==. O toque até engana; a composição, não.';
+      t1 += qual >= 45 ? '' : ' É aqui que a nota perde pontos.';
     } else {
       t1 = 'É uma mistura: ==' + comp + '==. Nem fibra nobre pura, nem sintético barato — está no meio.';
+      t1 += qual >= 70 ? ' É o que puxa a nota pra cima.'
+          : qual >= 45 ? ' A matéria segura a nota, sem a levantar.'
+                       : ' É aqui que a nota perde pontos.';
     }
-    t1 += qual >= 70 ? ' É o que puxa a nota pra cima.'
-        : qual >= 45 ? ' A matéria segura a nota, sem a levantar.'
-                     : ' É aqui que a nota perde pontos.';
 
     // 02 · O corpo
     var t2 = [
@@ -222,6 +246,7 @@
       // hero
       heroFibra: nome,
       heroPreco: preco,
+      loja: loja,
       heroDuvida: has('nome') ? 'O que a etiqueta diz sobre esta peça?' : DEFAULT.duvida,
       heroIntroEl: mark(has('score')
         ? 'O ==LookPilot== leu a etiqueta pra você.' + (etiqComp ? ' Composição: ==' + etiqComp + '==.' : '')
@@ -246,6 +271,16 @@
       seloAprovado: seloAprovado,
       seloCautela: !seloAprovado,
       seloMini: vg >= 7 ? 'Ótima pra levar' : vg >= 5 ? 'Dá pra levar, com ressalvas' : 'Pouco prática',
+      // o design abria com "Lã é a fibra que mais viaja" — nomeia a fibra real
+      seloLeadEl: mark((function () {
+        var f = parseFibras().slice().sort(function (a, b) { return b.pct - a.pct; })[0];
+        var nome = f ? f.nome.toLowerCase() : 'essa fibra';
+        var nat = classifica(parseFibras()).nat >= 50;
+        return (f ? nome.charAt(0).toUpperCase() + nome.slice(1) : 'Essa fibra') +
+          ' viaja bem: ==não amarrota==, ' +
+          (nat ? 'aquece e respira na mesma peça, e disfarça o uso. Você leva menos peças — e lava menos ainda.'
+               : 'seca rápido e dispensa ferro. Você leva menos peças — e resolve a lavagem no lavatório.');
+      })()),
       // lookmap
       // o design tinha uma frase por faixa de nota (86 celebra, 58 pondera);
       // trocar só o número faria "Um 42 não aparece todo dia" — sem sentido.

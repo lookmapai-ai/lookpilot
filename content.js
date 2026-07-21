@@ -77,10 +77,19 @@
     return urls.slice(0, 3);
   }
 
-  function buildAnaliseURL(scores, fibers, buy, verdictLabel, productUrl, confidence) {
+  // `historia` leva o que só a extensão sabe contar: o efeito da mistura
+  // (blends.json, por dose) e o modificador de qualidade detetado na página
+  // (ex.: Supima). A landing tem os scores, mas não este conhecimento — sem
+  // isto o capítulo "A matéria" cai sempre na mesma frase genérica.
+  function buildAnaliseURL(scores, fibers, buy, verdictLabel, productUrl, confidence, historia) {
     const params = new URLSearchParams();
     params.set('score',     buy);
     params.set('verdict',   verdictLabel);
+    if (historia) {
+      if (historia.mistura)    params.set('mistura',    historia.mistura.slice(0, 320));
+      if (historia.modNome)    params.set('modnome',    historia.modNome.slice(0, 60));
+      if (historia.modExplica) params.set('modexplica', historia.modExplica.slice(0, 320));
+    }
     // Dimensões (0–100)
     if (scores) {
       params.set('qualidade',     Math.round(scores.quality     || 0));
@@ -507,6 +516,20 @@
     const titleText = (h1 + ' ' + (colorEl?.textContent || '') + ' ' + (document.title || '')).trim();
     const scores = calcScores(fibers, fullPageText, certText, titleText);
     const v = verdict(scores);
+
+    // História para a landing: o que a mistura faz nesta dose e o modificador
+    // de qualidade detetado no texto da página. Ambos já existem calibrados
+    // na extensão (blends.json / QUALITY_MODIFIERS) — a landing só os conta.
+    const fibrasHist = scores?.fibers || fibers;
+    const principal = [...(fibrasHist || [])].sort((a, b) => (b.pct || 0) - (a.pct || 0))[0];
+    const mod = typeof detectQualityModifier === 'function'
+      ? detectQualityModifier(principal?.data?.label || principal?.name, fullPageText)
+      : null;
+    const historia = {
+      mistura:    typeof blendText === 'function' ? blendText(fibrasHist) : '',
+      modNome:    mod?.nome || '',
+      modExplica: mod?.explica || ''
+    };
     const total = fibers.reduce((acc,f)=>acc+(f.pct||0),0);
     const mismatch = '';
 
@@ -574,7 +597,7 @@
           <span style="color:#166534;">✓</span> Baseado na composição da etiqueta · ${conf}%
         </div>` : ''}
 
-        <a href="${buildAnaliseURL(scores, fibers, buy, bv.label, location.href, conf)}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:600;color:#fff;background:#1D1D1F;text-decoration:none;border:none;padding:11px;border-radius:9px;letter-spacing:0.02em;">
+        <a href="${buildAnaliseURL(scores, fibers, buy, bv.label, location.href, conf, historia)}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:600;color:#fff;background:#1D1D1F;text-decoration:none;border:none;padding:11px;border-radius:9px;letter-spacing:0.02em;">
           Ver análise completa →
         </a>
 
