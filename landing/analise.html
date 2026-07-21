@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Análise da peça — LookPilot</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+html{scroll-behavior:smooth}
+html,body{margin:0;padding:0;background:#FFFFFF}
+*,*::before,*::after{box-sizing:border-box}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:#1D1D1F}
+a:hover{color:#000000}
+::selection{background:#FF009D;color:#FFFFFF}
+:focus-visible{outline:2px solid #FF009D;outline-offset:3px}
+@keyframes apFade{from{opacity:0}to{opacity:1}}
+@keyframes apRise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes apSpin{to{transform:rotate(360deg)}}
+@keyframes apShimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+
+<style>
+/* hovers declarados no design via style-hover */
+[data-hovercls="h0"]:hover{opacity:.7}
+[data-hovercls="h1"]:hover{color:#FF009D !important}
+[data-hovercls="h2"]:hover{color:#FF009D !important}
+[data-hovercls="h3"]:hover{background:#EAEAEC}
+[data-hovercls="h4"]:hover{transform:scale(1.03);opacity:.9}
+[data-hovercls="h5"]:hover{opacity:.7}
+[data-hovercls="h6"]:hover{color:#FF009D !important}
+[data-hovercls="h7"]:hover{transform:scale(1.028) translateY(-5px);box-shadow:0 34px 70px rgba(0,0,0,.16)}
+[data-hovercls="h8"]:hover{color:#FF009D !important}
+[data-hovercls="h9"]:hover{color:#FF009D !important}
+</style>
+</head>
+<body>
+
+<div style="position:relative;display:flex;flex-direction:column;min-height:100dvh;background:#FFFFFF;color:#1D1D1F;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:17px;line-height:1.5;overflow:clip">
+
+  
+  <div aria-hidden="true" style="position:fixed;inset:0;z-index:90;pointer-events:none;opacity:.14;mix-blend-mode:multiply;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.1 0 0 0 0 0.1 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E&quot;)"></div>
+
+  
+  <div aria-hidden="true" style="position:absolute;top:0;left:0;right:0;height:70vh;z-index:0;pointer-events:none;background:radial-gradient(ellipse 70% 55% at 50% -10%,rgba(200,170,120,.12) 0%,rgba(200,170,120,0) 70%),radial-gradient(ellipse 50% 40% at 78% -6%,rgba(255,0,157,.06) 0%,rgba(255,0,157,0) 70%)"></div>
+
+  
+  <header data-screen-label="Cabeçalho" style="position:sticky;top:0;z-index:70;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:10px clamp(20px,5vw,64px);background:rgba(255,255,255,.8);backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);border-bottom:1px solid rgba(0,0,0,.06)">
+    <a href="LookMap%20Landing%20Extensao.dc.html" title="Início" style="display:inline-flex;align-items:center;text-decoration:none;transition:opacity .2s ease" data-hovercls="h0"><img src="images/lookpilot-wordmark.svg" alt="LookPilot" style="display:block;height:34px;width:auto"></a>
+    <div style="display:flex;align-items:center;gap:14px">
+      <button data-on-click="onHistorico" title="Suas peças salvas" style="display:inline-flex;align-items:center;min-height:44px;padding:8px 10px;background:none;border:none;font-family:inherit;font-size:14px;font-weight:500;letter-spacing:-.01em;color:#6E6E73;cursor:pointer;white-space:nowrap;touch-action:manipulation;transition:color .2s ease" data-hovercls="h1">Minhas peças</button>
+    </div>
+  </header>
+
+  <div data-if="isDetalhe" style="display:contents">
+
+  <div data-if="voltarPecas" style="display:contents">
+    <div style="width:100%;box-sizing:border-box;padding:14px clamp(20px,5vw,64px) 0">
+      <button data-on-click="onHistorico" style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;background:none;border:none;min-height:44px;padding:8px 0;font-family:inherit;font-size:14px;letter-spacing:-.005em;color:#6E6E73;cursor:pointer;touch-action:manipulation;transition:color .2s ease" data-hovercls="h2"><span aria-hidden="true" style="font-size:16px;line-height:1">‹</span> Minhas peças</button>
+    </div>
+  </div>
+
+  
+  <section id="topo" data-screen-label="Veredicto" style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:clamp(40px,7vh,96px) clamp(20px,5vw,64px) clamp(24px,4vh,48px)">
+    <p style="margin:0 0 20px;display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:999px;background:rgba(255,255,255,.55);backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);border:1px solid rgba(0,0,0,.06);box-shadow:0 8px 30px rgba(0,0,0,.05),inset 0 1px 0 rgba(255,255,255,.8);font-size:14px;font-weight:600;letter-spacing:.02em;color:#6E6E73;flex-wrap:wrap;justify-content:center;animation:apFade .9s ease .1s backwards"><span style="white-space:nowrap"><span data-txt="heroFibra"></span> ·</span> <a data-brand="ZARA" data-tpl-href="{{ lojaUrl }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:6px;background:#F5F5F7;color:#1D1D1F;font-size:12px;font-weight:600;letter-spacing:.04em;text-decoration:none;transition:background .2s ease" data-hovercls="h3">ZARA <span aria-hidden="true" style="font-size:10px;opacity:.6">↗</span></a> <span style="white-space:nowrap">· <span data-txt="heroPreco"></span>&nbsp;€</span></p>
+    <p style="margin:0 0 14px;font-size:clamp(16px,1.8vw,20px);font-weight:500;letter-spacing:-.01em;color:#6E6E73;text-wrap:balance;animation:apRise .9s cubic-bezier(.16,1,.3,1) .12s backwards"><span data-txt="heroDuvida"></span></p>
+    <h1 style="margin:0;font-size:clamp(52px,8.5vw,112px);font-weight:700;letter-spacing:-.028em;line-height:1.02;text-wrap:balance;animation:apRise .9s cubic-bezier(.16,1,.3,1) .15s backwards"><span data-txt="verdict"></span></h1>
+    <p style="margin:18px 0 0;max-width:52ch;font-size:clamp(18px,2vw,22px);font-weight:400;letter-spacing:-.012em;line-height:1.45;color:#6E6E73;text-wrap:pretty;animation:apRise .9s cubic-bezier(.16,1,.3,1) .3s backwards"><span data-txt="heroIntroEl"></span></p>
+    <p style="margin:28px 0 0;display:flex;align-items:baseline;gap:6px;animation:apRise .9s cubic-bezier(.16,1,.3,1) .45s backwards">
+      <span data-countup="1" data-tpl-style="font-size:clamp(76px,9vw,120px);font-weight:600;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;color:{{ scoreCor }}"><span data-txt="scoreTo"></span></span>
+      <span style="font-size:20px;font-weight:500;color:#6E6E73">/100</span>
+    </p>
+  </section>
+
+  
+  <section data-screen-label="Fotografia" style="display:flex;justify-content:center;padding:clamp(16px,3vh,40px) clamp(20px,5vw,64px) clamp(56px,9vh,110px)">
+    <div data-ap="1" style="width:min(920px,100%);display:flex;flex-direction:column;gap:14px">
+      <div style="position:relative;border-radius:28px;overflow:hidden;background:#F5F5F7">
+        <div data-media="heroMediaEl" style="display:contents"></div>
+        <div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.14) 0%,rgba(0,0,0,0) 26%,rgba(0,0,0,0) 62%,rgba(0,0,0,.22) 100%),radial-gradient(ellipse 120% 90% at 50% 40%,rgba(0,0,0,0) 62%,rgba(0,0,0,.16) 100%)"></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 8px">
+        <p style="margin:0;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#6E6E73"><span data-txt="capL"></span></p>
+        <p style="margin:0;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#6E6E73"><span data-txt="capR"></span></p>
+      </div>
+    </div>
+  </section>
+
+  
+  <section id="perguntas" data-screen-label="As quatro perguntas" style="background:#F5F5F7;padding:clamp(64px,10vh,120px) clamp(20px,5vw,64px)">
+    <div style="max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:clamp(56px,10vh,110px)">
+      <h2 style="margin:0;text-align:center;font-size:clamp(32px,4.4vw,56px);font-weight:700;letter-spacing:-.024em;line-height:1.08;text-wrap:balance">Toda peça esconde <span style="background-image:linear-gradient(rgba(255,0,157,.26),rgba(255,0,157,.26));background-repeat:no-repeat;background-size:100% .62em;background-position:0 56%;padding:0 .06em;border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone" data-hl="1">quatro respostas</span>.<br>Lidas antes de você decidir.</h2>
+      <template data-for="cartoes" data-as="c">
+        <div data-ap="1" data-tpl-style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));align-items:center;gap:clamp(24px,4vw,64px);direction:{{ c.dir }}">
+          <div data-plx="1" style="direction:ltr;position:relative;width:min(100%,380px);aspect-ratio:4/5;margin:0 auto;border-radius:28px;overflow:hidden;background:#FFFFFF;box-shadow:0 30px 80px rgba(0,0,0,.1)">
+            <div data-media="c.mediaEl" style="display:contents"></div>
+            <div aria-hidden="true" style="position:absolute;inset:0;background:radial-gradient(ellipse 120% 95% at 50% 40%,rgba(0,0,0,0) 64%,rgba(0,0,0,.14) 100%)"></div>
+            <div data-if="c.isPrimeiro" style="display:contents">
+              <div style="position:absolute;left:16px;right:16px;bottom:16px;display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 12px 32px rgba(0,0,0,.18);transform:rotate(-1.2deg)">
+                <p style="margin:0;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#6E6E73">Etiqueta · ZARA</p>
+                <p style="margin:0;font-size:13px;font-weight:700;letter-spacing:.06em;line-height:1.4;color:#1D1D1F"><span data-scan-line="1" style="background-image:linear-gradient(rgba(255,0,157,.28),rgba(255,0,157,.28));background-repeat:no-repeat;background-size:0% 100%;padding:0 .1em;-webkit-box-decoration-break:clone;box-decoration-break:clone;transition:background-size 1.2s cubic-bezier(.16,1,.3,1) .35s"><span data-txt="etiqComp"></span></span></p>
+                <p style="margin:0;font-size:12px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#6E6E73"><span data-txt="etiqRef"></span></p>
+              </div>
+            </div>
+          </div>
+          <div style="direction:ltr;display:flex;flex-direction:column;gap:14px">
+            <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6E6E73"><span data-txt="c.num"></span> · <span data-txt="c.tema"></span></p>
+            <h3 style="margin:0;font-size:clamp(30px,4vw,50px);font-weight:700;letter-spacing:-.024em;line-height:1.06;text-wrap:balance"><span data-txt="c.pergunta"></span></h3>
+            <p style="margin:0;max-width:42ch;font-size:clamp(16px,1.7vw,19px);line-height:1.55;letter-spacing:-.01em;color:#6E6E73;text-wrap:pretty"><span data-txt="c.respostaEl"></span></p>
+          </div>
+        </div>
+      </template>
+    </div>
+  </section>
+
+  
+  <section id="viagem" data-screen-label="Aprovado pra viagem" style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:clamp(72px,12vh,140px) clamp(20px,5vw,64px)">
+    <div data-ap="1" style="display:flex;flex-direction:column;align-items:center;gap:22px;max-width:660px">
+      <div style="position:relative;width:clamp(128px,20vw,168px);height:clamp(128px,20vw,168px)">
+        <div data-if="seloAprovado" style="display:contents">
+        <svg viewBox="0 0 220 220" width="100%" height="100%" role="img" aria-label="Selo: aprovado pra viagem" style="display:block">
+          <circle cx="110" cy="110" r="106" fill="#1D1D1F"></circle>
+          <circle cx="110" cy="110" r="98" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="1"></circle>
+          <defs><path id="apSealArc" d="M110,110 m-84,0 a84,84 0 1,1 168,0 a84,84 0 1,1 -168,0"></path></defs>
+          <g style="animation:apSpin 44s linear infinite;transform-origin:110px 110px">
+            <text fill="#EFE7D6" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12.5" font-weight="600" letter-spacing="3.2"><textPath href="#apSealArc" startOffset="0">TRAVEL&#160;APPROVED&#160;·&#160;LOOKPILOT&#160;·&#160;TRAVEL&#160;APPROVED&#160;·&#160;LOOKPILOT&#160;·&#160;</textPath></text>
+          </g>
+          <rect x="84" y="100" width="52" height="40" rx="7" fill="none" stroke="#EFE7D6" stroke-width="3.2"></rect>
+          <path d="M99 100 v-7 a5 5 0 0 1 5-5 h12 a5 5 0 0 1 5 5 v7" fill="none" stroke="#EFE7D6" stroke-width="3.2"></path>
+          <line x1="110" y1="104" x2="110" y2="136" stroke="#FF009D" stroke-width="3.2"></line>
+          <circle cx="129" cy="133" r="12" fill="#FF009D"></circle>
+          <path d="M124 133 l3.4 3.4 l6-6.6" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        </div>
+        <div data-if="seloCautela" style="display:contents">
+        <svg viewBox="0 0 220 220" width="100%" height="100%" role="img" aria-label="Selo: pouco prática pra viagem" style="display:block">
+          <circle cx="110" cy="110" r="106" fill="#6E6E73"></circle>
+          <circle cx="110" cy="110" r="98" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1"></circle>
+          <defs><path id="apSealArc2" d="M110,110 m-84,0 a84,84 0 1,1 168,0 a84,84 0 1,1 -168,0"></path></defs>
+          <g style="animation:apSpin 44s linear infinite;transform-origin:110px 110px">
+            <text fill="#EFE7D6" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12.5" font-weight="600" letter-spacing="3.2"><textPath href="#apSealArc2" startOffset="0">PENSA&#160;DUAS&#160;VEZES&#160;·&#160;LOOKPILOT&#160;·&#160;PENSA&#160;DUAS&#160;VEZES&#160;·&#160;LOOKPILOT&#160;·&#160;</textPath></text>
+          </g>
+          <rect x="84" y="100" width="52" height="40" rx="7" fill="none" stroke="#EFE7D6" stroke-width="3.2"></rect>
+          <path d="M99 100 v-7 a5 5 0 0 1 5-5 h12 a5 5 0 0 1 5 5 v7" fill="none" stroke="#EFE7D6" stroke-width="3.2"></path>
+          <circle cx="129" cy="133" r="12" fill="#C89B5E"></circle>
+          <line x1="129" y1="128" x2="129" y2="134" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"></line>
+          <circle cx="129" cy="138.4" r="1.5" fill="#FFFFFF"></circle>
+        </svg>
+        </div>
+      </div>
+      <p style="margin:0;display:inline-flex;align-items:baseline;justify-content:center;padding:7px 16px;border-radius:999px;background:#F5F5F7;font-size:13px;font-weight:600;letter-spacing:.02em;color:#6E6E73"><span data-txt="seloMini"></span></p>
+      <div data-if="seloAprovado" style="display:contents">
+      <h2 style="margin:0;font-size:clamp(34px,5vw,64px);font-weight:700;letter-spacing:-.026em;line-height:1.06;text-wrap:balance">Aprovado <span style="background-image:linear-gradient(rgba(255,0,157,.26),rgba(255,0,157,.26));background-repeat:no-repeat;background-size:100% .62em;background-position:0 56%;padding:0 .06em;border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone" data-hl="1">pra viagem</span>.</h2>
+      <p style="margin:0;max-width:48ch;font-size:clamp(16px,1.8vw,19px);line-height:1.5;letter-spacing:-.01em;color:#6E6E73;text-wrap:pretty">Lã é a fibra que mais viaja: <strong style="font-weight:700;color:#1D1D1F">não amarrota</strong>, aquece e respira no mesmo casaco, e disfarça o uso. Você leva menos peças — e lava menos ainda.</p>
+      </div>
+      <div data-if="seloCautela" style="display:contents">
+      <h2 style="margin:0;font-size:clamp(34px,5vw,64px);font-weight:700;letter-spacing:-.026em;line-height:1.06;text-wrap:balance">Pouco prática <span style="background-image:linear-gradient(rgba(200,155,94,.32),rgba(200,155,94,.32));background-repeat:no-repeat;background-size:100% .62em;background-position:0 56%;padding:0 .06em;border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone" data-hl="1">pra viagem</span>.</h2>
+      <p style="margin:0;max-width:48ch;font-size:clamp(16px,1.8vw,19px);line-height:1.5;letter-spacing:-.01em;color:#6E6E73;text-wrap:pretty">Essa fibra <strong style="font-weight:700;color:#1D1D1F">amarrota fácil</strong> e retém calor e cheiro. Dá pra levar, mas prepare-se pra passar a ferro e lavar mais vezes na volta.</p>
+      </div>
+      <div style="margin-top:8px;width:100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:clamp(16px,2.5vw,28px);text-align:left">
+        <template data-for="selo" data-as="s">
+          <div style="display:flex;flex-direction:column;gap:8px;padding:22px;border-radius:20px;background:#F5F5F7">
+            <p style="margin:0;display:inline-flex;align-items:center;gap:8px;font-size:16px;font-weight:600;letter-spacing:-.01em;color:#1D1D1F"><span aria-hidden="true" data-tpl-style="flex:0 0 auto;width:18px;height:18px;border-radius:999px;background:{{ s.cor }};color:#FFFFFF;font-size:11px;display:inline-flex;align-items:center;justify-content:center"><span data-txt="s.icon"></span></span><span data-txt="s.titulo"></span></p>
+            <p style="margin:0;font-size:14px;line-height:1.5;color:#6E6E73;text-wrap:pretty"><span data-txt="s.texto"></span></p>
+          </div>
+        </template>
+      </div>
+    </div>
+  </section>
+
+  
+  <section id="lookmap" data-screen-label="LookMap" style="display:flex;flex-direction:column;align-items:center;text-align:center;margin-top:clamp(24px,5vh,56px);border-top:1px solid rgba(0,0,0,.08);background:#F5F5F7;padding:clamp(72px,12vh,140px) clamp(20px,5vw,64px)">
+    <div data-ap="1" style="display:flex;flex-direction:column;align-items:center;gap:22px;max-width:640px">
+      <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#6E6E73">Já no seu histórico</p>
+      <h2 style="margin:0;font-size:clamp(34px,5vw,64px);font-weight:700;letter-spacing:-.026em;line-height:1.06;text-wrap:balance">Salve esta <span style="background-image:linear-gradient(rgba(255,0,157,.26),rgba(255,0,157,.26));background-repeat:no-repeat;background-size:100% .62em;background-position:0 56%;padding:0 .06em;border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone" data-hl="1">peça</span>.</h2>
+      <p style="margin:0;max-width:46ch;font-size:clamp(16px,1.8vw,19px);line-height:1.5;letter-spacing:-.01em;color:#6E6E73;text-wrap:pretty"><span data-txt="lookmapLeadEl"></span></p>
+      <div data-lm-stage="1" style="width:100%;max-width:560px;display:flex;flex-direction:column;align-items:center;gap:24px;margin-top:6px">
+        <div data-lm-row="1" style="display:flex;align-items:flex-start;justify-content:center;gap:clamp(16px,3vw,28px);flex-wrap:wrap">
+          <div style="width:104px;display:flex;flex-direction:column;gap:10px;align-items:center">
+            <div style="position:relative;width:104px;height:130px">
+              <div data-lm-ghost="1" aria-hidden="true" style="position:absolute;inset:0;border-radius:18px;border:2px dashed rgba(0,0,0,.16);background:rgba(0,0,0,.015);display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,.26);font-size:24px;font-weight:300;line-height:1">+</div>
+              <div data-lm-shadow="1" aria-hidden="true" style="position:absolute;left:12px;right:12px;bottom:-8px;height:14px;border-radius:999px;background:radial-gradient(ellipse at center,rgba(0,0,0,.24),rgba(0,0,0,0) 70%);opacity:0"></div>
+              <div data-lm-lift="1" style="position:absolute;inset:0;z-index:2;will-change:transform">
+                <div data-lm-float="1" style="width:100%;height:100%">
+                  <div data-lm-card="1" style="position:relative;width:100%;height:100%;border-radius:18px;overflow:hidden;background:#FFFFFF;box-shadow:0 18px 44px rgba(0,0,0,.16)">
+                    <span data-txt="lookmapAtualEl"></span>
+                    <span data-tpl-style="position:absolute;left:7px;bottom:7px;min-width:32px;height:26px;padding:0 9px;border-radius:999px;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:{{ lookmapAtualCor }};font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;justify-content:center;z-index:2"><span data-txt="lookmapAtualNota"></span></span>
+                    <div data-if="guardado" style="display:contents">
+                      <span data-save-check="1" aria-hidden="true" style="position:absolute;top:7px;right:7px;width:22px;height:22px;border-radius:999px;background:#FF009D;color:#FFFFFF;font-size:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(255,0,157,.45);z-index:2">✓</span>
+                      <span data-lm-ring="1" aria-hidden="true" style="position:absolute;inset:0;border-radius:18px;border:2px solid #FF009D;pointer-events:none;z-index:3"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <span style="font-size:12px;font-weight:600;letter-spacing:-.005em;color:#1D1D1F;max-width:104px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><span data-txt="lookmapAtualTipo"></span></span>
+          </div>
+        </div>
+        <div data-if="naoGuardado" style="display:contents">
+          <button data-on-click="onSalvar" style="display:inline-flex;align-items:center;min-height:52px;padding:14px 30px;border-radius:999px;background:#1D1D1F;border:none;color:#FFFFFF;font-family:inherit;font-size:16px;font-weight:500;letter-spacing:-.01em;cursor:pointer;touch-action:manipulation;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .3s ease" data-hovercls="h4" style-active="transform:scale(.97)"><span style="white-space:nowrap">Salvar pra comparar</span></button>
+        </div>
+        <div data-if="guardado" style="display:contents">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:16px">
+            <button data-save-pill="1" disabled="disabled" style="display:inline-flex;align-items:center;gap:8px;min-height:52px;padding:14px 30px;border-radius:999px;background:#F5F5F7;border:1px solid rgba(0,0,0,.08);color:#6E6E73;font-family:inherit;font-size:16px;font-weight:500;letter-spacing:-.01em;cursor:default"><span aria-hidden="true" style="color:#FF009D">✓</span><span style="white-space:nowrap">Peça salva</span></button>
+            <p data-save-cap="1" style="margin:0;max-width:40ch;font-size:14px;line-height:1.5;color:#6E6E73;text-wrap:pretty">Agora ela fica lado a lado com o que você já salvou — dá pra comparar antes da próxima compra.</p>
+            <button data-save-cap="1" data-on-click="onHistorico" style="display:inline-flex;align-items:center;gap:5px;background:none;border:none;min-height:44px;padding:8px 0;font-family:inherit;font-size:14px;font-weight:500;letter-spacing:-.01em;color:#FF009D;cursor:pointer;touch-action:manipulation;transition:opacity .2s ease" data-hovercls="h5">Ver peças salvas <span aria-hidden="true" style="font-size:15px;line-height:1">›</span></button>
+          </div>
+        </div>
+      </div>
+      <p style="margin:14px 0 0;display:inline-flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:center;font-size:14px;line-height:1.5;color:#6E6E73;text-wrap:pretty">Um dia, esse histórico vira o <img src="images/lookmap-wordmark.svg" alt="LookMap" style="height:14px;width:auto;opacity:.5;vertical-align:middle"> — o mapa do seu guarda-roupa inteiro.</p>
+    </div>
+  </section>
+
+  </div>
+
+  
+  <div data-if="isHistorico" style="display:contents">
+    <section data-screen-label="Peças salvas" style="flex:1;width:100%;margin:0 auto;box-sizing:border-box;padding:clamp(16px,2.5vh,28px) clamp(20px,5vw,64px) clamp(56px,9vh,110px);display:flex;flex-direction:column;gap:26px;animation:apFade .4s ease">
+      <a href="LookMap%20Landing%20Extensao.dc.html" style="align-self:flex-start;display:inline-flex;align-items:center;gap:5px;text-decoration:none;min-height:44px;padding:8px 0;font-family:inherit;font-size:14px;letter-spacing:-.005em;color:#6E6E73;cursor:pointer;touch-action:manipulation;transition:color .2s ease" data-hovercls="h6"><span aria-hidden="true" style="font-size:16px;line-height:1">‹</span> Voltar</a>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <h1 style="margin:0;font-size:clamp(30px,4.5vw,46px);font-weight:700;letter-spacing:-.026em;line-height:1.05">Minhas peças</h1>
+        <p style="margin:0;font-size:15px;line-height:1.5;color:#6E6E73;text-wrap:pretty">As peças que você marcou para manter à vista — salvas neste navegador.</p>
+      </div>
+      <div data-if="semGuardadas" style="display:contents">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:56px 20px;border:1px dashed rgba(0,0,0,.12);border-radius:20px;text-align:center">
+          <div style="width:52px;height:66px;border-radius:10px;border:1px dashed rgba(0,0,0,.14);background:rgba(0,0,0,.01)"></div>
+          <p style="margin:0;max-width:36ch;font-size:14px;line-height:1.5;color:#6E6E73;text-wrap:pretty">Ainda não salvou nenhuma peça. Quando uma análise valer a pena manter à vista, salve no fim do relatório.</p>
+          <button data-on-click="onDetalhe" style="display:inline-flex;align-items:center;gap:5px;background:none;border:none;min-height:44px;padding:8px 0;font-family:inherit;font-size:14px;font-weight:500;letter-spacing:-.005em;color:#1D1D1F;cursor:pointer;touch-action:manipulation">Voltar ao relatório <span aria-hidden="true">›</span></button>
+        </div>
+      </div>
+      <div data-if="temGuardadas" style="display:contents">
+        <div style="background:#F5F5F7;border-radius:28px;padding:clamp(20px,3vw,34px)">
+          <p style="margin:0 0 clamp(16px,2.4vw,26px);font-size:13px;font-weight:600;letter-spacing:.13em;color:#57575C;text-transform:uppercase">Minhas peças · <span data-txt="nGuardadas"></span> peças</p>
+          <div style="display:flex;flex-wrap:wrap;gap:clamp(16px,2.4vw,26px)">
+            <template data-for="guardadas" data-as="h">
+              <div data-tpl-role="{{ h.role }}" data-tpl-tabIndex="{{ h.tabIx }}" data-tpl-aria-label="{{ h.ariaLabel }}" data-on-click="h.abrir" data-on-keydown="h.abrirKey" data-tpl-title="{{ h.tipo }}" data-tpl-style="position:relative;flex:0 1 clamp(280px,32vw,380px);aspect-ratio:3/4;border-radius:26px;overflow:hidden;background:{{ h.cor }};cursor:{{ h.cursor }};touch-action:manipulation;box-shadow:{{ h.cardShadow }};outline:{{ h.cardOutline }};outline-offset:-1px;transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s cubic-bezier(.16,1,.3,1)" data-hovercls="h7" style-active="transform:scale(.985)">
+                <div data-media="h.mediaEl" style="display:contents"></div>
+                <div style="position:absolute;left:14px;bottom:14px;max-width:calc(100% - 28px);display:inline-flex;align-items:center;gap:10px;padding:7px 16px 7px 7px;border-radius:999px;background:rgba(255,255,255,.78);backdrop-filter:blur(18px) saturate(1.8);-webkit-backdrop-filter:blur(18px) saturate(1.8);box-shadow:0 8px 24px rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.7)">
+                  <span data-tpl-style="flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:38px;padding:0 12px;border-radius:999px;background:{{ h.badgeBg }};color:{{ h.badgeColor }};font-size:19px;font-weight:700;font-variant-numeric:tabular-nums"><span data-txt="h.nota"></span></span>
+                  <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:600;letter-spacing:-.008em;color:#1D1D1F"><span data-txt="h.tipo"></span></span>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  
+  <footer data-screen-label="Rodapé" style="margin-top:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:22px clamp(20px,5vw,64px);border-top:1px solid rgba(0,0,0,.06)">
+    <img src="images/lookpilot-wordmark.svg" alt="LookPilot" style="display:block;height:22px;width:auto;opacity:.55">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px">
+      <a href="LookMap%20Landing%20Extensao.dc.html#como" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h8">Como funciona</a>
+      <a href="#pecas" data-on-click="onHistorico" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h9">Minhas peças</a>
+    </div>
+    <p style="margin:0;font-size:12px;letter-spacing:.01em;color:#6E6E73">A qualidade se descobre</p>
+  </footer>
+</div>
+
+
+<script src="runtime.js"></script>
+</body>
+</html>
