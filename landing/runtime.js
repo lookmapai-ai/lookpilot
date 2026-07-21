@@ -98,11 +98,38 @@
                                 : (real ? 50 : DEFAULT.viagem * 10);
   var vg = Math.round(viagem100 / 10); // o design trabalha o selo em 0–10
 
+  /* ---------- limpeza do nome da fibra ---------------------------
+     Segunda linha de defesa: a extensão já apara o lixo que o texto da loja
+     arrasta ("algodão que contenha", "algodão chat analisando a peça"), mas a
+     página não deve confiar cegamente no parâmetro — uma versão antiga da
+     extensão, ou uma loja com texto estranho, voltaria a mostrar a frase toda
+     na etiqueta. Mantém a fibra e os qualificadores que importam; corta o
+     resto.                                                                */
+  var RAIZES = ['lã','la','algodão','algodao','linho','seda','caxemira','cashmere','alpaca',
+    'mohair','cânhamo','canhamo','lyocell','tencel','juta','ramie','poliéster','poliester',
+    'poliamida','acrílico','acrilico','elastano','nylon','polipropileno','poliuretano',
+    'viscose','modal','rayon','couro','camurça','camurca','lona','borracha'];
+  var QUALIFICADORES = ['orgânico','organico','orgânica','organica','reciclado','reciclada',
+    'merino','pima','supima','egípcio','egipcio','penteado','mercerizado','virgem','bio'];
+  function limpaFibra(n) {
+    var palavras = String(n || '').toLowerCase().split(/\s+/).filter(Boolean);
+    var i = palavras.findIndex(function (p) {
+      return RAIZES.some(function (r) { return p.indexOf(r) === 0; });
+    });
+    if (i === -1) return palavras.join(' ');           // não reconheceu: deixa como veio
+    var saida = [palavras[i]];
+    for (var j = i + 1; j < palavras.length; j++) {
+      if (QUALIFICADORES.indexOf(palavras[j]) !== -1) saida.push(palavras[j]);
+      else if (palavras[j] !== 'de' && palavras[j] !== 'da') break;
+    }
+    return saida.join(' ');
+  }
+
   // composição para a etiqueta: "Lã:100" -> "100% lã"
   var etiqComp = fibras
     ? fibras.split(',').map(function (p) {
         var s = p.split(':');
-        return (s[1] ? s[1] + '% ' : '') + (s[0] || '').toLowerCase();
+        return (s[1] ? s[1] + '% ' : '') + limpaFibra(s[0]);
       }).join(' · ')
     : (real ? '' : DEFAULT.etiqComp);
 
@@ -186,7 +213,9 @@
     if (!fibras) return [];
     return fibras.split(',').map(function (p) {
       var s = p.split(':');
-      return { nome: (s[0] || '').trim(), pct: parseInt(s[1], 10) || 0 };
+      // limpa aqui também: esta lista alimenta a prosa dos capítulos, que
+      // senão escreve "De algodão que contenha, e só"
+      return { nome: limpaFibra(s[0]), pct: parseInt(s[1], 10) || 0 };
     }).filter(function (f) { return f.nome; });
   }
   function classifica(lista) {
@@ -481,8 +510,28 @@
       isDetalhe: view === 'detalhe',
       isHistorico: view === 'historico',
       voltarPecas: false,
-      onHistorico: function () { view = 'historico'; render(); window.scrollTo(0, 0); },
-      onDetalhe: function () { view = 'detalhe'; render(); window.scrollTo(0, 0); },
+      // Abrir "Minhas peças" empurra uma entrada no histórico, para que o
+      // Voltar do navegador (e o da página) funcionem naturalmente.
+      onHistorico: function () {
+        if (view === 'historico') return;
+        view = 'historico';
+        try { history.pushState({ lpView: 'historico' }, '', '#minhas-pecas'); } catch (e) {}
+        render(); window.scrollTo(0, 0);
+      },
+      // "Voltar" = página anterior de verdade: o relatório se viemos dele, ou
+      // a página de onde a pessoa chegou (marketing, loja) se entrou direto.
+      onVoltar: function () {
+        if (history.length > 1) history.back();
+        else { view = 'detalhe'; render(); window.scrollTo(0, 0); }
+      },
+      // ir explicitamente para o relatório (logo do cabeçalho, "Voltar ao
+      // relatório" do estado vazio)
+      onDetalhe: function () {
+        if (view === 'detalhe') { window.scrollTo(0, 0); return; }
+        view = 'detalhe';
+        try { history.pushState({ lpView: 'detalhe' }, '', location.pathname + location.search); } catch (e) {}
+        render(); window.scrollTo(0, 0);
+      },
       guardadas: guardadas,
       nGuardadas: guardadas.length,
       nGuardadasLabel: guardadas.length + (guardadas.length === 1 ? ' peça' : ' peças'),
@@ -641,6 +690,14 @@
       } else { el.style.backgroundSize = '100% 100%'; }
     });
   }
+
+  // o Voltar do navegador sincroniza a vista (e a âncora #minhas-pecas
+  // permite abrir "Minhas peças" diretamente por link)
+  window.addEventListener('popstate', function (e) {
+    var v = (e.state && e.state.lpView) || (location.hash === '#minhas-pecas' ? 'historico' : 'detalhe');
+    if (v !== view) { view = v; render(); window.scrollTo(0, 0); }
+  });
+  if (location.hash === '#minhas-pecas') view = 'historico';
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render);
   else render();

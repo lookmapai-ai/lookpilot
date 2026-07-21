@@ -115,9 +115,18 @@ _fixos = [
      'Dá pra levar, mas prepare-se pra passar a ferro e lavar mais vezes na volta.',
      '<span data-txt="seloLeadCautelaEl"></span>'),
 ]
-# Links para outro arquivo do projeto de design (o logo do cabeçalho, o
-# "Voltar" da vista Minhas peças), que não existe fora da ferramenta. Todos
-# devem levar de volta ao relatório desta peça.
+# Links para outro arquivo do projeto de design, que não existe fora dela.
+# Cada um tem um destino diferente:
+#   - logo do cabeçalho (title="Início") -> relatório desta peça
+#   - "Voltar" da vista Minhas peças     -> página ANTERIOR de verdade (pode
+#     ser o relatório ou a página de onde a pessoa veio), via histórico
+#   - restantes (ex.: "Como funciona" no rodapé) -> relatório
+body = body.replace(
+    'href="LookMap%20Landing%20Extensao.dc.html" title="Início"',
+    'href="#topo" title="Início" data-on-click="onDetalhe"')
+body = body.replace(
+    'href="LookMap%20Landing%20Extensao.dc.html" style="align-self:flex-start;',
+    'href="#topo" data-on-click="onVoltar" style="align-self:flex-start;')
 body, _n_links = re.subn(
     r'href="LookMap%20Landing%20Extensao\.dc\.html[^"]*"',
     'href="#topo" data-on-click="onDetalhe"', body)
