@@ -30,9 +30,29 @@ o selo de viagem) · `confianca`.
 
 Sem parâmetros, a página mostra o conteúdo de demonstração do design.
 
-## Lacuna conhecida
+## Prosa adaptada à peça
 
-A prosa das quatro perguntas e dos traços de viagem é **redação editorial** do
-design (escrita para o suéter de lã). A extensão não envia esse texto, por isso
-mantém-se como padrão e não se adapta à peça analisada. Resolver isto implica ou
-a extensão enviar texto gerado, ou a página gerá-lo a partir dos scores.
+As quatro perguntas do design mapeiam nas dimensões que a extensão já envia, por
+isso a resposta é escrita a partir da análise em vez de ficar presa ao texto do
+suéter de demonstração:
+
+| Capítulo | Fonte |
+|---|---|
+| 01 · A matéria | `fibras` (natural / sintética / mistura) + `qualidade` |
+| 02 · O corpo | `conforto` |
+| 03 · O tempo | `durabilidade` + `manutencao` |
+| 04 · No dia a dia | `versatilidade` |
+
+Cada um tem três faixas (alto / médio / baixo). Os traços do selo de viagem
+seguem `viagem` **e** a composição (o texto muda para peça sintética). A frase
+de "salvar a peça" também muda por faixa — o design tinha uma versão por nota
+(86 celebra, 58 pondera), por isso trocar só o número produziria frases sem
+sentido como "Um 42 não aparece todo dia".
+
+Sem parâmetros, mantém-se o texto original do design.
+
+### O que continua por fazer
+
+A prosa é gerada por faixas, não por conhecimento de fibra: não sabe que o
+acrílico forma bolinhas mais depressa que o poliéster, por exemplo. A base
+técnica para isso existe na extensão (`fibers.json`), mas não é enviada.

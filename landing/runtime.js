@@ -95,13 +95,92 @@
     return frag;
   }
 
+  /* ---------- prosa adaptada à peça analisada --------------------
+     As quatro perguntas do design mapeiam nas dimensões que a extensão
+     já envia, por isso a resposta pode ser escrita a partir da análise
+     em vez de ficar presa ao texto do suéter de demonstração:
+       01 A matéria  <- fibras + qualidade
+       02 O corpo    <- conforto
+       03 O tempo    <- durabilidade + manutenção
+       04 No dia a dia <- versatilidade
+     Sem parâmetros, mantém-se o texto original do design.          */
+  var NATURAIS = ['lã','la','algodão','algodao','linho','seda','caxemira','cashmere','alpaca','mohair','cânhamo','canhamo','lyocell','tencel','juta','ramie'];
+  var SINTETICAS = ['poliéster','poliester','poliamida','acrílico','acrilico','elastano','nylon','polipropileno','poliuretano','viscose','modal','rayon'];
+
+  function parseFibras() {
+    if (!fibras) return [];
+    return fibras.split(',').map(function (p) {
+      var s = p.split(':');
+      return { nome: (s[0] || '').trim(), pct: parseInt(s[1], 10) || 0 };
+    }).filter(function (f) { return f.nome; });
+  }
+  function classifica(lista) {
+    var nat = 0, sin = 0;
+    lista.forEach(function (f) {
+      var n = f.nome.toLowerCase();
+      var isNat = NATURAIS.some(function (x) { return n.indexOf(x) === 0; });
+      var isSin = SINTETICAS.some(function (x) { return n.indexOf(x) === 0; });
+      if (isNat) nat += f.pct; else if (isSin) sin += f.pct;
+    });
+    return { nat: nat, sin: sin };
+  }
+  function faixa(v, alto, medio) { return v >= alto ? 2 : v >= medio ? 1 : 0; }
+
+  function prosaCartoes() {
+    if (!has('score')) return DEFAULT.cartoes.map(function (c) { return c.resposta; });
+    var lista = parseFibras(), mix = classifica(lista);
+    var comp = lista.map(function (f) { return f.pct + '% ' + f.nome.toLowerCase(); }).join(', ');
+    var principal = lista.slice().sort(function (a, b) { return b.pct - a.pct; })[0];
+    var qual = int('qualidade', 50), conf = int('conforto', 50);
+    var dur = int('durabilidade', 50), man = int('manutencao', 50), ver = int('versatilidade', 50);
+
+    // 01 · A matéria
+    var t1;
+    if (!lista.length) {
+      t1 = 'A composição não veio na página da loja. Sem etiqueta, a nota apoia-se no resto — e é por isso que ela não sobe mais.';
+    } else if (mix.nat >= 90) {
+      t1 = 'De ' + principal.nome.toLowerCase() + ', e só. A etiqueta foi lida fio por fio: ==' + comp + '==, sem nenhuma fibra sintética escondida.';
+    } else if (mix.sin >= 70) {
+      t1 = 'Quase toda de sintético. A etiqueta diz ==' + comp + '==. O toque até engana; a composição, não.';
+    } else {
+      t1 = 'É uma mistura: ==' + comp + '==. Nem fibra nobre pura, nem sintético barato — está no meio.';
+    }
+    t1 += qual >= 70 ? ' É o que puxa a nota pra cima.'
+        : qual >= 45 ? ' A matéria segura a nota, sem a levantar.'
+                     : ' É aqui que a nota perde pontos.';
+
+    // 02 · O corpo
+    var t2 = [
+      'Pesa no uso. ' + (mix.sin >= 70 ? 'Fibra sintética ==retém calor e respira pouco==: num dia longo ou lugar fechado, abafa.' : 'Não é a peça que você vai querer vestir o dia inteiro.'),
+      'Veste bem, sem encantar. Cumpre o dia sem incomodar, mas ' + (mix.sin >= 50 ? 'a parte sintética cobra em dias quentes.' : 'não é a peça mais confortável do armário.'),
+      (principal ? principal.nome + ' ' : '') + '==veste bem de verdade==: aquece ou refresca conforme o dia e respira em vez de virar estufa.'
+    ][faixa(conf, 70, 45)];
+
+    // 03 · O tempo
+    var t3 = [
+      'Pouco. ' + (mix.sin >= 50 ? 'O sintético ==forma bolinhas== com o atrito e desbota.' : 'A malha cede com o uso.') + ' É peça pra meses, não pra anos.',
+      'Dura, com cuidado. Aguenta a temporada se você respeitar a lavagem — ' + (man >= 60 ? 'e a manutenção é simples.' : 'mas ==a manutenção é exigente==.'),
+      'Vai durar. Gola, punho e barra voltam ao lugar em vez de arriar' + (man >= 60 ? ', e o cuidado é fácil: água fria, secar à sombra.' : ' — desde que você respeite a lavagem.') + ' É peça pra ==durar temporadas==.'
+    ][faixa(dur, 70, 45)];
+
+    // 04 · No dia a dia
+    var t4 = [
+      'Pouco. É peça de ocasião: ==pede combinação específica== e acaba parada no cabide. Custe o que custar, o preço por uso sobe.',
+      'De vez em quando. Combina com o que você já tem, mas não é a primeira escolha — vai sair do armário sem pressa.',
+      'Vai, e muito. ==Funciona como neutro==: cai bem com jeans, alfaiataria e saia. Peça que combina sem você pensar acaba sendo a mais barata que você tem.'
+    ][faixa(ver, 70, 45)];
+
+    return [t1, t2, t3, t4];
+  }
+
+  var textos = prosaCartoes();
   var cartoes = DEFAULT.cartoes.map(function (c, i) {
     var foto = fotos.length ? fotos[i % fotos.length] : '';
     return {
       num: c.num, tema: c.tema, pergunta: c.pergunta,
       dir: i % 2 === 1 ? 'rtl' : 'ltr',
       isPrimeiro: i === 0,
-      respostaEl: mark(c.resposta),
+      respostaEl: mark(textos[i]),
       mediaEl: mediaEl(foto, c.alt,
         'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:' + c.pos +
         ';transform:scale(' + c.zoom + ');transform-origin:' + c.pos + ';filter:saturate(1.06) sepia(.06)')
@@ -111,15 +190,26 @@
   var seloAprovado = vg >= 7;
   var seloAcc = seloAprovado ? '#FF009D' : '#C89B5E';
   var seloIcon = seloAprovado ? '✓' : '!';
+  // os traços seguem a composição real da peça, não a do suéter de demonstração
+  var _mix = classifica(parseFibras());
+  var _sintetica = _mix.sin >= 50;
   var traitsOk = [
-    { titulo: 'Não amarrota', texto: 'Sai da mala e vai direto pro corpo. A fibra relaxa os vincos sozinha em poucos minutos.' },
+    { titulo: 'Não amarrota', texto: _sintetica
+        ? 'Sai da mala pronta: fibra sintética não marca vinco e dispensa ferro.'
+        : 'Sai da mala e vai direto pro corpo. A fibra relaxa os vincos sozinha em poucos minutos.' },
     { titulo: 'Uma peça, vários climas', texto: 'Segura o frio e respira no ameno. Uma peça só cobre a viagem inteira.' },
-    { titulo: 'Areja em vez de lavar', texto: 'Não guarda cheiro. Uma noite no cabide e está pronta pro dia seguinte.' }
+    { titulo: _sintetica ? 'Seca da noite pro dia' : 'Areja em vez de lavar', texto: _sintetica
+        ? 'Lava no lavatório e seca rápido — não ocupa dia de viagem à espera.'
+        : 'Não guarda cheiro. Uma noite no cabide e está pronta pro dia seguinte.' }
   ];
   var traitsCau = [
     { titulo: 'Amarrota fácil', texto: 'Sai da mala com vincos. Precisa de ferro ou vapor antes de vestir.' },
-    { titulo: 'Esquenta e não respira', texto: 'Fibra sintética retém calor. Num dia de viagem longo, pesa.' },
-    { titulo: 'Precisa lavar mais', texto: 'Retém cheiro rápido: não dá pra arejar e reusar.' }
+    { titulo: _sintetica ? 'Esquenta e não respira' : 'Volume na mala', texto: _sintetica
+        ? 'Fibra sintética retém calor. Num dia de viagem longo, pesa.'
+        : 'Ocupa espaço e seca devagar — pesa numa mala pequena.' },
+    { titulo: 'Precisa lavar mais', texto: _sintetica
+        ? 'Retém cheiro rápido: não dá pra arejar e reusar.'
+        : 'Não dá pra esticar muitos usos entre lavagens.' }
   ];
   var selo = (seloAprovado ? traitsOk : traitsCau).map(function (t) {
     return { titulo: t.titulo, texto: t.texto, cor: seloAcc, icon: seloIcon };
@@ -157,7 +247,12 @@
       seloCautela: !seloAprovado,
       seloMini: vg >= 7 ? 'Ótima pra levar' : vg >= 5 ? 'Dá pra levar, com ressalvas' : 'Pouco prática',
       // lookmap
-      lookmapLeadEl: mark(DEFAULT.lookmapLead.replace('==86==', '==' + score + '==')),
+      // o design tinha uma frase por faixa de nota (86 celebra, 58 pondera);
+      // trocar só o número faria "Um 42 não aparece todo dia" — sem sentido.
+      lookmapLeadEl: mark(
+        score >= 75 ? 'Um ==' + score + '== não aparece todo dia. Salve a peça pra não esquecer o que a faz valer — e comparar com a próxima.'
+      : score >= 50 ? 'Um ==' + score + '== pede cabeça fria. Salve a peça pra lembrar por que hesitou — e comparar antes de decidir.'
+                    : 'Um ==' + score + '== acende o alerta. Salve a peça pra lembrar por que não valeu — e reconhecer a próxima parecida.'),
       lookmapAtualEl: mediaEl(imagem, nome, 'width:100%;height:100%;object-fit:cover;object-position:50% 30%;filter:saturate(1.06) sepia(.06)'),
       lookmapAtualNota: score,
       lookmapAtualTipo: nome,
