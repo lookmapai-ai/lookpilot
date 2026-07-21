@@ -115,21 +115,25 @@ _fixos = [
      'Dá pra levar, mas prepare-se pra passar a ferro e lavar mais vezes na volta.',
      '<span data-txt="seloLeadCautelaEl"></span>'),
 ]
-# Links para outro arquivo do projeto de design, que não existe fora dela.
-# Cada um tem um destino diferente:
-#   - logo do cabeçalho (title="Início") -> relatório desta peça
-#   - "Voltar" da vista Minhas peças     -> página ANTERIOR de verdade (pode
-#     ser o relatório ou a página de onde a pessoa veio), via histórico
-#   - restantes (ex.: "Como funciona" no rodapé) -> relatório
+# No design, três links apontam para "LookMap Landing Extensao" — a página de
+# marketing do produto. Esse arquivo só existe dentro da ferramenta de design,
+# mas o DESTINO continua a ser o mesmo: a home do site. Fica relativo à raiz
+# para funcionar em qualquer domínio (em produção, lookmap.ai/).
+MKT_URL = "/"
+
+#   1. logo do cabeçalho (title="Início") -> home do marketing
 body = body.replace(
     'href="LookMap%20Landing%20Extensao.dc.html" title="Início"',
-    'href="#topo" title="Início" data-on-click="onDetalhe"')
+    'href="%s" title="Início"' % MKT_URL)
+#   2. "Voltar" da vista Minhas peças -> página ANTERIOR de verdade (o
+#      relatório, ou de onde a pessoa veio), via histórico do navegador
 body = body.replace(
     'href="LookMap%20Landing%20Extensao.dc.html" style="align-self:flex-start;',
-    'href="#topo" data-on-click="onVoltar" style="align-self:flex-start;')
+    'href="%s" data-on-click="onVoltar" style="align-self:flex-start;' % MKT_URL)
+#   3. restantes (ex.: "Como funciona" no rodapé) -> marketing, com a âncora
 body, _n_links = re.subn(
-    r'href="LookMap%20Landing%20Extensao\.dc\.html[^"]*"',
-    'href="#topo" data-on-click="onDetalhe"', body)
+    r'href="LookMap%20Landing%20Extensao\.dc\.html(#[\w-]*)?"',
+    lambda m: 'href="%s%s"' % (MKT_URL, m.group(1) or ''), body)
 
 for _de, _para in _fixos:
     if _de not in body:

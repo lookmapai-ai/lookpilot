@@ -29,6 +29,22 @@ O destino do botão é controlado por `LOOKMAP_DEV` no `content.js` **e** no
 | `true` (padrão hoje) | `http://localhost:8777/analise.html` |
 | `false` | `https://lookmap.ai/analise` — só depois de publicar a página lá |
 
+## Links que saem da página
+
+O design aponta três links para "LookMap Landing Extensao" — a página de
+marketing. Esse arquivo só existe dentro da ferramenta de design, mas o destino
+continua sendo o mesmo, e o `build.py` reescreve-os relativos à raiz
+(`MKT_URL = "/"`), para funcionarem em qualquer domínio:
+
+| Elemento | Vai para |
+|---|---|
+| Logo do cabeçalho | `/` — home do marketing |
+| "Como funciona" (rodapé) | `/#como` |
+| "Voltar" (Minhas peças) | página anterior, via histórico (`href="/"` fica como reserva se o JS falhar) |
+
+Em `localhost` a raiz mostra a listagem da pasta — é só em desenvolvimento; em
+produção é a home do site.
+
 ## Minhas peças
 
 O botão "Minhas peças" no cabeçalho troca para a vista de peças salvas. Salvar

@@ -49,7 +49,7 @@ a:hover{color:#000000}
 
   
   <header data-screen-label="Cabeçalho" style="position:sticky;top:0;z-index:70;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:10px clamp(20px,5vw,64px);background:rgba(255,255,255,.8);backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);border-bottom:1px solid rgba(0,0,0,.06)">
-    <a href="#topo" title="Início" data-on-click="onDetalhe" style="display:inline-flex;align-items:center;text-decoration:none;transition:opacity .2s ease" data-hovercls="h0"><img src="images/lookpilot-wordmark.svg" alt="LookPilot" style="display:block;height:34px;width:auto"></a>
+    <a href="/" title="Início" style="display:inline-flex;align-items:center;text-decoration:none;transition:opacity .2s ease" data-hovercls="h0"><img src="images/lookpilot-wordmark.svg" alt="LookPilot" style="display:block;height:34px;width:auto"></a>
     <div style="display:flex;align-items:center;gap:14px">
       <button data-on-click="onHistorico" title="Suas peças salvas" style="display:inline-flex;align-items:center;min-height:44px;padding:8px 10px;background:none;border:none;font-family:inherit;font-size:14px;font-weight:500;letter-spacing:-.01em;color:#6E6E73;cursor:pointer;white-space:nowrap;touch-action:manipulation;transition:color .2s ease" data-hovercls="h1">Minhas peças</button>
     </div>
@@ -219,7 +219,7 @@ a:hover{color:#000000}
   
   <div data-if="isHistorico" style="display:contents">
     <section data-screen-label="Peças salvas" style="flex:1;width:100%;margin:0 auto;box-sizing:border-box;padding:clamp(16px,2.5vh,28px) clamp(20px,5vw,64px) clamp(56px,9vh,110px);display:flex;flex-direction:column;gap:26px;animation:apFade .4s ease">
-      <a href="#topo" data-on-click="onVoltar" style="align-self:flex-start;display:inline-flex;align-items:center;gap:5px;text-decoration:none;min-height:44px;padding:8px 0;font-family:inherit;font-size:14px;letter-spacing:-.005em;color:#6E6E73;cursor:pointer;touch-action:manipulation;transition:color .2s ease" data-hovercls="h6"><span aria-hidden="true" style="font-size:16px;line-height:1">‹</span> Voltar</a>
+      <a href="/" data-on-click="onVoltar" style="align-self:flex-start;display:inline-flex;align-items:center;gap:5px;text-decoration:none;min-height:44px;padding:8px 0;font-family:inherit;font-size:14px;letter-spacing:-.005em;color:#6E6E73;cursor:pointer;touch-action:manipulation;transition:color .2s ease" data-hovercls="h6"><span aria-hidden="true" style="font-size:16px;line-height:1">‹</span> Voltar</a>
       <div style="display:flex;flex-direction:column;gap:6px">
         <h1 style="margin:0;font-size:clamp(30px,4.5vw,46px);font-weight:700;letter-spacing:-.026em;line-height:1.05">Minhas peças</h1>
         <p style="margin:0;font-size:15px;line-height:1.5;color:#6E6E73;text-wrap:pretty">As peças que você marcou para manter à vista — salvas neste navegador.</p>
@@ -254,7 +254,7 @@ a:hover{color:#000000}
   <footer data-screen-label="Rodapé" style="margin-top:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:22px clamp(20px,5vw,64px);border-top:1px solid rgba(0,0,0,.06)">
     <img src="images/lookpilot-wordmark.svg" alt="LookPilot" style="display:block;height:22px;width:auto;opacity:.55">
     <div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px">
-      <a href="#topo" data-on-click="onDetalhe" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h8">Como funciona</a>
+      <a href="/#como" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h8">Como funciona</a>
       <a href="#pecas" data-on-click="onHistorico" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h9">Minhas peças</a>
     </div>
     <p style="margin:0;font-size:12px;letter-spacing:.01em;color:#6E6E73">A qualidade se descobre</p>
