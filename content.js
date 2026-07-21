@@ -181,6 +181,20 @@
           if (d) { data = d; word = shorter; break; }
         }
       }
+      // Apara o lixo que o texto da página arrasta atrás do nome da fibra.
+      // getFiber() casa por substring — qualquer string com "algodão" devolve
+      // algodão — por isso o nome capturado podia ficar "algodão chat
+      // analisando a peça" e ninguém reparava. Corta as palavras finais que
+      // NÃO alteram a fibra resolvida; qualificadores que mudam o resultado
+      // (ex.: "algodão orgânico") ficam intactos.
+      if (data) {
+        const partes = word.split(/\s+/);
+        for (let len = 1; len < partes.length; len++) {
+          const curto = partes.slice(0, len).join(' ');
+          const d = getFiber(curto) || (typeof getMaterialData === 'function' ? getMaterialData(curto, category) : null);
+          if (d === data) { word = curto; break; }
+        }
+      }
       if (data && !seen.has(word)) { seen.add(word); results.push({ pct, name: word, data }); }
     };
 
@@ -413,7 +427,15 @@
       '[class*="you-may"]','[class*="also-like"]','[class*="carousel"]',
       '[class*="slider"]','[class*="cross-sell"]','[class*="upsell"]',
       '[id*="related"]','[id*="recommend"]','footer','nav',
-      '[class*="complete-the-look"]','[class*="combine"]','[class*="outfit"]'
+      '[class*="complete-the-look"]','[class*="combine"]','[class*="outfit"]',
+      // O NOSSO PRÓPRIO card está no ecrã durante o scan (mostra "Analisando
+      // a peça…") — sem isto a extensão lê-se a si mesma e a frase entra na
+      // composição: "100% algodão analisando a peça".
+      '#__fqa-card',
+      // Widgets de chat/apoio flutuam sobre a página e não são da peça
+      '[class*="chat" i]','[id*="chat" i]','[class*="livechat" i]',
+      '[class*="zendesk" i]','[class*="intercom" i]','[class*="drift" i]',
+      '[aria-live]','[role="log"]','[role="status"]'
     ];
     const noiseNodes = new Set();
     noiseSelectors.forEach(sel => {
@@ -462,7 +484,12 @@
   // Procura a zona de composição: o bloco de texto à volta de um marcador
   function findCompositionZone() {
     const markers = ['composição','composition','composição e cuidados','materiais','material','fabric','tecido','product details','product information','about me','details & care','fabric & care'];
-    const all = Array.from(document.querySelectorAll('h1,h2,h3,h4,h5,dt,th,strong,b,p,span,div'));
+    // Este atalho corre ANTES do filtro de ruído do extractAllText, por isso
+    // precisa do seu próprio guarda contra o card da extensão — senão volta a
+    // ler-se a si mesma (ver "100% algodão chat analisando a peça").
+    const nosso = document.getElementById('__fqa-card');
+    const all = Array.from(document.querySelectorAll('h1,h2,h3,h4,h5,dt,th,strong,b,p,span,div'))
+      .filter(el => !nosso || !nosso.contains(el));
     for (const el of all) {
       const txt = (el.textContent || '').trim().toLowerCase();
       if (txt.length < 40 && markers.some(mk => txt === mk || txt.startsWith(mk))) {
