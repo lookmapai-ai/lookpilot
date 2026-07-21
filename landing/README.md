@@ -2,14 +2,14 @@
 
 Destino do botão "Ver análise completa →" do card da extensão.
 
-## Ficheiros
+## Arquivos
 
-| Ficheiro | O que é |
+| Arquivo | O que é |
 |---|---|
 | `v15-source.dc.html` | **Fonte do design**, puxado do projeto claude.ai/design ("Prompt landing LookMap" → `LookPilot Experiencia v15 Apple White.dc.html`). Não editar à mão: é a cópia do design. |
 | `build.py` | Traduz o fonte para HTML normal. **Não redesenha nada** — copia marcação e estilos verbatim e só converte `sc-if`/`sc-for`/`{{ }}`/`style-hover` para HTML+atributos de binding. |
 | `runtime.js` | Dá vida à página: lê os parâmetros da URL que a extensão envia, preenche os bindings e reproduz as animações (reveal, parallax, contagem, scan da etiqueta). |
-| `analise.html` | **Gerado** por `build.py`. É o ficheiro a publicar. |
+| `analise.html` | **Gerado** por `build.py`. É o arquivo a publicar. |
 | `images/` | Wordmarks. As fotos do produto vêm da URL (a extensão raspa a galeria da loja). |
 
 ## Regenerar
@@ -18,12 +18,12 @@ Destino do botão "Ver análise completa →" do card da extensão.
 cd landing && python3 build.py
 ```
 
-Se o design mudar no claude.ai/design, voltar a puxar `v15-source.dc.html` e correr o build.
+Se o design mudar no claude.ai/design, voltar a puxar `v15-source.dc.html` e rodar o build.
 
 ## Parâmetros consumidos
 
 `score` · `verdict` (usado tal como o card o enviou — não se recalcula, senão as
-duas superfícies contradizem-se) · `nome` · `loja` · `preco` · `moeda` ·
+duas superfícies se contradizem) · `nome` · `loja` · `preco` · `moeda` ·
 `origem` · `imagem` · `galeria` (fotos separadas por `|`, distribuídas pelos 4
 capítulos) · `fibras` (vira a composição da etiqueta) · `viagem` (0–100, define
 o selo de viagem) · `confianca`.
@@ -49,7 +49,7 @@ de "salvar a peça" também muda por faixa — o design tinha uma versão por no
 (86 celebra, 58 pondera), por isso trocar só o número produziria frases sem
 sentido como "Um 42 não aparece todo dia".
 
-Sem parâmetros, mantém-se o texto original do design.
+Sem parâmetros, o texto se mantém original do design.
 
 ### O que continua por fazer
 

@@ -1,8 +1,8 @@
 /* ------------------------------------------------------------------
    Runtime da página de análise (v15 Apple White).
    O DESIGN não é definido aqui — a marcação e os estilos vêm do
-   ficheiro de design (LookPilot Experiencia v15 Apple White.dc.html),
-   transformados 1:1. Este ficheiro só:
+   arquivo de design (LookPilot Experiencia v15 Apple White.dc.html),
+   transformados 1:1. Este arquivo só:
      1. lê os parâmetros que a extensão LookPilot envia na URL,
      2. preenche os bindings do design,
      3. reproduz as animações (reveal, parallax, contagem, scan).
@@ -43,7 +43,7 @@
 
   /* ---------- dados vindos da extensão ---------------------------- */
   // score/veredito: o veredito vem PRONTO do card (não se recalcula aqui,
-  // senão as duas superfícies contradizem-se no mesmo score).
+  // senão as duas superfícies se contradizem no mesmo score).
   var score = has('score') ? clamp(int('score', DEFAULT.score), 0, 100) : DEFAULT.score;
   var verdictParam = Q.get('verdict');
 
@@ -110,7 +110,7 @@
        02 O corpo    <- conforto
        03 O tempo    <- durabilidade + manutenção
        04 No dia a dia <- versatilidade
-     Sem parâmetros, mantém-se o texto original do design.          */
+     Sem parâmetros, mantém o texto original do design.          */
   var NATURAIS = ['lã','la','algodão','algodao','linho','seda','caxemira','cashmere','alpaca','mohair','cânhamo','canhamo','lyocell','tencel','juta','ramie'];
   var SINTETICAS = ['poliéster','poliester','poliamida','acrílico','acrilico','elastano','nylon','polipropileno','poliuretano','viscose','modal','rayon'];
 
@@ -146,7 +146,7 @@
     var t1;
     var secundaria = lista.slice().sort(function (a, b) { return b.pct - a.pct; })[1];
     if (!lista.length) {
-      t1 = 'A composição não veio na página da loja. Sem etiqueta, a nota apoia-se no resto — e é por isso que ela não sobe mais.';
+      t1 = 'A composição não veio na página da loja. Sem etiqueta, a nota se apoia no resto — e é por isso que ela não sobe mais.';
     } else if (modNome && modExplica) {
       // história "não é a fibra comum": o modificador detectado na página
       t1 = 'Não é ' + principal.nome.toLowerCase() + ' qualquer: é ==' + modNome + '==. ' + modExplica;

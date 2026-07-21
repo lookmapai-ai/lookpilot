@@ -78,7 +78,7 @@
   }
 
   // `historia` leva o que só a extensão sabe contar: o efeito da mistura
-  // (blends.json, por dose) e o modificador de qualidade detetado na página
+  // (blends.json, por dose) e o modificador de qualidade detectado na página
   // (ex.: Supima). A landing tem os scores, mas não este conhecimento — sem
   // isto o capítulo "A matéria" cai sempre na mesma frase genérica.
   function buildAnaliseURL(scores, fibers, buy, verdictLabel, productUrl, confidence, historia) {
@@ -518,7 +518,7 @@
     const v = verdict(scores);
 
     // História para a landing: o que a mistura faz nesta dose e o modificador
-    // de qualidade detetado no texto da página. Ambos já existem calibrados
+    // de qualidade detectado no texto da página. Ambos já existem calibrados
     // na extensão (blends.json / QUALITY_MODIFIERS) — a landing só os conta.
     const fibrasHist = scores?.fibers || fibers;
     const principal = [...(fibrasHist || [])].sort((a, b) => (b.pct || 0) - (a.pct || 0))[0];

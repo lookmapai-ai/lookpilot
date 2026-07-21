@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-build.py — gera landing/analise.html a partir do ficheiro de design.
+build.py — gera landing/analise.html a partir do arquivo de design.
 
 NÃO redesenha nada: copia a marcação e os estilos do design verbatim,
 traduzindo apenas as construções da ferramenta de design para HTML normal:
@@ -14,7 +14,7 @@ traduzindo apenas as construções da ferramenta de design para HTML normal:
   {{ xMediaEl }}               -> <div data-media="x" style="display:contents">
 
 Fonte:  v15-source.dc.html   (puxado do projeto claude_design)
-Saída:  analise.html         (+ runtime.js dá-lhe vida)
+Saída:  analise.html         (+ runtime.js dá vida a ele)
 """
 import re, sys, pathlib
 
@@ -92,7 +92,7 @@ body = "".join(
 # O design tem a loja ("ZARA") e a fibra ("Lã") escritas à mão, porque foi
 # desenhado sobre o suéter da Zara. Numa página que serve qualquer peça isso
 # fica errado (dizia "Etiqueta · ZARA" numa peça da UNIQLO). Aqui só se troca
-# o texto fixo por um binding — o design, os estilos e a frase mantêm-se.
+# o texto fixo por um binding — o design, os estilos e a frase se mantêm.
 _fixos = [
     # pill do hero: "… ZARA ↗ …"
     ('>ZARA <span aria-hidden', '><span data-txt="loja"></span> <span aria-hidden'),
