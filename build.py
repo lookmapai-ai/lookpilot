@@ -103,11 +103,23 @@ def build_fiber_db(kb):
         s = derive_fiber_scores(fdata['propriedades'], fdata['viagem'])
         ftype = CAT_MAP.get(fdata['categoria'], 'semi')
         tip = fdata['viagem']['nota']
+        # Propriedades narrativas: os 5 scores são a média que decide a nota,
+        # mas quem conta história é a propriedade crua ("forma bolinhas",
+        # "amarrota"). A landing usa-as para os capítulos não se repetirem.
+        # Escala 0-10, onde 10 é sempre o melhor desempenho NAQUELA propriedade
+        # (bolinhas:10 = NÃO forma bolinhas; amassa:10 = NÃO amarrota).
+        pr = fdata['propriedades']
+        p_narr = (
+            f"bol:{pr['bolinhas']}, ama:{pr['amassa']}, sec:{pr['secagem']}, "
+            f"cal:{pr['isolamento_termico']}, res:{pr['respirabilidade']}, "
+            f"pes:{pr['peso']}, sus:{pr['sustentabilidade']}"
+        )
         for label in LABEL_KEYS.get(fid, [fid]):
             lines.append(
                 f"  {js_str(label)}: {{ quality:{s['quality']}, comfort:{s['comfort']}, "
                 f"durability:{s['durability']}, maintenance:{s['maintenance']}, travel:{s['travel']}, "
-                f"type:'{ftype}', label:{js_str(fdata['nome'])}, tip:{js_str(tip)} }},"
+                f"type:'{ftype}', label:{js_str(fdata['nome'])}, tip:{js_str(tip)}, "
+                f"p:{{ {p_narr} }} }},"
             )
     lines.append("};")
     return '\n'.join(lines)

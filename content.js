@@ -91,6 +91,16 @@
       if (historia.modExplica) params.set('modexplica', historia.modExplica.slice(0, 320));
       if (historia.fibraNome)  params.set('fibra',      historia.fibraNome.slice(0, 40));
       if (historia.fibraTip)   params.set('fibratip',   historia.fibraTip.slice(0, 240));
+      if (historia.fibraProps) {
+        // compacto: "bol:5,ama:8,sec:3,cal:9,res:8,pes:5,sus:6"
+        params.set('props', Object.keys(historia.fibraProps)
+          .map(k => `${k}:${historia.fibraProps[k]}`).join(','));
+      }
+      if (historia.cor) {
+        if (historia.cor.note)  params.set('cornota', historia.cor.note.slice(0, 120));
+        if (historia.cor.isPrint) params.set('estampado', '1');
+        if (historia.cor.colorClass) params.set('corclasse', historia.cor.colorClass);
+      }
     }
     // Dimensões (0–100)
     if (scores) {
@@ -535,7 +545,17 @@
       // verdade ("não amassa e regula odor, mas é volumosa e seca devagar").
       // Sem isto os capítulos 02-04 caem sempre nas mesmas frases por faixa.
       fibraNome:  principal?.data?.label || principal?.name || '',
-      fibraTip:   principal?.data?.tip || ''
+      fibraTip:   principal?.data?.tip || '',
+      // Propriedades cruas da fibra principal (0-10, 10 = melhor desempenho
+      // naquela propriedade). São elas que dão história concreta: "bol" baixo
+      // vira "forma bolinhas", "ama" baixo vira "amarrota".
+      fibraProps: principal?.data?.p || null,
+      // Cor/padrão: o maior fator de combinação, e o que falta ao capítulo
+      // "vai sair do armário?". detectColorPattern já devolve nota em
+      // linguagem natural ("estampado pede combinações pensadas").
+      cor: (typeof detectColorPattern === 'function'
+              ? detectColorPattern(titleText || fullPageText)
+              : null)
     };
     const total = fibers.reduce((acc,f)=>acc+(f.pct||0),0);
     const mismatch = '';

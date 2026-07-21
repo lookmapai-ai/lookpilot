@@ -67,6 +67,18 @@
   var modExplica = Q.get('modexplica') || '';
   var fibraNome = Q.get('fibra') || '';
   var fibraTip = Q.get('fibratip') || '';
+  // propriedades cruas da fibra (0-10, 10 = melhor): bol=não bola,
+  // ama=não amarrota, sec=seca rápido, cal=isola, res=respira, pes, sus
+  var props = (function () {
+    var o = {}, s = Q.get('props') || '';
+    s.split(',').forEach(function (par) {
+      var kv = par.split(':');
+      if (kv[0] && kv[1] !== undefined) o[kv[0].trim()] = parseInt(kv[1], 10);
+    });
+    return o;
+  })();
+  var corNota = Q.get('cornota') || '';
+  var estampado = Q.get('estampado') === '1';
   var viagem100 = has('viagem') ? clamp(int('viagem', 80), 0, 100) : DEFAULT.viagem * 10;
   var vg = Math.round(viagem100 / 10); // o design trabalha o selo em 0–10
 
@@ -183,13 +195,19 @@
       // o tip às vezes traz conselho de viagem ("Merino é a melhor para
       // viagem") — isso pertence ao selo de viagem, não ao capítulo do corpo
       var tip = fibraTip.split(/(?<=\.)\s+/)
-        .filter(function (s) { return !/viagem|viajar|mala/i.test(s); })
+        .filter(function (s) {
+          // fora as frases de mala/viagem (têm seção própria) e os conselhos
+          // no imperativo ("Leve peças que disfarçam vincos")
+          return !/viagem|viajar|mala|^\s*(leve|prefira|escolha|opte)\b/i.test(s);
+        })
         .join(' ').replace(/\s*$/, '').replace(/\.$/, '');
       if (!tip) tip = fibraTip.replace(/\.$/, '');
+      // o fecho fala do conforto DESTA peça — não de "isso", que ficaria
+      // ambíguo quando o tip mistura elogio e defeito
       t2 = tip + '. ' + [
-        'Nesta peça é o que mais pesa contra.',
-        'Nesta peça dá pra conviver com isso.',
-        'Nesta peça isso joga a favor.'
+        'Aqui é onde esta peça perde: o conforto ficou baixo.',
+        'Nesta peça, o conforto fica no meio-termo.',
+        'Nesta peça, o conforto é ponto forte.'
       ][faixa(conf, 70, 45)];
     } else {
       t2 = [
@@ -199,19 +217,44 @@
       ][faixa(conf, 70, 45)];
     }
 
-    // 03 · O tempo
-    var t3 = [
+    // 03 · O tempo — quando a extensão manda a propriedade crua, a história
+    // é o defeito concreto (bolinhas) em vez da faixa da nota.
+    var t3;
+    if (props.bol !== undefined && props.bol <= 4) {
+      t3 = (fibraNome || 'Essa fibra') + ' ==forma bolinhas==: o tecido encaroça onde roça — cintura, axilas, alça da bolsa' +
+        (props.ama !== undefined && props.ama <= 4 ? ' — e ainda amarrota' : '') + '. ' +
+        (dur >= 60 ? 'O tecido aguenta; é o aspecto que envelhece primeiro.'
+                   : 'É o que encurta a vida da peça: temporadas, não anos.');
+    } else if (props.bol !== undefined && props.bol >= 8 && dur >= 60) {
+      t3 = (fibraNome || 'Essa fibra') + ' ==não bola==: mesmo no atrito do uso diário a superfície continua lisa. ' +
+        (man >= 60 ? 'Com cuidado simples, é peça pra durar temporadas.'
+                   : 'Dura — desde que você respeite a lavagem.');
+    } else t3 = [
       'Pouco. ' + (mix.sin >= 50 ? 'O sintético ==forma bolinhas== com o atrito e desbota.' : 'A malha cede com o uso.') + ' É peça pra meses, não pra anos.',
       'Dura, com cuidado. Aguenta a temporada se você respeitar a lavagem — ' + (man >= 60 ? 'e a manutenção é simples.' : 'mas ==a manutenção é exigente==.'),
       'Vai durar. ' + (fibraNome ? fibraNome + ' aguenta' : 'A fibra aguenta') + ' o uso repetido sem perder a forma' + (man >= 60 ? ', e o cuidado é simples.' : ' — desde que você respeite a lavagem.') + ' É peça pra ==durar temporadas==.'
     ][faixa(dur, 70, 45)];
 
-    // 04 · No dia a dia
-    var t4 = [
-      'Pouco. É peça de ocasião: ==pede combinação específica== e acaba parada no cabide. Custe o que custar, o preço por uso sobe.',
-      'De vez em quando. Combina com o que você já tem, mas não é a primeira escolha — vai sair do armário sem pressa.',
-      'Vai, e muito. ==Funciona como neutro==: cai bem com jeans, alfaiataria e saia. Peça que combina sem você pensar acaba sendo a mais barata que você tem.'
-    ][faixa(ver, 70, 45)];
+    // 04 · No dia a dia — a cor e o padrão são o maior fator de combinação,
+    // por isso a história vem deles quando a extensão os detecta; a nota de
+    // versatilidade entra como consequência.
+    var t4;
+    if (estampado) {
+      t4 = 'Depende do resto do armário. ==Estampado pede peças lisas à volta== — não entra em qualquer look. ' +
+        (ver >= 60 ? 'Ainda assim rende: o estampado vira o ponto de partida do look, não o obstáculo.'
+                   : 'Sai menos que uma peça lisa, e o preço por uso sobe junto.');
+    } else if (corNota) {
+      t4 = corNota.charAt(0).toUpperCase() + corNota.slice(1) + '. ' +
+        (ver >= 70 ? 'É o tipo de peça que ==combina sem você pensar== — e a que combina sozinha acaba sendo a mais barata que você tem.'
+       : ver >= 45 ? 'Combina com o que você já tem, sem ser a primeira escolha.'
+                   : 'Mesmo assim, sai pouco: é peça de ocasião.');
+    } else {
+      t4 = [
+        'Pouco. É peça de ocasião: ==pede combinação específica== e acaba parada no cabide. Custe o que custar, o preço por uso sobe.',
+        'De vez em quando. Combina com o que você já tem, mas não é a primeira escolha — vai sair do armário sem pressa.',
+        'Vai, e muito. ==Funciona como neutro==: cai bem com jeans, alfaiataria e saia. Peça que combina sem você pensar acaba sendo a mais barata que você tem.'
+      ][faixa(ver, 70, 45)];
+    }
 
     return [t1, t2, t3, t4];
   }
@@ -290,6 +333,21 @@
       seloAprovado: seloAprovado,
       seloCautela: !seloAprovado,
       seloMini: vg >= 7 ? 'Ótima pra levar' : vg >= 5 ? 'Dá pra levar, com ressalvas' : 'Pouco prática',
+      // a variante de cautela afirmava "amarrota fácil e retém calor e cheiro"
+      // para qualquer fibra; agora nomeia só os defeitos que esta fibra tem
+      seloLeadCautelaEl: mark((function () {
+        var f = fibraNome || 'Essa fibra';
+        var defeitos = [];
+        if (props.ama !== undefined && props.ama <= 5) defeitos.push('==amarrota na mala==');
+        if (props.res !== undefined && props.res <= 5) defeitos.push('retém calor');
+        if (props.sec !== undefined && props.sec <= 4) defeitos.push('seca devagar');
+        if (props.pes !== undefined && props.pes <= 4) defeitos.push('pesa na bagagem');
+        if (!defeitos.length) defeitos.push('==amarrota na mala==');
+        var lista = defeitos.length > 1
+          ? defeitos.slice(0, -1).join(', ') + ' e ' + defeitos[defeitos.length - 1]
+          : defeitos[0];
+        return f + ' ' + lista + '. Dá pra levar, mas conte com ferro ou vapor — e uma lavagem a mais na volta.';
+      })()),
       // o design abria com "Lã é a fibra que mais viaja" — nomeia a fibra real
       seloLeadEl: mark((function () {
         var f = parseFibras().slice().sort(function (a, b) { return b.pct - a.pct; })[0];

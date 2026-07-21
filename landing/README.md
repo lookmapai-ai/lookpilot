@@ -37,6 +37,11 @@ capítulos caem sempre nas mesmas frases:
 | `modnome` / `modexplica` | modificador detectado na página (ex.: Supima) | ato 01 |
 | `fibra` | nome da fibra principal | atos 02, 03 e selo de viagem |
 | `fibratip` | prosa calibrada por fibra (`FIBER_DB.tip`) | ato 02 |
+| `props` | propriedades cruas da fibra, 0–10 (`bol`=não bola, `ama`=não amarrota, `sec`=seca rápido, `cal`=isola, `res`=respira, `pes`, `sus`) | ato 03 e selo de viagem |
+| `cornota` / `estampado` | cor e padrão (`detectColorPattern`) | ato 04 |
+
+> **Escala das `props`:** 10 é sempre o melhor desempenho *naquela* propriedade —
+> `bol:10` significa que **não** forma bolinhas; `ama:10` que **não** amarrota.
 
 Sem parâmetros, a página mostra o conteúdo de demonstração do design.
 
@@ -63,8 +68,12 @@ Sem parâmetros, o texto se mantém original do design.
 
 ### O que continua por fazer
 
-O ato 04 (versatilidade) ainda é só por faixa de nota — repete entre peças. E a
-prosa não desce ao nível da propriedade medida: não sabe que o acrílico forma
-bolinhas mais depressa que o poliéster. As 13 propriedades por fibra existem em
-`fibers.json`, mas o `build.py` da extensão achata-as em 5 scores + `tip`, e só
-o `tip` chega aqui.
+Os quatro capítulos já variam por fibra, propriedade e cor. O que falta é o
+**tipo de peça**: a prosa não sabe se é camiseta, casaco ou calça, então fala
+de "peça" no genérico. A extensão detecta a categoria (`categories.js`) e não a
+envia.
+
+⚠️ **Não rodar o `build.py` da raiz do repositório** (o da extensão) sem
+intenção: ele regenera o `FIBER_DB` a partir do `fibers.json` e os dois estão
+dessincronizados — regenerar altera os scores de 32 fibras e quebra um teste.
+As propriedades foram injetadas preservando os scores existentes.

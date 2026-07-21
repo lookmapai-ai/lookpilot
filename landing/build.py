@@ -102,6 +102,11 @@ _fixos = [
     ('Lã é a fibra que mais viaja: <strong style="font-weight:700;color:#1D1D1F">não amarrota</strong>, '
      'aquece e respira no mesmo casaco, e disfarça o uso. Você leva menos peças — e lava menos ainda.',
      '<span data-txt="seloLeadEl"></span>'),
+    # variante de cautela: afirmava "amarrota fácil e retém calor e cheiro"
+    # para qualquer fibra — falso para algodão, que respira muito bem
+    ('Essa fibra <strong style="font-weight:700;color:#1D1D1F">amarrota fácil</strong> e retém calor e cheiro. '
+     'Dá pra levar, mas prepare-se pra passar a ferro e lavar mais vezes na volta.',
+     '<span data-txt="seloLeadCautelaEl"></span>'),
 ]
 for _de, _para in _fixos:
     if _de not in body:
