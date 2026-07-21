@@ -15,6 +15,54 @@
     ? 'http://localhost:8777/analise.html'
     : 'https://lookmap.ai/analise';
 
+  // Preço a partir do JSON-LD schema.org (Product -> offers.price). É o que a
+  // loja declara ao Google, por isso acompanha promoções melhor que as meta
+  // tags. Se houver várias ofertas (tamanhos/cores), usa a mais barata — é a
+  // que a página mostra em destaque.
+  function getPrecoJsonLd() {
+    let melhor = null, moeda = '', encontrado = false;
+    try {
+      document.querySelectorAll('script[type="application/ld+json"]').forEach((s) => {
+        if (encontrado) return;                       // já temos o produto principal
+        let data; try { data = JSON.parse(s.textContent); } catch (e) { return; }
+        const nodes = Array.isArray(data) ? data : (data['@graph'] || [data]);
+        nodes.forEach((n) => {
+          if (encontrado) return;
+          if (!n || !/product/i.test(n['@type'] || '')) return;
+          // SÓ o primeiro Product com ofertas: páginas com "complete o look"
+          // trazem outros produtos no JSON-LD, e o mais barato deles não é
+          // esta peça.
+          const ofertas = [].concat(n.offers || []);
+          ofertas.forEach((o) => {
+            if (!o) return;
+            // AggregateOffer usa lowPrice; Offer usa price
+            const bruto = o.price ?? o.lowPrice ?? o.highPrice;
+            if (bruto == null) return;
+            const v = parseFloat(String(bruto).replace(/[^\d.,]/g, '').replace(',', '.'));
+            if (!isFinite(v) || v <= 0) return;
+            // entre variantes da MESMA peça (tamanhos/cores), a mais barata é
+            // a que a página mostra em destaque
+            if (melhor === null || v < melhor) { melhor = v; moeda = o.priceCurrency || moeda; }
+          });
+          if (melhor !== null) encontrado = true;
+        });
+      });
+    } catch (e) {}
+    if (melhor === null) return { preco: '', moeda: '' };
+    // devolve com vírgula decimal (formato europeu/brasileiro da etiqueta)
+    return { preco: melhor.toFixed(2).replace('.', ','), moeda };
+  }
+
+  // Último recurso: preço no DOM. Restringe-se à zona do produto para não
+  // apanhar o preço de um item "relacionado" ou de um carrossel.
+  function precoDoDom() {
+    const escopo = document.querySelector('[itemtype*="Product" i], main, [id*="product" i], [class*="product-detail" i]')
+      || document.body;
+    const el = escopo.querySelector('[itemprop="price"]');
+    if (!el) return '';
+    return (el.getAttribute('content') || el.textContent || '').trim().slice(0, 20);
+  }
+
   // Extrai metadados do produto para a landing lookmap.ai/analise mostrar a peça
   // concreta. Usa meta tags OG (fiáveis entre lojas), com fallbacks.
   function getProductMeta() {
@@ -25,11 +73,19 @@
     // Limpa sufixos da loja: "Top às riscas | MANGO", "Calças - Mulher | Zara"
     nome = nome.split('|')[0].replace(/\s[-–]\s*(mulher|homem|women|men|unisex|criança|kids).*$/i, '').trim();
     const imagem = meta('meta[property="og:image"]') || meta('meta[name="twitter:image"]') || '';
-    const preco = meta('meta[property="product:price:amount"]') ||
+    // O preço vinha só de meta tags, que várias lojas deixam desatualizadas
+    // (ficam com o preço antigo depois de promoção) ou preenchem com outra
+    // variante. O JSON-LD schema.org é o que a própria loja usa para o Google,
+    // por isso é a fonte mais fiável — e já era lido aqui ao lado, para a
+    // galeria. Ordem: JSON-LD -> meta tags -> itemprop no DOM.
+    const doJsonLd = getPrecoJsonLd();
+    const preco = doJsonLd.preco ||
+                  meta('meta[property="product:price:amount"]') ||
                   meta('meta[property="og:price:amount"]') ||
                   meta('meta[itemprop="price"]') ||
-                  (document.querySelector('[itemprop="price"]')?.getAttribute('content') || '');
-    const moeda = meta('meta[property="product:price:currency"]') ||
+                  precoDoDom();
+    const moeda = doJsonLd.moeda ||
+                  meta('meta[property="product:price:currency"]') ||
                   meta('meta[property="og:price:currency"]') || '';
     const loja = meta('meta[property="og:site_name"]') ||
                  location.hostname.replace(/^www\./, '').split('.')[0];
