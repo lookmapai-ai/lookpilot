@@ -94,6 +94,10 @@ body = "".join(
 # fica errado (dizia "Etiqueta · ZARA" numa peça da UNIQLO). Aqui só se troca
 # o texto fixo por um binding — o design, os estilos e a frase se mantêm.
 _fixos = [
+    # o design escreve "€" fixo, mas a loja pode ser de outra moeda (a extensão
+    # envia o código em `moeda`). Preço e símbolo passam a vir juntos.
+    ('· <span data-txt="heroPreco"></span>&nbsp;€',
+     '· <span data-txt="heroPrecoEl"></span>'),
     # contador: o design escreve "peças" fixo e sai "1 peças"
     ('Minhas peças · <span data-txt="nGuardadas"></span> peças',
      'Minhas peças · <span data-txt="nGuardadasLabel"></span>'),

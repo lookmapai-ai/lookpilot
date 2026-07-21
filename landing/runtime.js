@@ -52,9 +52,13 @@
   var fotos = galeria.length ? galeria : (imagem ? [imagem] : []);
   var temFoto = !!imagem;
 
-  var nome = Q.get('nome') || DEFAULT.fibra;
-  var loja = Q.get('loja') || 'ZARA';
-  var preco = Q.get('preco') || DEFAULT.preco;
+  // "real" = veio de uma análise da extensão. Nesse caso um campo em falta
+  // NÃO pode cair no conteúdo da demonstração — mostrar "100% lã" numa peça
+  // que ainda não foi lida é pior do que não mostrar nada. Entra skeleton.
+  var real = has('score');
+  var nome = Q.get('nome') || (real ? '' : DEFAULT.fibra);
+  var loja = Q.get('loja') || (real ? '' : 'ZARA');
+  var preco = Q.get('preco') || (real ? '' : DEFAULT.preco);
   var moeda = Q.get('moeda') || '€';
   // sem origem numa análise real, o link fica inerte — nunca cair no zara.com
   // da demonstração quando a peça é de outra loja
@@ -88,7 +92,10 @@
   var tipoKey = Q.get('tipo') || '';
   var tipo = TIPOS[tipoKey] || 'peça';
   var tipoArt = (tipo === 'blazer' || tipo === 'vestido' || tipo === 'casaco' || tipo === 'par') ? 'este' : 'esta';
-  var viagem100 = has('viagem') ? clamp(int('viagem', 80), 0, 100) : DEFAULT.viagem * 10;
+  // sem dado de viagem numa análise real, fica no meio: o selo não pode
+  // afirmar "ótima pra levar" sobre uma peça que ninguém mediu
+  var viagem100 = has('viagem') ? clamp(int('viagem', 80), 0, 100)
+                                : (real ? 50 : DEFAULT.viagem * 10);
   var vg = Math.round(viagem100 / 10); // o design trabalha o selo em 0–10
 
   // composição para a etiqueta: "Lã:100" -> "100% lã"
@@ -97,7 +104,45 @@
         var s = p.split(':');
         return (s[1] ? s[1] + '% ' : '') + (s[0] || '').toLowerCase();
       }).join(' · ')
-    : DEFAULT.etiqComp;
+    : (real ? '' : DEFAULT.etiqComp);
+
+  /* ---------- skeleton para leitura ainda não processada ------------
+     Reaproveita a animação apShimmer do próprio design (a mesma das fotos),
+     por isso é o mesmo material visual — não um elemento estranho.        */
+  function skel(largura) {
+    var s = document.createElement('span');
+    s.setAttribute('aria-hidden', 'true');
+    s.style.cssText = 'display:inline-block;vertical-align:baseline;width:' + largura +
+      ';height:.85em;border-radius:6px;background:linear-gradient(90deg,#EDEDF0 25%,#E2E2E6 50%,#EDEDF0 75%);' +
+      'background-size:200% 100%;animation:apShimmer 1.6s linear infinite';
+    return s;
+  }
+  // devolve o valor, ou um skeleton quando falta numa análise real
+  function ou(v, largura) {
+    if (v !== null && v !== undefined && v !== '') return v;
+    return real ? skel(largura) : v;
+  }
+
+  /* ---------- preço + moeda --------------------------------------
+     O design escrevia "€" fixo. A extensão envia `moeda` como CÓDIGO
+     (og:price:currency -> "EUR", "GBP"), por isso é preciso converter —
+     escrever "12,99 EUR" ficaria pior do que o erro original.          */
+  var SIMBOLOS = {
+    EUR: '€', USD: '$', GBP: '£', BRL: 'R$', CHF: 'CHF', JPY: '¥',
+    PLN: 'zł', SEK: 'kr', DKK: 'kr', NOK: 'kr', CZK: 'Kč', HUF: 'Ft',
+    RON: 'lei', TRY: '₺', CAD: 'C$', AUD: 'A$', MXN: 'MX$', CNY: '¥'
+  };
+  function precoFormatado() {
+    if (!preco) return '';
+    // alguns sites já mandam o símbolo dentro do preço — não duplicar
+    if (/[€$£¥₺]|R\$|zł|kr|Kč|Ft|lei/i.test(preco)) return preco;
+    var m = (moeda || '').trim().toUpperCase();
+    var s = SIMBOLOS[m] || (m.length <= 3 && m ? m : '€');
+    // símbolos que se escrevem antes do valor
+    return (s === '$' || s === 'R$' || s === '£' || s === 'C$' || s === 'A$' || s === 'MX$')
+      ? s + ' ' + preco
+      : preco + ' ' + s;
+  }
 
   /* ---------- montagem dos valores (porta o renderVals) ----------- */
   function mark(t) {
@@ -356,10 +401,13 @@
     });
     return {
       // hero
-      heroFibra: nome,
+      heroFibra: ou(nome, '14ch'),
       heroPreco: preco,
-      loja: loja,
-      heroDuvida: has('nome') ? 'O que a etiqueta diz sobre esta peça?' : DEFAULT.duvida,
+      heroPrecoEl: ou(precoFormatado(), '5ch'),
+      loja: ou(loja, '6ch'),
+      // numa análise real, mesmo sem nome, nunca cair na pergunta da demo
+      // ("Lã pura por 9,99 € — qual é a pegadinha?")
+      heroDuvida: real ? 'O que a etiqueta diz sobre esta peça?' : DEFAULT.duvida,
       heroIntroEl: mark(has('score')
         ? 'O ==LookPilot== leu a etiqueta pra você.' + (etiqComp ? ' Composição: ==' + etiqComp + '==.' : '')
         : DEFAULT.heroIntro),
@@ -373,14 +421,14 @@
       lojaUrl: origem,
       // fotografia
       heroMediaEl: mediaEl(imagem, nome, 'display:block;width:100%;aspect-ratio:21/10;object-fit:cover;object-position:' + DEFAULT.heroPos + ';filter:saturate(1.08) sepia(.06) contrast(1.03)'),
-      capL: has('nome') ? nome : DEFAULT.capL,
+      capL: has('nome') ? nome : (real ? '' : DEFAULT.capL),
       capR: loja + (Q.get('confianca') ? ' · confiança ' + int('confianca', 0) + '%' : ''),
       // perguntas
       cartoes: cartoes,
-      etiqComp: etiqComp,
+      etiqComp: ou(etiqComp, '11ch'),
       // a extensão não lê a referência da etiqueta; sem ela, fica vazio em vez
       // de repetir a loja (que já aparece acima, em "Etiqueta · ZARA")
-      etiqRef: has('nome') ? '' : DEFAULT.etiqRef,
+      etiqRef: real ? '' : DEFAULT.etiqRef,
       // selo viagem
       selo: selo,
       seloViagem: vg,
@@ -455,8 +503,15 @@
   function setNode(el, v) {
     el.textContent = '';
     if (v == null) return;
-    if (Array.isArray(v)) { v.forEach(function (n) { el.appendChild(n.nodeType ? n : document.createTextNode(String(n))); }); return; }
-    if (v.nodeType) { el.appendChild(v); return; }
+    // CLONAR: um nó DOM só pode existir num sítio. O mesmo valor pode estar
+    // ligado a vários pontos (ex.: `loja` aparece 2x, e os bindings dentro da
+    // lista dos capítulos são clonados 4x), e sem clonar o nó era MOVIDO de um
+    // ponto para o seguinte, deixando os anteriores vazios.
+    var põe = function (n) {
+      el.appendChild(n.nodeType ? (n.parentNode ? n.cloneNode(true) : n) : document.createTextNode(String(n)));
+    };
+    if (Array.isArray(v)) { v.forEach(põe); return; }
+    if (v.nodeType) { põe(v); return; }
     el.textContent = String(v);
   }
 
