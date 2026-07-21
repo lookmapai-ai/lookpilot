@@ -4,7 +4,16 @@
   if (location.protocol === 'file:' || location.protocol === 'chrome-extension:') return;
   window.__fabricAnalyzerInjected = true;
 
-  const LOOKMAP_BASE_URL = 'https://lookmap.ai/analise';
+  // ┌── ONDE VIVE A PÁGINA DE RESULTADOS ────────────────────────────┐
+  // │ DEV  = servidor local (rode `landing/servir.sh` antes)         │
+  // │ PROD = lookmap.ai — só funciona depois de publicar a página lá  │
+  // │ Hoje o link de produção está morto (nada publicado ainda), por  │
+  // │ isso o padrão é DEV. Troque para PROD ao publicar.              │
+  // └────────────────────────────────────────────────────────────────┘
+  const LOOKMAP_DEV = true;
+  const LOOKMAP_BASE_URL = LOOKMAP_DEV
+    ? 'http://localhost:8777/analise.html'
+    : 'https://lookmap.ai/analise';
 
   // Extrai metadados do produto para a landing lookmap.ai/analise mostrar a peça
   // concreta. Usa meta tags OG (fiáveis entre lojas), com fallbacks.
@@ -96,6 +105,7 @@
         params.set('props', Object.keys(historia.fibraProps)
           .map(k => `${k}:${historia.fibraProps[k]}`).join(','));
       }
+      if (historia.tipo)       params.set('tipo',       historia.tipo);
       if (historia.cor) {
         if (historia.cor.note)  params.set('cornota', historia.cor.note.slice(0, 120));
         if (historia.cor.isPrint) params.set('estampado', '1');
@@ -566,6 +576,9 @@
 
     // Buy Score: o score principal, com pesos do tipo de peça
     const garmentType = section.garmentType || (scores.isKnit ? 'malha' : category);
+    // O tipo entra na história para a landing parar de dizer "peça" no genérico
+    // ("esta camiseta sai do armário" lê melhor que "esta peça").
+    historia.tipo = garmentType;
     const buy = typeof buyScore === 'function' ? buyScore(scores, garmentType) : (scores?.overall || 0);
     const warmth = typeof warmthScore === 'function' ? warmthScore(scores.fibers || fibers) : null;
     const warmthInfo = (typeof warmthLabel === 'function' && warmth != null) ? warmthLabel(warmth) : null;

@@ -8,6 +8,12 @@ function applyI18n() {
 }
 
 // --- LookMap URL builder ---
+// Mantenha em sincronia com LOOKMAP_DEV/LOOKMAP_BASE_URL no content.js.
+const LOOKMAP_DEV = true;
+const LOOKMAP_BASE_URL = LOOKMAP_DEV
+  ? 'http://localhost:8777/analise.html'
+  : 'https://lookmap.ai/analise';
+
 function buildAnaliseURLFromStorage(last) {
   const s = last.scores;
   const params = new URLSearchParams();
@@ -34,7 +40,7 @@ function buildAnaliseURLFromStorage(last) {
   if (m.moeda)  params.set('moeda',  m.moeda);
   if (m.loja)   params.set('loja',   m.loja);
   if (last.confianca != null) params.set('confianca', Math.round(last.confianca));
-  return `https://lookmap.ai/analise?${params.toString()}`;
+  return `${LOOKMAP_BASE_URL}?${params.toString()}`;
 }
 
 // --- Screen management ---

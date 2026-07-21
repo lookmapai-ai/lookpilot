@@ -79,6 +79,15 @@
   })();
   var corNota = Q.get('cornota') || '';
   var estampado = Q.get('estampado') === '1';
+  // tipo de peça detectado pela extensão (garmentType) -> substantivo natural
+  var TIPOS = {
+    camiseta: 'camiseta', camisa: 'camisa', blazer: 'blazer', calca: 'calça',
+    vestido: 'vestido', casaco: 'casaco', malha: 'malha',
+    shoes: 'par', bags: 'bolsa', clothing: 'peça'
+  };
+  var tipoKey = Q.get('tipo') || '';
+  var tipo = TIPOS[tipoKey] || 'peça';
+  var tipoArt = (tipo === 'blazer' || tipo === 'vestido' || tipo === 'casaco' || tipo === 'par') ? 'este' : 'esta';
   var viagem100 = has('viagem') ? clamp(int('viagem', 80), 0, 100) : DEFAULT.viagem * 10;
   var vg = Math.round(viagem100 / 10); // o design trabalha o selo em 0–10
 
@@ -205,9 +214,9 @@
       // o fecho fala do conforto DESTA peça — não de "isso", que ficaria
       // ambíguo quando o tip mistura elogio e defeito
       t2 = tip + '. ' + [
-        'Aqui é onde esta peça perde: o conforto ficou baixo.',
-        'Nesta peça, o conforto fica no meio-termo.',
-        'Nesta peça, o conforto é ponto forte.'
+        'Aqui é onde ' + tipoArt + ' ' + tipo + ' perde: o conforto ficou baixo.',
+        'N' + tipoArt + ' ' + tipo + ', o conforto fica no meio-termo.',
+        'N' + tipoArt + ' ' + tipo + ', o conforto é ponto forte.'
       ][faixa(conf, 70, 45)];
     } else {
       t2 = [
@@ -224,15 +233,15 @@
       t3 = (fibraNome || 'Essa fibra') + ' ==forma bolinhas==: o tecido encaroça onde roça — cintura, axilas, alça da bolsa' +
         (props.ama !== undefined && props.ama <= 4 ? ' — e ainda amarrota' : '') + '. ' +
         (dur >= 60 ? 'O tecido aguenta; é o aspecto que envelhece primeiro.'
-                   : 'É o que encurta a vida da peça: temporadas, não anos.');
+                   : 'É o que encurta a vida ' + (tipo === 'peça' ? 'da peça' : 'd' + (tipoArt === 'este' ? 'este ' : 'esta ') + tipo) + ': temporadas, não anos.');
     } else if (props.bol !== undefined && props.bol >= 8 && dur >= 60) {
       t3 = (fibraNome || 'Essa fibra') + ' ==não bola==: mesmo no atrito do uso diário a superfície continua lisa. ' +
-        (man >= 60 ? 'Com cuidado simples, é peça pra durar temporadas.'
+        (man >= 60 ? 'Com cuidado simples, é ' + tipo + ' pra durar temporadas.'
                    : 'Dura — desde que você respeite a lavagem.');
     } else t3 = [
       'Pouco. ' + (mix.sin >= 50 ? 'O sintético ==forma bolinhas== com o atrito e desbota.' : 'A malha cede com o uso.') + ' É peça pra meses, não pra anos.',
       'Dura, com cuidado. Aguenta a temporada se você respeitar a lavagem — ' + (man >= 60 ? 'e a manutenção é simples.' : 'mas ==a manutenção é exigente==.'),
-      'Vai durar. ' + (fibraNome ? fibraNome + ' aguenta' : 'A fibra aguenta') + ' o uso repetido sem perder a forma' + (man >= 60 ? ', e o cuidado é simples.' : ' — desde que você respeite a lavagem.') + ' É peça pra ==durar temporadas==.'
+      'Vai durar. ' + (fibraNome ? fibraNome + ' aguenta' : 'A fibra aguenta') + ' o uso repetido sem perder a forma' + (man >= 60 ? ', e o cuidado é simples.' : ' — desde que você respeite a lavagem.') + ' É ' + tipo + ' pra ==durar temporadas==.'
     ][faixa(dur, 70, 45)];
 
     // 04 · No dia a dia — a cor e o padrão são o maior fator de combinação,
@@ -242,12 +251,12 @@
     if (estampado) {
       t4 = 'Depende do resto do armário. ==Estampado pede peças lisas à volta== — não entra em qualquer look. ' +
         (ver >= 60 ? 'Ainda assim rende: o estampado vira o ponto de partida do look, não o obstáculo.'
-                   : 'Sai menos que uma peça lisa, e o preço por uso sobe junto.');
+                   : 'Sai menos que ' + (tipoArt === 'este' ? 'um ' : 'uma ') + tipo + ' lisa, e o preço por uso sobe junto.');
     } else if (corNota) {
       t4 = corNota.charAt(0).toUpperCase() + corNota.slice(1) + '. ' +
-        (ver >= 70 ? 'É o tipo de peça que ==combina sem você pensar== — e a que combina sozinha acaba sendo a mais barata que você tem.'
+        (ver >= 70 ? 'É o tipo de ' + tipo + ' que ==combina sem você pensar== — e a que combina sozinha acaba sendo a mais barata que você tem.'
        : ver >= 45 ? 'Combina com o que você já tem, sem ser a primeira escolha.'
-                   : 'Mesmo assim, sai pouco: é peça de ocasião.');
+                   : 'Mesmo assim, sai pouco: é ' + tipo + ' de ocasião.');
     } else {
       t4 = [
         'Pouco. É peça de ocasião: ==pede combinação específica== e acaba parada no cabide. Custe o que custar, o preço por uso sobe.',

@@ -12,6 +12,23 @@ Destino do botão "Ver análise completa →" do card da extensão.
 | `analise.html` | **Gerado** por `build.py`. É o arquivo a publicar. |
 | `images/` | Wordmarks. As fotos do produto vêm da URL (a extensão raspa a galeria da loja). |
 
+## Ver funcionando com a extensão
+
+```sh
+cd landing && ./servir.sh
+```
+
+Depois: recarregar a extensão em `chrome://extensions`, abrir a página de uma
+peça numa loja, analisar, e clicar em "Ver análise completa →" no card.
+
+O destino do botão é controlado por `LOOKMAP_DEV` no `content.js` **e** no
+`popup.js` (mantenha os dois iguais):
+
+| `LOOKMAP_DEV` | Abre |
+|---|---|
+| `true` (padrão hoje) | `http://localhost:8777/analise.html` |
+| `false` | `https://lookmap.ai/analise` — só depois de publicar a página lá |
+
 ## Regenerar
 
 ```sh
@@ -39,6 +56,7 @@ capítulos caem sempre nas mesmas frases:
 | `fibratip` | prosa calibrada por fibra (`FIBER_DB.tip`) | ato 02 |
 | `props` | propriedades cruas da fibra, 0–10 (`bol`=não bola, `ama`=não amarrota, `sec`=seca rápido, `cal`=isola, `res`=respira, `pes`, `sus`) | ato 03 e selo de viagem |
 | `cornota` / `estampado` | cor e padrão (`detectColorPattern`) | ato 04 |
+| `tipo` | tipo de peça (`garmentType`: camiseta, camisa, blazer, calca, vestido, casaco, malha, shoes, bags) | atos 02, 03 e 04 |
 
 > **Escala das `props`:** 10 é sempre o melhor desempenho *naquela* propriedade —
 > `bol:10` significa que **não** forma bolinhas; `ama:10` que **não** amarrota.
@@ -68,10 +86,9 @@ Sem parâmetros, o texto se mantém original do design.
 
 ### O que continua por fazer
 
-Os quatro capítulos já variam por fibra, propriedade e cor. O que falta é o
-**tipo de peça**: a prosa não sabe se é camiseta, casaco ou calça, então fala
-de "peça" no genérico. A extensão detecta a categoria (`categories.js`) e não a
-envia.
+Os quatro capítulos variam por fibra, propriedade, cor e tipo de peça. O que
+falta é publicar a página — enquanto `lookmap.ai/analise` não existir, o botão
+só funciona apontado para o servidor local.
 
 ⚠️ **Não rodar o `build.py` da raiz do repositório** (o da extensão) sem
 intenção: ele regenera o `FIBER_DB` a partir do `fibers.json` e os dois estão
