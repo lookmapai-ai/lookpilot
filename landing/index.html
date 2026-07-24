@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LookPilot — página de marketing (provisória)</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#FFFFFF}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Helvetica,Arial,sans-serif;
+    color:#1D1D1F;font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased;
+    min-height:100dvh;display:flex;flex-direction:column;
+  }
+  header{
+    position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;
+    padding:14px clamp(20px,5vw,64px);background:rgba(255,255,255,.8);
+    backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);
+    border-bottom:1px solid rgba(0,0,0,.06);
+  }
+  .mark{font-size:18px;font-weight:700;letter-spacing:-.02em}
+  .mark b{color:#FF009D}
+  main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+       text-align:center;padding:clamp(48px,10vh,120px) clamp(20px,5vw,64px);gap:20px}
+  .aviso{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;
+         background:#F5F5F7;font-size:13px;font-weight:600;color:#6E6E73}
+  h1{margin:0;font-size:clamp(34px,6vw,64px);font-weight:700;letter-spacing:-.028em;
+     line-height:1.04;text-wrap:balance;max-width:16ch}
+  p{margin:0;max-width:52ch;font-size:clamp(16px,1.9vw,20px);color:#6E6E73;text-wrap:pretty}
+  .cta{margin-top:12px;display:inline-flex;align-items:center;min-height:52px;padding:14px 30px;
+       border-radius:999px;background:#1D1D1F;color:#fff;text-decoration:none;
+       font-size:16px;font-weight:500;letter-spacing:-.01em}
+  .cta:hover{background:#000}
+  footer{padding:24px;border-top:1px solid #E8E8ED;text-align:center;color:#86868B;font-size:12px}
+  code{background:#F5F5F7;padding:2px 6px;border-radius:6px;font-size:.9em}
+</style>
+</head>
+<body>
+  <header><span class="mark">look<b>pilot</b></span></header>
+
+  <main>
+    <span class="aviso">Provisório · só em desenvolvimento</span>
+    <h1>Aqui vai a página de marketing.</h1>
+    <p>
+      O logo e o “Como funciona” da página de análise apontam para cá (a raiz do site).
+      Em produção, este arquivo é substituído pela home real do LookPilot —
+      o design dela vive no projeto do Claude como
+      <em>“LookMap Landing Extensao”</em>.
+    </p>
+    <p>
+      Este placeholder existe só para o destino não ser uma listagem de arquivos
+      enquanto se testa em <code>localhost</code>.
+    </p>
+    <a class="cta" href="analise.html?score=86&verdict=Pode%20comprar%20tranquila&qualidade=82&durabilidade=74&conforto=80&versatilidade=78&manutencao=48&custo=70&viagem=80&fibras=L%C3%A3:100&nome=Su%C3%A9ter%20100%25%20l%C3%A3&loja=ZARA&preco=9,99&moeda=EUR&fibra=L%C3%A3&tipo=malha&props=bol:5,ama:8,sec:3,cal:9,res:8,pes:5,sus:6&cornota=cor%20neutra%20e%20lisa">
+      Ver uma análise de exemplo
+    </a>
+  </main>
+
+  <footer>LookPilot · LookMap — a qualidade se descobre</footer>
+</body>
+</html>

@@ -279,30 +279,30 @@
                        : ' É aqui que a nota perde pontos.';
     }
 
-    // 02 · O corpo — quando a extensão manda o `tip` da fibra, a substância
-    // vem dele (é calibrado por fibra, específico de verdade) e a nota desta
-    // peça entra como consequência. Sem tip, cai nas frases por faixa.
+    // 02 · O corpo — o que a pessoa SENTE vestindo. Constrói-se a partir das
+    // propriedades do corpo (respira, aquece, pesa), não do `tip` da fibra: o
+    // tip é a nota de VIAGEM do banco ("amassa e seca devagar"), que não
+    // responde "como veste" e lia-se como ficha técnica.
     var t2;
-    if (fibraTip) {
-      // o tip às vezes traz conselho de viagem ("Merino é a melhor para
-      // viagem") — isso pertence ao selo de viagem, não ao capítulo do corpo
-      var tip = fibraTip.split(/(?<=\.)\s+/)
-        .filter(function (s) {
-          // fora as frases de mala/viagem (têm seção própria) e os conselhos
-          // no imperativo ("Leve peças que disfarçam vincos")
-          return !/viagem|viajar|mala|^\s*(leve|prefira|escolha|opte)\b/i.test(s);
-        })
-        .join(' ').replace(/\s*$/, '').replace(/\.$/, '');
-      if (!tip) tip = fibraTip.replace(/\.$/, '');
-      // O tip costuma terminar numa ressalva ("...mas amassa muito"). Sem um
-      // conector, o fecho positivo soa contraditório: "amassa muito. É das que
-      // você esquece que está usando."
-      var temRessalva = /\bmas\b|porém|no entanto|limitação/i.test(tip);
-      t2 = tip + '. ' + [
-        'No corpo é onde ela perde — você sente isso ao longo do dia.',
-        (temRessalva ? 'Fora isso, cumpre' : 'Cumpre') + ' o dia sem incomodar, sem virar a favorita.',
-        (temRessalva ? 'Ainda assim, é das que você esquece que está usando.'
-                     : 'É das que você esquece que está usando.')
+    if (props.res !== undefined || props.cal !== undefined) {
+      var respira = props.res, aquece = props.cal, leve = props.pes;
+      var corpo;
+      if (respira >= 8 && aquece >= 7) {
+        corpo = '==Aquece sem abafar.== Segura o frio e ainda deixa o corpo respirar — dá pra passar o dia inteiro com ela sem se arrepender.';
+      } else if (respira >= 8 && aquece <= 4) {
+        corpo = 'É fresca: ==o corpo respira== e o calor não fica preso. Resolve bem no calor — no frio, pede uma camada por cima.';
+      } else if (respira <= 4 && aquece >= 7) {
+        corpo = 'Segura bem o frio, mas ==não respira==. Em lugar fechado, ou num dia que estica, você começa a sentir.';
+      } else if (respira <= 4) {
+        corpo = '==Abafa.== O calor do corpo não sai, e num dia longo isso cansa mais do que parece.';
+      } else {
+        corpo = 'Veste sem drama: não abafa nem esquenta demais, cumpre o dia.';
+      }
+      if (leve !== undefined && leve <= 3) corpo += ' E pesa no corpo.';
+      t2 = corpo + ' ' + [
+        'No corpo é onde ela perde — você sente ao longo do dia.',
+        'Nada que incomode, mas também não é a que você procura primeiro.',
+        'É das que você esquece que está usando.'
       ][faixa(conf, 70, 45)];
     } else {
       t2 = [
@@ -445,8 +445,10 @@
         badgeBg: '#FFFFFF', badgeColor: '#1D1D1F',
         mediaEl: mediaEl(h.thumb, h.tipo || '',
           'width:100%;height:100%;object-fit:cover;object-position:50% 30%;filter:saturate(1.06) sepia(.06)'),
-        abrir: function () { if (h.url) location.search = h.url; },
-        abrirKey: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (h.url) location.search = h.url; } }
+        // location.search mantinha o #minhas-pecas, por isso a página
+        // recarregava DE VOLTA na lista em vez de abrir a análise
+        abrir: function () { location.assign(location.pathname + (h.url || '')); },
+        abrirKey: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); location.assign(location.pathname + (h.url || '')); } }
       };
     });
     return {

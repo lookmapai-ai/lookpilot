@@ -42,8 +42,10 @@ continua sendo o mesmo, e o `build.py` reescreve-os relativos à raiz
 | "Como funciona" (rodapé) | `/#como` |
 | "Voltar" (Minhas peças) | página anterior, via histórico (`href="/"` fica como reserva se o JS falhar) |
 
-Em `localhost` a raiz mostra a listagem da pasta — é só em desenvolvimento; em
-produção é a home do site.
+`index.html` é um **placeholder** da home de marketing, só para o destino
+existir em desenvolvimento (senão `localhost` mostra a listagem da pasta). Em
+produção ele é substituído pela home real — o design dela vive no projeto do
+Claude como "LookMap Landing Extensao".
 
 ## Minhas peças
 
