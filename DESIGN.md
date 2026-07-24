@@ -113,8 +113,24 @@ Extra: **Travel Score** (destacado se ≥72), **Calor** (só em peças de invern
 | Asset | Uso | Estado |
 |-------|-----|--------|
 | `logo/logo-lookpilot.svg` | Wordmark "**Look**Pilot" (Look tinta + Pilot #EF23A1) | Mantido — magenta é o acento de marca |
-| `logo/lookpilot-mini.svg` | Ícone "lp" — quadrado #FF009D + letterform branca. Fonte dos ícones da toolbar | Mantido |
-| `icon16/48/128.png` | Ícones da extensão na toolbar | Mantidos. **Gerados à mão**, não pelo `build.py` (que só recalcula scores) — se um dia o magenta sair, têm de ser redesenhados fora do código |
+| `logo/lookpilot-mini.svg` | Ícone "lp" — tile #FF009D + monograma branco | **Gerado** por `logo/gerar-icones.py` |
+| `icon16/48/128.png` | Ícones da extensão na toolbar | **Gerados** por `python3 logo/gerar-icones.py`. Não editar à mão |
+
+### Ícone da toolbar
+
+Redesenhado a 2026-07-24. O anterior tinha dois defeitos de desenho: a perna do
+"p" descia até y=232 num quadrado de 200 — ficava **fora** do quadrado,
+flutuando em transparência (invisível em barra clara, solta em barra escura) —
+e a haste do "l" tinha 8,5% da largura, que a 16px vira 1,4px e evapora.
+
+O desenho agora é geométrico e cada tamanho tem o seu peso, porque um traço
+elegante a 128 desaparece a 16. O vazio do "p" tem um piso fixo (não acompanha
+o peso), senão fecha e a letra vira um borrão — foi o que a comparação a 16px
+mostrou.
+
+O tile continua **magenta**: na barra do navegador o ícone é ativo de marca e
+disputa atenção com uma dúzia de outros, e a cor é o que o distingue. Dentro do
+produto vale o sistema Apple White (tinta preenche, magenta acentua).
 
 Nota: o wordmark `logo-lookpilot.svg` inclui um `<rect fill="white">` de fundo que é **removido** ao embutir inline nos cards/popup.
 

@@ -53,13 +53,13 @@ const UI = {
     scan_no_access:  'Essa página não permite análise. Tente numa página de produto de loja.',
 
     // Result labels
-    quality:      '🧵 Qualidade',
-    durability:   '💪 Durabilidade',
-    comfort:      '😌 Conforto',
-    versatility:  '🔄 Versatilidade',
-    maintenance:  '🧺 Manutenção',
-    cost_benefit: '💰 Custo-benefício',
-    travel_label: '✈️ Travel Score',
+    quality:      'Qualidade',
+    durability:   'Durabilidade',
+    comfort:      'Conforto',
+    versatility:  'Versatilidade',
+    maintenance:  'Manutenção',
+    cost_benefit: 'Custo-benefício',
+    travel_label: 'Travel Score',
     blend_label:  'A mistura:',
     fiber_unknown:'Fibra não reconhecida',
 
@@ -119,13 +119,13 @@ const UI = {
     scan_no_access:  'This page does not allow analysis. Try on a fashion store product page.',
 
     // Result labels
-    quality:      '🧵 Quality',
-    durability:   '💪 Durability',
-    comfort:      '😌 Comfort',
-    versatility:  '🔄 Versatility',
-    maintenance:  '🧺 Care',
-    cost_benefit: '💰 Value for money',
-    travel_label: '✈️ Travel Score',
+    quality:      'Quality',
+    durability:   'Durability',
+    comfort:      'Comfort',
+    versatility:  'Versatility',
+    maintenance:  'Care',
+    cost_benefit: 'Value for money',
+    travel_label: 'Travel Score',
     blend_label:  'The blend:',
     fiber_unknown:'Unknown fibre',
 

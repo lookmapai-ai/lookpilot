@@ -86,11 +86,9 @@ function showWrongContext(reason) {
   const desc  = document.getElementById('wc-desc');
   const icon  = document.getElementById('wc-icon');
   if (reason === 'listing') {
-    if (icon)  icon.textContent  = '👀';
     if (title) title.textContent = t('wc_listing_title');
     if (desc)  desc.textContent  = t('wc_listing_desc');
   } else {
-    if (icon)  icon.textContent  = '🛍️';
     if (title) title.textContent = t('wc_other_title');
     if (desc)  desc.textContent  = t('wc_other_desc');
   }
