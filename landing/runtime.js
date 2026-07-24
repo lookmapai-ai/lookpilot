@@ -220,6 +220,18 @@
   }
   function faixa(v, alto, medio) { return v >= alto ? 2 : v >= medio ? 1 : 0; }
 
+  // Escolha estável por peça: mesma peça -> mesmo texto (não muda a cada
+  // recarregamento); peças diferentes -> textos diferentes, para a secção não
+  // soar decorada.
+  var _semente = (function () {
+    var s = (Q.get('nome') || '') + '|' + (Q.get('fibra') || '') + '|' + score, h = 0;
+    for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    return h;
+  })();
+  function variante(lista, desvio) {
+    return lista[(_semente + (desvio || 0)) % lista.length];
+  }
+
   function prosaCartoes() {
     if (!has('score')) return DEFAULT.cartoes.map(function (c) { return c.resposta; });
     var lista = parseFibras(), mix = classifica(lista);
@@ -269,30 +281,56 @@
                        : ' É aqui que a nota perde pontos.';
     }
 
-    // 02 · O corpo — o que a pessoa SENTE vestindo. Constrói-se a partir das
-    // propriedades do corpo (respira, aquece, pesa), não do `tip` da fibra: o
-    // tip é a nota de VIAGEM do banco ("amassa e seca devagar"), que não
-    // responde "como veste" e lia-se como ficha técnica.
+    // 02 · O corpo — o que a pessoa SENTE vestindo, a partir das propriedades
+    // do corpo (respira, aquece, pesa). Cada situação tem várias formas de ser
+    // dita, escolhidas de modo estável por peça: a mesma peça lê sempre igual,
+    // peças diferentes leem diferente.
     var t2;
     if (props.res !== undefined || props.cal !== undefined) {
       var respira = props.res, aquece = props.cal, leve = props.pes;
       var corpo;
       if (respira >= 8 && aquece >= 7) {
-        corpo = '==Aquece sem abafar.== Segura o frio e ainda deixa o corpo respirar — dá pra passar o dia inteiro com ela sem se arrepender.';
+        corpo = variante([
+          '==Aquece sem abafar.== Segura o frio e ainda deixa o corpo respirar — dá pra passar o dia inteiro com ela.',
+          'Segura o frio ==sem virar estufa==. Você entra no ônibus lotado e não precisa arrancá-la do corpo.',
+          '==Quente e arejada ao mesmo tempo==, o que é raro. Aguenta a rua fria e o interior aquecido sem te fazer suar.'
+        ]);
       } else if (respira >= 8 && aquece <= 4) {
-        corpo = 'É fresca: ==o corpo respira== e o calor não fica preso. Resolve bem no calor — no frio, pede uma camada por cima.';
+        corpo = variante([
+          'É fresca: ==o corpo respira== e o calor não fica preso. Resolve bem no calor — no frio, pede uma camada por cima.',
+          '==Deixa o corpo respirar.== No calor é um alívio; quando esfria, você vai querer algo por cima.',
+          'Leve no corpo e ==arejada==. Feita pros dias quentes — sozinha, no frio, não segura.'
+        ]);
       } else if (respira <= 4 && aquece >= 7) {
-        corpo = 'Segura bem o frio, mas ==não respira==. Em lugar fechado, ou num dia que estica, você começa a sentir.';
+        corpo = variante([
+          'Segura bem o frio, mas ==não respira==. Em lugar fechado, ou num dia que estica, você começa a sentir.',
+          'Aquece — e ==guarda esse calor todo==. Boa na rua, sufocante assim que você entra em algum lugar.',
+          '==Esquenta rápido e não deixa sair.== No frio de fora ajuda; no aquecido de dentro, incomoda.'
+        ]);
       } else if (respira <= 4) {
-        corpo = '==Abafa.== O calor do corpo não sai, e num dia longo isso cansa mais do que parece.';
+        corpo = variante([
+          '==Abafa.== O calor do corpo não sai, e num dia longo isso cansa mais do que parece.',
+          '==Não deixa a pele respirar.== Numa tarde inteira vestida, você sente o corpo pedindo ar.',
+          'Prende o calor. ==Num dia cheio incomoda== — ainda mais em lugar fechado.'
+        ]);
       } else {
-        corpo = 'Veste sem drama: não abafa nem esquenta demais, cumpre o dia.';
+        corpo = variante([
+          'Veste sem drama: não abafa nem esquenta demais, cumpre o dia.',
+          'Nem quente nem fresca — ==fica no meio==, e por isso serve quase sempre.',
+          'No corpo não chama atenção: ==nem sufoca, nem deixa você com frio==.'
+        ]);
       }
       if (leve !== undefined && leve <= 3) corpo += ' E pesa no corpo.';
       t2 = corpo + ' ' + [
-        'No corpo é onde ela perde — você sente ao longo do dia.',
-        'Nada que incomode, mas também não é a que você procura primeiro.',
-        'É das que você esquece que está usando.'
+        variante(['No corpo é onde ela perde — você sente ao longo do dia.',
+                  'É aqui que ela cobra: o corpo percebe.',
+                  'O incômodo aparece justamente no uso longo.'], 7),
+        variante(['Nada que incomode, mas também não é a que você procura primeiro.',
+                  'Cumpre o dia sem reclamação, sem virar favorita.',
+                  'Serve bem, sem ser a que você pega por impulso.'], 7),
+        variante(['É das que você esquece que está usando.',
+                  'Veste e some — no bom sentido.',
+                  'Do tipo que você põe e não pensa mais nela.'], 7)
       ][faixa(conf, 70, 45)];
     } else {
       t2 = [

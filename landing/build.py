@@ -149,7 +149,35 @@ def build(cfg):
       r'href="LookMap%20Landing%20Extensao\.dc\.html(#[\w-]*)?"',
       lambda m: 'href="%s%s"' % (MKT_URL, m.group(1) or ''), body)
 
-  # os ajustes acima são do relatório de peça; a home não os tem
+  # Header igual nas duas páginas. O design da análise não trazia o
+  # "Baixar extensão" (assume que quem chega já tem a extensão), mas a análise
+  # é uma página partilhável: quem recebe o link ficava sem caminho nenhum
+  # para instalar. Reaproveita o botão da home — mesmos estilos, verbatim —
+  # como link para a home, onde vive o modal de instalação.
+  if cfg["out"] == "analise.html":
+      _btn_baixar = (
+        '<a href="/" style="display:inline-flex;align-items:center;gap:8px;'
+        'min-height:44px;padding:9px 22px;border-radius:999px;background:#1D1D1F;'
+        'border:none;color:#FFFFFF;font-family:inherit;font-size:14px;font-weight:500;'
+        'letter-spacing:-.01em;text-decoration:none;cursor:pointer;white-space:nowrap;'
+        'touch-action:manipulation;transition:opacity .25s ease,transform .25s ease" '
+        'data-hovercls="hbaixar">'
+        '<span aria-hidden="true" style="display:inline-block;width:8px;height:8px;'
+        'border-radius:999px;background:#FF009D"></span>Baixar extensão</a>')
+      hover_rules.append(("hbaixar", "opacity:.88;transform:translateY(-1px)"))
+      # o header da análise vinha com 10px de padding e o da home com 12px:
+      # ao navegar entre as páginas o cabeçalho saltava 4px
+      body = body.replace("padding:10px clamp(20px,5vw,64px);background:rgba(255,255,255,.8)",
+                          "padding:12px clamp(20px,5vw,64px);background:rgba(255,255,255,.8)", 1)
+      _marca = '<button data-on-click="onHistorico"'
+      _i = body.find(_marca)
+      if _i == -1:
+          print("  AVISO: não achei o botão Minhas peças no header")
+      else:
+          _fim = body.index("</button>", _i) + len("</button>")
+          body = body[:_fim] + _btn_baixar + body[_fim:]
+
+  # os ajustes abaixo são do relatório de peça; a home não os tem
   if cfg["out"] == "analise.html":
       for _de, _para in _fixos:
           if _de not in body:
