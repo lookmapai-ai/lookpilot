@@ -42,10 +42,9 @@ continua sendo o mesmo, e o `build.py` reescreve-os relativos à raiz
 | "Como funciona" (rodapé) | `/#como` |
 | "Voltar" (Minhas peças) | página anterior, via histórico (`href="/"` fica como reserva se o JS falhar) |
 
-`index.html` é um **placeholder** da home de marketing, só para o destino
-existir em desenvolvimento (senão `localhost` mostra a listagem da pasta). Em
-produção ele é substituído pela home real — o design dela vive no projeto do
-Claude como "LookMap Landing Extensao".
+`index.html` é a **home de marketing**, gerada do design
+`LookMap Landing Extensao` do projeto no Claude — o mesmo processo da página de
+análise. As duas páginas saem do mesmo `build.py`.
 
 ## Minhas peças
 

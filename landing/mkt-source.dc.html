@@ -1,9 +1,13 @@
 <!DOCTYPE html>
-  <html lang="pt-BR">
-  <head>
-  <meta charset="utf-8">
-  <title>LookPilot — a etiqueta, lida por você</title>
-  
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 html{scroll-behavior:smooth}
@@ -23,80 +27,66 @@ a:hover{color:#000000}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
-
-  <style>
-  /* hovers declarados no design via style-hover */
-  [data-hovercls="h0"]:hover{opacity:.7}
-[data-hovercls="h1"]:hover{color:#FF009D !important}
-[data-hovercls="h2"]:hover{opacity:.88;transform:translateY(-1px)}
-[data-hovercls="h3"]:hover{background:#F5F5F7}
-[data-hovercls="h4"]:hover{transform:scale(1.03);opacity:.92}
-[data-hovercls="h5"]:hover{transform:scale(1.03);opacity:.92}
-[data-hovercls="h6"]:hover{color:#FF009D !important}
-[data-hovercls="h7"]:hover{color:#FF009D !important}
-  </style>
-  </head>
-  <body>
-  
+</helmet>
 <div style="position:relative;display:flex;flex-direction:column;min-height:100dvh;background:#FFFFFF;color:#1D1D1F;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:17px;line-height:1.5;overflow:clip">
 
   <div aria-hidden="true" style="position:fixed;inset:0;z-index:90;pointer-events:none;opacity:.13;mix-blend-mode:multiply;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.1 0 0 0 0 0.1 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E&quot;)"></div>
 
   <div aria-hidden="true" style="position:absolute;top:0;left:0;right:0;height:72vh;z-index:0;pointer-events:none;background:radial-gradient(ellipse 70% 55% at 50% -10%,rgba(200,170,120,.12) 0%,rgba(200,170,120,0) 70%),radial-gradient(ellipse 50% 40% at 78% -6%,rgba(255,0,157,.06) 0%,rgba(255,0,157,0) 70%)"></div>
 
-  
+  <!-- ===== cabeçalho ===== -->
   <header data-screen-label="Cabeçalho" style="position:sticky;top:0;z-index:70;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:12px clamp(20px,5vw,64px);background:rgba(255,255,255,.8);backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);border-bottom:1px solid rgba(0,0,0,.06)">
-    <a href="/" title="Início" style="display:inline-flex;align-items:center;text-decoration:none;transition:opacity .2s ease" data-hovercls="h0"><img src="images/lookpilot-wordmark.svg" alt="LookPilot" style="display:block;height:34px;width:auto"></a>
+    <a href="LookMap%20Landing%20Extensao.dc.html" title="Início" style="display:inline-flex;align-items:center;text-decoration:none;transition:opacity .2s ease" style-hover="opacity:.7"><img src="images/lookpilot-wordmark.svg" alt="LookPilot" style="display:block;height:34px;width:auto"></img></a>
     <div style="display:flex;align-items:center;gap:14px">
-      <a href="analise.html#minhas-pecas" style="display:inline-flex;align-items:center;min-height:44px;padding:8px 10px;font-size:14px;font-weight:500;letter-spacing:-.01em;color:#6E6E73;text-decoration:none;transition:color .2s ease" title="Suas peças salvas" data-hovercls="h1">Minhas peças</a>
-      <button data-on-click="onDownload" style="display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:9px 22px;border-radius:999px;background:#1D1D1F;border:none;color:#FFFFFF;font-family:inherit;font-size:14px;font-weight:500;letter-spacing:-.01em;cursor:pointer;white-space:nowrap;touch-action:manipulation;transition:opacity .25s ease,transform .25s ease" data-hovercls="h2" style-active="transform:translateY(0)"><span aria-hidden="true" style="display:inline-block;width:8px;height:8px;border-radius:999px;background:#FF009D"></span>Baixar extensão</button>
+      <a href="LookPilot%20Experiencia%20v15%20Apple%20White.dc.html#pecas" style="display:inline-flex;align-items:center;min-height:44px;padding:8px 10px;font-size:14px;font-weight:500;letter-spacing:-.01em;color:#6E6E73;text-decoration:none;transition:color .2s ease" title="Suas peças salvas" style-hover="color:#FF009D !important">Minhas peças</a>
+      <button onClick="{{ onDownload }}" style="display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:9px 22px;border-radius:999px;background:#1D1D1F;border:none;color:#FFFFFF;font-family:inherit;font-size:14px;font-weight:500;letter-spacing:-.01em;cursor:pointer;white-space:nowrap;touch-action:manipulation;transition:opacity .25s ease,transform .25s ease" style-hover="opacity:.88;transform:translateY(-1px)" style-active="transform:translateY(0)"><span aria-hidden="true" style="display:inline-block;width:8px;height:8px;border-radius:999px;background:#FF009D"></span>Baixar extensão</button>
     </div>
   </header>
 
-  
-  <div data-if="installOpen" style="display:contents">
+  <!-- ===== modal instalar ===== -->
+  <sc-if value="{{ installOpen }}" hint-placeholder-val="{{ false }}">
     <div role="dialog" aria-modal="true" aria-label="Instalar a extensão" style="position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px">
-      <div data-on-click="onInstallClose" style="position:absolute;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:lmFade .25s ease"></div>
+      <div onClick="{{ onInstallClose }}" style="position:absolute;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:lmFade .25s ease"></div>
       <div style="position:relative;width:min(460px,100%);display:flex;flex-direction:column;gap:16px;padding:30px;border-radius:28px;background:#FFFFFF;box-shadow:0 40px 100px rgba(0,0,0,.3);animation:lmRise .35s cubic-bezier(.16,1,.3,1)">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-          <img src="images/lookpilot-wordmark.svg" alt="LookPilot" style="display:block;height:24px;width:auto">
-          <button data-on-click="onInstallClose" aria-label="Fechar" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;margin:-8px -12px -8px 0;border-radius:999px;background:none;border:none;color:#6E6E73;font-size:20px;line-height:1;cursor:pointer;touch-action:manipulation;transition:background .2s ease" data-hovercls="h3">×</button>
+          <img src="images/lookpilot-wordmark.svg" alt="LookPilot" style="display:block;height:24px;width:auto"></img>
+          <button onClick="{{ onInstallClose }}" aria-label="Fechar" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;margin:-8px -12px -8px 0;border-radius:999px;background:none;border:none;color:#6E6E73;font-size:20px;line-height:1;cursor:pointer;touch-action:manipulation;transition:background .2s ease" style-hover="background:#F5F5F7">×</button>
         </div>
         <p style="margin:0;display:inline-flex;align-self:flex-start;align-items:center;gap:7px;padding:6px 14px;border-radius:999px;background:#F5F5F7;font-size:12px;font-weight:600;letter-spacing:.02em;color:#6E6E73">Pré-lançamento</p>
         <h2 style="margin:0;font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.15">Instale em 3 passos</h2>
         <div style="display:flex;flex-direction:column;gap:14px">
-          <template data-for="passos" data-as="p">
+          <sc-for list="{{ passos }}" as="p" hint-placeholder-count="3">
             <div style="display:flex;align-items:flex-start;gap:14px">
-              <span style="flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:999px;background:#1D1D1F;color:#FFFFFF;font-size:14px;font-weight:600"><span data-txt="p.n"></span></span>
-              <p style="margin:0;font-size:15px;line-height:1.5;color:#1D1D1F;text-wrap:pretty"><span data-txt="p.txt"></span></p>
+              <span style="flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:999px;background:#1D1D1F;color:#FFFFFF;font-size:14px;font-weight:600">{{ p.n }}</span>
+              <p style="margin:0;font-size:15px;line-height:1.5;color:#1D1D1F;text-wrap:pretty">{{ p.txt }}</p>
             </div>
-          </template>
+          </sc-for>
         </div>
         <p style="margin:4px 0 0;font-size:13px;line-height:1.5;color:#6E6E73;text-wrap:pretty">Ainda não está na loja do Chrome — por enquanto a pasta da extensão é carregada manualmente em <strong style="font-weight:600;color:#1D1D1F">chrome://extensions</strong>, com o Modo do desenvolvedor ligado.</p>
       </div>
     </div>
-  </div>
+  </sc-if>
 
-  
+  <!-- ===== hero ===== -->
   <section id="topo" data-screen-label="Hero" style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:calc(100dvh - 70px);padding:clamp(48px,8vh,96px) clamp(20px,5vw,64px)">
     <p style="margin:0 0 20px;display:inline-flex;align-items:center;gap:9px;padding:8px 18px;border-radius:999px;background:rgba(255,255,255,.6);backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);border:1px solid rgba(0,0,0,.06);box-shadow:0 8px 30px rgba(0,0,0,.05),inset 0 1px 0 rgba(255,255,255,.8);font-size:14px;font-weight:600;letter-spacing:.01em;color:#6E6E73;flex-wrap:wrap;justify-content:center" data-hero="1"><span aria-hidden="true" style="display:inline-block;width:8px;height:8px;border-radius:999px;background:#FF009D"></span>Extensão de navegador · grátis</p>
     <h1 style="margin:0;max-width:16ch;font-size:clamp(44px,7.2vw,96px);font-weight:700;letter-spacing:-.028em;line-height:1.03;text-wrap:balance" data-hero="1">Saiba do que a roupa é feita, <span data-hero-hl="1" style="background-image:linear-gradient(rgba(255,0,157,.26),rgba(255,0,157,.26));background-repeat:no-repeat;background-size:100% .62em;background-position:0 56%;padding:0 .06em;border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone">antes de comprar.</span></h1>
-    <p style="margin:20px 0 0;max-width:56ch;font-size:clamp(18px,2vw,22px);font-weight:400;letter-spacing:-.012em;line-height:1.45;color:#6E6E73;text-wrap:pretty" data-hero="1"><span data-txt="heroSubEl"></span></p>
+    <p style="margin:20px 0 0;max-width:56ch;font-size:clamp(18px,2vw,22px);font-weight:400;letter-spacing:-.012em;line-height:1.45;color:#6E6E73;text-wrap:pretty" data-hero="1">{{ heroSubEl }}</p>
     <div style="margin:32px 0 0;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:14px" data-hero="1">
-      <a href="#como" style="display:inline-flex;align-items:center;gap:10px;min-height:54px;padding:15px 32px;border-radius:999px;background:#1D1D1F;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:500;letter-spacing:-.01em;text-decoration:none;touch-action:manipulation;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .3s ease" data-hovercls="h4" style-active="transform:scale(.97)">Ver como funciona <span aria-hidden="true" style="font-size:15px">↓</span></a>
+      <a href="#como" style="display:inline-flex;align-items:center;gap:10px;min-height:54px;padding:15px 32px;border-radius:999px;background:#1D1D1F;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:500;letter-spacing:-.01em;text-decoration:none;touch-action:manipulation;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .3s ease" style-hover="transform:scale(1.03);opacity:.92" style-active="transform:scale(.97)">Ver como funciona <span aria-hidden="true" style="font-size:15px">↓</span></a>
     </div>
     <div data-hero-chip="1" aria-hidden="true" style="position:absolute;left:clamp(16px,7vw,130px);top:40%;display:flex;align-items:center;gap:9px;padding:10px 16px;border-radius:999px;background:rgba(255,255,255,.72);backdrop-filter:blur(16px) saturate(1.8);-webkit-backdrop-filter:blur(16px) saturate(1.8);border:1px solid rgba(0,0,0,.06);box-shadow:0 14px 40px rgba(0,0,0,.1);font-size:14px;font-weight:600;letter-spacing:-.01em;color:#1D1D1F;pointer-events:none;white-space:nowrap"><span style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:24px;padding:0 8px;border-radius:999px;background:#FF009D;color:#FFFFFF;font-size:13px;font-weight:700">86</span>Vale a pena</div>
     <div data-hero-chip="1" aria-hidden="true" style="position:absolute;right:clamp(16px,7vw,130px);top:27%;display:flex;align-items:center;gap:9px;padding:10px 16px;border-radius:999px;background:rgba(255,255,255,.72);backdrop-filter:blur(16px) saturate(1.8);-webkit-backdrop-filter:blur(16px) saturate(1.8);border:1px solid rgba(0,0,0,.06);box-shadow:0 14px 40px rgba(0,0,0,.1);font-size:14px;font-weight:600;letter-spacing:-.01em;color:#1D1D1F;pointer-events:none;white-space:nowrap"><span aria-hidden="true" style="display:inline-block;width:8px;height:8px;border-radius:999px;background:#FF009D"></span>100% lã · sem sintéticos</div>
   </section>
 
-  
+  <!-- ===== como funciona (perguntas em zigzag) ===== -->
   <section id="como" data-screen-label="Como funciona" style="position:relative;z-index:1;background:#F5F5F7;padding:clamp(64px,10vh,120px) clamp(20px,5vw,64px)">
     <div style="max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:clamp(56px,10vh,110px)">
       <div data-ap="1" style="text-align:center;display:flex;flex-direction:column;gap:16px">
         <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#6E6E73">Como funciona</p>
         <h2 style="margin:0;font-size:clamp(32px,4.4vw,56px);font-weight:700;letter-spacing:-.024em;line-height:1.08;text-wrap:balance">Abra a loja. O LookPilot responde ao que <span style="background-image:linear-gradient(rgba(255,0,157,.26),rgba(255,0,157,.26));background-repeat:no-repeat;background-size:100% .62em;background-position:0 56%;padding:0 .06em;border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone" data-hl="1">a etiqueta esconde</span>.</h2>
       </div>
-      
+      <!-- 01 · A leitura -->
       <div data-ap="1" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));align-items:center;gap:clamp(24px,4vw,64px);direction:ltr">
         <div style="direction:ltr;position:relative;width:min(100%,380px);aspect-ratio:4/5;margin:0 auto;border-radius:28px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;padding:30px;background:linear-gradient(160deg,#FCFBF8 0%,#EFEBE3 100%)" data-plx="1">
           <div style="width:min(90%,300px);display:flex;flex-direction:column;gap:16px;padding:24px;border-radius:18px;background:#FFFFFF;box-shadow:0 20px 46px rgba(0,0,0,.14);transform:rotate(-1.6deg)">
@@ -112,11 +102,11 @@ a:hover{color:#000000}
         <div style="direction:ltr;display:flex;flex-direction:column;gap:14px">
           <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6E6E73">01 · A leitura</p>
           <h3 style="margin:0;font-size:clamp(28px,3.8vw,48px);font-weight:700;letter-spacing:-.024em;line-height:1.06;text-wrap:balance">Do que é feita, de verdade?</h3>
-          <p style="margin:0;max-width:44ch;font-size:clamp(16px,1.7vw,19px);line-height:1.55;letter-spacing:-.01em;color:#6E6E73;text-wrap:pretty"><span data-txt="resp1El"></span></p>
+          <p style="margin:0;max-width:44ch;font-size:clamp(16px,1.7vw,19px);line-height:1.55;letter-spacing:-.01em;color:#6E6E73;text-wrap:pretty">{{ resp1El }}</p>
         </div>
       </div>
 
-      
+      <!-- 02 · A nota -->
       <div data-ap="1" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));align-items:center;gap:clamp(24px,4vw,64px);direction:rtl">
         <div style="direction:ltr;position:relative;width:min(100%,380px);aspect-ratio:4/5;margin:0 auto;border-radius:28px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;padding:30px;background:linear-gradient(160deg,#FBFAF8 0%,#EEECEA 100%)" data-plx="1">
           <div style="width:min(90%,300px);display:flex;flex-direction:column;gap:18px;padding:26px;border-radius:18px;background:#FFFFFF;box-shadow:0 20px 46px rgba(0,0,0,.14)">
@@ -129,11 +119,11 @@ a:hover{color:#000000}
         <div style="direction:ltr;display:flex;flex-direction:column;gap:14px">
           <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6E6E73">02 · A nota</p>
           <h3 style="margin:0;font-size:clamp(28px,3.8vw,48px);font-weight:700;letter-spacing:-.024em;line-height:1.06;text-wrap:balance">Vale o preço que pedem?</h3>
-          <p style="margin:0;max-width:44ch;font-size:clamp(16px,1.7vw,19px);line-height:1.55;letter-spacing:-.01em;color:#6E6E73;text-wrap:pretty"><span data-txt="resp2El"></span></p>
+          <p style="margin:0;max-width:44ch;font-size:clamp(16px,1.7vw,19px);line-height:1.55;letter-spacing:-.01em;color:#6E6E73;text-wrap:pretty">{{ resp2El }}</p>
         </div>
       </div>
 
-      
+      <!-- 03 · O mapa -->
       <div data-ap="1" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));align-items:center;gap:clamp(24px,4vw,64px);direction:ltr">
         <div style="direction:ltr;position:relative;width:min(100%,380px);aspect-ratio:4/5;margin:0 auto;border-radius:28px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.1);display:flex;flex-direction:column;gap:16px;padding:28px;background:linear-gradient(160deg,#F7F6F3 0%,#ECEAE6 100%)" data-plx="1">
           <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#6E6E73">Minhas peças · 6 peças</p>
@@ -149,37 +139,32 @@ a:hover{color:#000000}
         <div style="direction:ltr;display:flex;flex-direction:column;gap:14px">
           <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6E6E73">03 · O mapa</p>
           <h3 style="margin:0;font-size:clamp(28px,3.8vw,48px);font-weight:700;letter-spacing:-.024em;line-height:1.06;text-wrap:balance">E depois da compra?</h3>
-          <p style="margin:0;max-width:44ch;font-size:clamp(16px,1.7vw,19px);line-height:1.55;letter-spacing:-.01em;color:#6E6E73;text-wrap:pretty"><span data-txt="resp3El"></span></p>
+          <p style="margin:0;max-width:44ch;font-size:clamp(16px,1.7vw,19px);line-height:1.55;letter-spacing:-.01em;color:#6E6E73;text-wrap:pretty">{{ resp3El }}</p>
         </div>
       </div>
     </div>
   </section>
 
-  
+  <!-- ===== fecho ===== -->
   <section data-screen-label="Fecho" style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:clamp(72px,12vh,140px) clamp(20px,5vw,64px)">
     <div data-ap="1" style="display:flex;flex-direction:column;align-items:center;gap:24px;max-width:660px">
       <h2 style="margin:0;font-size:clamp(34px,5vw,64px);font-weight:700;letter-spacing:-.026em;line-height:1.06;text-wrap:balance">Compre menos. <span style="background-image:linear-gradient(rgba(255,0,157,.26),rgba(255,0,157,.26));background-repeat:no-repeat;background-size:100% .62em;background-position:0 56%;padding:0 .06em;border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone" data-hl="1">Compre certo.</span></h2>
       <p style="margin:0;max-width:48ch;font-size:clamp(16px,1.8vw,19px);line-height:1.5;letter-spacing:-.01em;color:#6E6E73;text-wrap:pretty">Instale a extensão e a próxima etiqueta que você abrir já vem lida — com nota, veredicto e um lugar no seu mapa.</p>
-      <button data-on-click="onDownload" style="display:inline-flex;align-items:center;gap:10px;min-height:54px;padding:15px 34px;border-radius:999px;background:#1D1D1F;border:none;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:500;letter-spacing:-.01em;cursor:pointer;touch-action:manipulation;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .3s ease" data-hovercls="h5" style-active="transform:scale(.97)"><span aria-hidden="true" style="display:inline-flex;width:18px;height:18px"><span data-txt="arrowDown"></span></span>Baixar extensão</button>
+      <button onClick="{{ onDownload }}" style="display:inline-flex;align-items:center;gap:10px;min-height:54px;padding:15px 34px;border-radius:999px;background:#1D1D1F;border:none;color:#FFFFFF;font-family:inherit;font-size:17px;font-weight:500;letter-spacing:-.01em;cursor:pointer;touch-action:manipulation;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .3s ease" style-hover="transform:scale(1.03);opacity:.92" style-active="transform:scale(.97)"><span aria-hidden="true" style="display:inline-flex;width:18px;height:18px">{{ arrowDown }}</span>Baixar extensão</button>
       <p style="margin:0;font-size:13px;letter-spacing:.01em;color:#6E6E73">Chrome · Edge · Brave — 100% grátis, sem conta</p>
     </div>
   </section>
 
-  
+  <!-- ===== rodapé ===== -->
   <footer data-screen-label="Rodapé" style="position:relative;z-index:1;margin-top:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:22px clamp(20px,5vw,64px);border-top:1px solid rgba(0,0,0,.06)">
-    <img src="images/lookpilot-wordmark.svg" alt="LookPilot" style="display:block;height:22px;width:auto;opacity:.55">
+    <img src="images/lookpilot-wordmark.svg" alt="LookPilot" style="display:block;height:22px;width:auto;opacity:.55"></img>
     <div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px">
-      <a href="#como" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h6">Como funciona</a>
-      <a href="analise.html#minhas-pecas" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h7">Minhas peças</a>
+      <a href="#como" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" style-hover="color:#FF009D !important">Como funciona</a>
+      <a href="LookPilot%20Experiencia%20v15%20Apple%20White.dc.html#pecas" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" style-hover="color:#FF009D !important">Minhas peças</a>
     </div>
     <p style="margin:0;font-size:12px;letter-spacing:.01em;color:#6E6E73">A qualidade se descobre</p>
   </footer>
 </div>
-
+</x-dc>
 </body>
 </html>
-
-  <script src="marketing.js?v=1784890604"></script>
-  </body>
-  </html>
-  
