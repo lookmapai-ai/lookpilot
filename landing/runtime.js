@@ -133,22 +133,12 @@
       }).join(' · ')
     : (real ? '' : DEFAULT.etiqComp);
 
-  /* ---------- skeleton para leitura ainda não processada ------------
-     Reaproveita a animação apShimmer do próprio design (a mesma das fotos),
-     por isso é o mesmo material visual — não um elemento estranho.        */
-  function skel(largura) {
-    var s = document.createElement('span');
-    s.setAttribute('aria-hidden', 'true');
-    s.style.cssText = 'display:inline-block;vertical-align:baseline;width:' + largura +
-      ';height:.85em;border-radius:6px;background:linear-gradient(90deg,#EDEDF0 25%,#E2E2E6 50%,#EDEDF0 75%);' +
-      'background-size:200% 100%;animation:apShimmer 1.6s linear infinite';
-    return s;
-  }
-  // devolve o valor, ou um skeleton quando falta numa análise real
-  function ou(v, largura) {
-    if (v !== null && v !== undefined && v !== '') return v;
-    return real ? skel(largura) : v;
-  }
+  /* ---------- campos em falta ------------------------------------
+     A página monta tudo de uma vez a partir da URL — não há carregamento
+     assíncrono. Por isso um skeleton em TEXTO nunca resolveria: ficaria a
+     tremeluzir para sempre (era o que acontecia com o preço). Campo em falta
+     some, com o separador junto. O único skeleton legítimo é o das fotos,
+     que essas sim carregam da loja depois (ver mediaEl).                  */
 
   /* ---------- preço + moeda --------------------------------------
      O design escrevia "€" fixo. A extensão envia `moeda` como CÓDIGO
@@ -453,10 +443,10 @@
     });
     return {
       // hero
-      heroFibra: ou(nome, '14ch'),
+      heroFibra: nome,
       heroPreco: preco,
-      heroPrecoEl: ou(precoFormatado(), '5ch'),
-      loja: ou(loja, '6ch'),
+      heroPrecoEl: precoFormatado(),
+      loja: loja,
       // numa análise real, mesmo sem nome, nunca cair na pergunta da demo
       // ("Lã pura por 9,99 € — qual é a pegadinha?")
       heroDuvida: real ? 'O que a etiqueta diz sobre esta peça?' : DEFAULT.duvida,
@@ -477,7 +467,7 @@
       capR: loja + (Q.get('confianca') ? ' · confiança ' + int('confianca', 0) + '%' : ''),
       // perguntas
       cartoes: cartoes,
-      etiqComp: ou(etiqComp, '11ch'),
+      etiqComp: etiqComp,
       // a extensão não lê a referência da etiqueta; sem ela, fica vazio em vez
       // de repetir a loja (que já aparece acima, em "Etiqueta · ZARA")
       etiqRef: real ? '' : DEFAULT.etiqRef,
@@ -658,10 +648,39 @@
     sel(root, '[data-on-click],[data-on-keydown]').forEach(function (el) { el.__scope = scope; });
   }
 
+  // pill do hero: "nome · LOJA ↗ · preço". Cada segmento traz o seu separador,
+  // por isso um campo vazio deixaria um "·" solto no ar.
+  function arrumaPill() {
+    var elNome  = document.querySelector('[data-txt="heroFibra"]');
+    // o nome da loja, não o link inteiro: o link também contém a seta "↗",
+    // que sozinha faria o segmento parecer preenchido
+    var elLojaTxt = document.querySelector('#topo a[data-brand] [data-txt="loja"]');
+    var elLoja  = elLojaTxt ? elLojaTxt.closest('a') : null;
+    var elPreco = document.querySelector('[data-txt="heroPrecoEl"]');
+    var temNome  = !!(elNome    && elNome.textContent.trim());
+    var temLoja  = !!(elLojaTxt && elLojaTxt.textContent.trim());
+    var temPreco = !!(elPreco   && elPreco.textContent.trim());
+
+    if (elPreco && elPreco.parentNode) elPreco.parentNode.style.display = temPreco ? '' : 'none';
+    if (elLoja) elLoja.style.display = temLoja ? '' : 'none';
+    if (elNome && elNome.parentNode) {
+      elNome.parentNode.style.display = temNome ? '' : 'none';
+      // o "·" no fim do nome só faz sentido se vier algo a seguir
+      var sep = elNome.parentNode.lastChild;
+      // só antes da loja: o segmento do preço já traz o seu próprio "·",
+      // senão saía "Camiseta · · 12,99 €"
+      if (sep && sep.nodeType === 3) sep.textContent = temLoja ? ' ·' : '';
+    }
+    // nada para mostrar: esconde o chip inteiro, senão fica uma pílula vazia
+    var pill = elNome ? elNome.closest('p') : null;
+    if (pill) pill.style.display = (temNome || temLoja || temPreco) ? '' : 'none';
+  }
+
   var mounted = false;
   function render() {
     var scope = vals();
     apply(document.body, scope);
+    arrumaPill();
     if (!mounted) { mounted = true; animate(scope); }
   }
 
