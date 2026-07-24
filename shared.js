@@ -319,7 +319,27 @@ function buyScore(scores, garmentType) {
   for (const k in w) {
     if (factors[k] != null) { sum += factors[k] * w[k]; wsum += w[k]; }
   }
-  return Math.round(wsum > 0 ? sum / wsum : scores.overall);
+  const bruto = wsum > 0 ? sum / wsum : scores.overall;
+  return escalaCompra(bruto);
+}
+
+// ─── Escala da nota ──────────────────────────────────────────────
+// A média ponderada acima comprime: para dar 100 a peça precisaria de 100 em
+// TODAS as dimensões ao mesmo tempo, e nenhuma fibra é boa em tudo (a caxemira
+// é confortável mas exigente; o poliéster é prático mas desconfortável). Medido
+// sobre 1100 combinações fibra×tipo, o valor bruto vivia entre 46 e 83 — ou
+// seja, os 17 pontos do topo eram inalcançáveis e 62% das peças caíam todas na
+// mesma faixa de veredito. A nota dizia "/100" e operava em meia escala.
+//
+// Estas âncoras esticam a faixa útil para 0–100. São ligeiramente mais largas
+// do que o observado (40 e 85) para nada ficar preso no extremo. Os limites do
+// buyVerdict continuam iguais — com esta escala eles passam a repartir bem:
+// ~13% não vale, 11% pense bem, 30% considerar, 29% vale a pena, 17% tranquila.
+const BUY_ESCALA_MIN = 40;
+const BUY_ESCALA_MAX = 85;
+function escalaCompra(bruto) {
+  const v = (bruto - BUY_ESCALA_MIN) / (BUY_ESCALA_MAX - BUY_ESCALA_MIN) * 100;
+  return Math.max(0, Math.min(100, Math.round(v)));
 }
 
 // Veredito grande para o header — 3 níveis claros
