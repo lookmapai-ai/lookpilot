@@ -12,6 +12,21 @@ Destino do botão "Ver análise completa →" do card da extensão.
 | `analise.html` | **Gerado** por `build.py`. É o arquivo a publicar. |
 | `images/` | Wordmarks. As fotos do produto vêm da URL (a extensão raspa a galeria da loja). |
 
+## Baixar extensão
+
+O botão entrega `lookpilot-extensao.zip`, gerado por `./empacotar.sh` a partir
+dos arquivos que a extensão carrega em runtime (ficam de fora os `.json`, que
+são insumos do `build.py`, os testes e a própria landing). O `servir.sh` chama
+o empacotador sozinho, então em desenvolvimento o zip nunca fica velho.
+
+⚠️ **Antes de publicar, rode `./empacotar.sh`** — senão o site serve uma versão
+antiga da extensão. O zip é artefato de build e não vai para o git.
+
+Baixar sozinho não basta enquanto a extensão não está na loja do Chrome: a
+pessoa precisa dos 3 passos para carregar a pasta. Por isso o botão faz as duas
+coisas — entrega o arquivo **e** abre o modal com as instruções. O botão da
+página de análise leva para `/?baixar=1`, que já chega baixando.
+
 ## Ver funcionando com a extensão
 
 ```sh

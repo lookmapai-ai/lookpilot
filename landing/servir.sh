@@ -11,6 +11,9 @@ cd "$(dirname "$0")"
 
 PORTA=8777
 
+# zip sempre fresco: o botão "Baixar extensão" entrega este arquivo
+./empacotar.sh
+
 # derruba uma instância anterior, se houver
 pkill -f "http.server $PORTA" 2>/dev/null || true
 sleep 0.3

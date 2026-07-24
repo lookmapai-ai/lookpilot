@@ -156,7 +156,7 @@ def build(cfg):
   # como link para a home, onde vive o modal de instalação.
   if cfg["out"] == "analise.html":
       _btn_baixar = (
-        '<a href="/" style="display:inline-flex;align-items:center;gap:8px;'
+        '<a href="/?baixar=1" style="display:inline-flex;align-items:center;gap:8px;'
         'min-height:44px;padding:9px 22px;border-radius:999px;background:#1D1D1F;'
         'border:none;color:#FFFFFF;font-family:inherit;font-size:14px;font-weight:500;'
         'letter-spacing:-.01em;text-decoration:none;cursor:pointer;white-space:nowrap;'

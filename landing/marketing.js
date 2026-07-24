@@ -6,9 +6,11 @@
 (function () {
   'use strict';
 
-  // Onde a extensão pode ser baixada. Vazio = abre o modal com os 3 passos
-  // (é o comportamento do design enquanto não está na loja do Chrome).
-  var DOWNLOAD_URL = '';
+  // O zip é gerado por landing/empacotar.sh (o servir.sh chama sozinho).
+  // Enquanto a extensão não está na loja do Chrome, baixar não basta: a pessoa
+  // precisa dos 3 passos para carregar a pasta. Por isso o botão faz as duas
+  // coisas — entrega o arquivo E abre o modal com as instruções.
+  var DOWNLOAD_URL = 'lookpilot-extensao.zip';
 
   var installOpen = false;
 
@@ -46,14 +48,25 @@
     return svg;
   }
 
+  function baixar() {
+    if (DOWNLOAD_URL) {
+      // <a download> em vez de window.open: não abre aba nem é bloqueado como popup
+      var a = document.createElement('a');
+      a.href = DOWNLOAD_URL;
+      a.setAttribute('download', '');
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+    installOpen = true;
+    render();
+    document.documentElement.style.overflow = 'hidden';
+  }
+
   function vals() {
     return {
       installOpen: installOpen,
-      onDownload: function () {
-        if (DOWNLOAD_URL) { window.open(DOWNLOAD_URL, '_blank', 'noopener'); return; }
-        installOpen = true; render();
-        document.documentElement.style.overflow = 'hidden';
-      },
+      onDownload: function () { baixar(); },
       onInstallClose: function () {
         installOpen = false; render();
         document.documentElement.style.overflow = '';
@@ -224,6 +237,11 @@
     }
   });
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render);
-  else render();
+  function iniciar() {
+    render();
+    // a página de análise manda para cá com ?baixar=1: já chega baixando
+    if (/[?&]baixar=1/.test(location.search)) baixar();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar);
+  else iniciar();
 })();
