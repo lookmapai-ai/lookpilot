@@ -216,11 +216,27 @@
       .replace(/Tecido\s+Secundário\s*:?\s*/gi, '\nTecido Secundário\n')
       .replace(/Tecido\s+Principal\s*:?\s*/gi, '\nTecido Principal\n')
       .replace(/Secondary\s+Fabric\s*:?\s*/gi, '\nSecondary Fabric\n');
-    // Remove tudo a partir da primeira secção secundária para não cruzar dados entre tecidos
-    text = text.replace(/(?:Tecido\s+Secund[aá]rio|Secondary\s+Fabric)[\s\S]*/gi, '');
-    const norm = text.normalize('NFC').toLowerCase()
+    let norm = text.normalize('NFC').toLowerCase()
       .replace(/\r?\n/g, ';')   // newlines → ; para Pass 1a não capturar cross-line
       .replace(/\s+/g, ' ');
+
+    // Corta na primeira secção SECUNDÁRIA. Uma peça pode ter várias zonas com
+    // composições diferentes — a Zara lista "EXTERIOR / TECIDO PRINCIPAL: 100%
+    // algodão / BORDADOS: 96% acrílico, 4% lã / FORRO: 100% viscose". Sem o
+    // corte, somavam-se todas: 300% de fibra e a nota do algodão puro caía de
+    // ~72 ("Vale a pena") para ~57 ("Vale considerar").
+    // Antes só se cortava em "Tecido Secundário".
+    // 1) Se a etiqueta nomeia o tecido principal, começa aí. Há rótulos que
+    //    abrem pelo forro ("FORRO 100% viscose / TECIDO PRINCIPAL 100% algodão").
+    const PRINCIPAL = /\b(tecido\s+principal|tecido\s+exterior|main\s+fabric|exterior|outer|shell)\b/i;
+    const iMain = norm.search(PRINCIPAL);
+    if (iMain > 0 && /\d\s*%/.test(norm.slice(iMain))) norm = norm.slice(iMain);
+
+    // 2) Corta na primeira secção secundária.
+    const SECUNDARIAS = /\b(tecido\s+secund[aá]rio|secondary\s+fabric|forro|lining|bordad\w*|embroider\w*|acabamento\w*|entretela|interlining|enchimento|padding|wadding|punho\w*|cuff\w*|gola\b|collar|canelado|ribbing|capuz|hood|aplica[cç][aã]\w*|appliqu\w*)\b/i;
+    const iSec = norm.search(SECUNDARIAS);
+    // só corta se a composição principal já apareceu antes do marcador
+    if (iSec > 0 && /\d\s*%/.test(norm.slice(0, iSec))) norm = norm.slice(0, iSec);
     const results = [];
     const seen = new Set();
     const db = (typeof MATERIALS !== 'undefined' && MATERIALS[category]) ? MATERIALS[category] : {};
