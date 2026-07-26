@@ -66,7 +66,7 @@ const UI = {
     // Card
     card_share:     'Compartilhar',
     card_waitlist:  'Lista de espera ↗',
-    card_not_found: 'Composição não encontrada nessa página.\nUse o popup para inserir manualmente.',
+    card_not_found: 'Não consegui ler a composição nesta página.',
   },
 
   en: {
@@ -132,7 +132,7 @@ const UI = {
     // Card
     card_share:     'Share',
     card_waitlist:  'Join waitlist ↗',
-    card_not_found: 'Composition not found on this page.\nUse the popup to enter it manually.',
+    card_not_found: "Couldn't read the composition on this page.",
   }
 };
 

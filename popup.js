@@ -344,4 +344,12 @@ function triggerScan() {
 
 // --- Init ---
 applyI18n();
-checkContext();
+// Aberto pelo card ("inserir manualmente") como janelinha: vai direto ao
+// formulário de composição, sem passar pelo "Analisar esta peça".
+if (/[?&]manual=1/.test(location.search)) {
+  showOnly('app');
+  switchTab();
+  showManualSection();
+} else {
+  checkContext();
+}

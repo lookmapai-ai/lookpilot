@@ -65,43 +65,21 @@ function classifyUrl(url) {
   }
 }
 
-// Numa página de produto, clicar no ícone deve escanear DIRETO — sem abrir um
-// popup só para conter o botão "Analisar" (as "duas caixas"). O Chrome decide
-// isso pela presença do default_popup: com popup '' o clique dispara
-// action.onClicked; com popup.html ele abre o popup. Trocamos por aba:
-//   produto -> sem popup, escaneia direto (uma caixa: o card)
-//   resto   -> popup, que aí tem o que dizer (página errada, entrada manual,
-//              onboarding na 1ª vez)
-// Sem gate de onboarding: gatear em flag exigia lê-la do storage antes de o
-// utilizador abrir o popup, e isso não era fiável (o bug das 2 caixas que
-// persistiam). Numa página de produto o card já é a melhor apresentação.
-function definePopup(tabId, produto) {
-  chrome.action.setPopup({ tabId, popup: produto ? '' : 'popup.html' });
-}
-
+// Sem default_popup no manifest: clicar no ícone NUNCA abre popup — dispara
+// sempre action.onClicked, que escaneia direto na página. O card é a única
+// superfície. updateTab só cuida da dica (tooltip) do ícone.
 function updateTab(tabId, url) {
   if (!url || url.startsWith('chrome://') || url.startsWith('about:') || url.startsWith('chrome-extension://')) {
-    chrome.action.setBadgeText({ text: '', tabId });
     chrome.action.setTitle({ title: 'LookPilot', tabId });
-    chrome.action.setPopup({ tabId, popup: 'popup.html' });
     return;
   }
-
   const { isFashion, isProduct, isListing } = classifyUrl(url);
-  chrome.action.setBadgeText({ text: '', tabId });
-
-  if (isFashion && isProduct) {
-    chrome.action.setTitle({ title: 'Analisar esta peça · LookPilot', tabId });
-  } else if (isFashion && isListing) {
-    chrome.action.setTitle({ title: 'Clique numa peça específica', tabId });
-  } else {
-    chrome.action.setTitle({ title: 'LookPilot', tabId });
-  }
-  definePopup(tabId, isFashion && isProduct);
+  if (isFashion && isProduct)      chrome.action.setTitle({ title: 'Analisar esta peça · LookPilot', tabId });
+  else if (isFashion && isListing) chrome.action.setTitle({ title: 'Abra uma peça e clique para analisar', tabId });
+  else                             chrome.action.setTitle({ title: 'LookPilot · analisar a peça desta página', tabId });
 }
 
-// Clique no ícone quando NÃO há popup (página de produto): escaneia direto.
-// O card na página vira a única superfície — uma caixa, um clique.
+// Clique no ícone: escaneia direto na página. Uma caixa, um clique.
 chrome.action.onClicked.addListener((tab) => {
   if (!tab.id) return;
   const enviar = () => chrome.tabs.sendMessage(tab.id, { action: 'scanPage' }, () => void chrome.runtime.lastError);
@@ -132,9 +110,8 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
   });
 });
 
-// Reavalia as abas já abertas quando a extensão instala/atualiza ou o service
-// worker acorda — senão uma aba de produto aberta antes disso manteria o popup
-// (o comportamento por-aba não sobrevive ao reinício do service worker).
+// Atualiza a dica das abas já abertas quando a extensão instala/atualiza ou o
+// service worker acorda.
 function revisarAbasAbertas() {
   chrome.tabs.query({}, (tabs) => {
     for (const tab of tabs) if (tab.id != null && tab.url) updateTab(tab.id, tab.url);
@@ -144,6 +121,11 @@ chrome.runtime.onInstalled.addListener(revisarAbasAbertas);
 chrome.runtime.onStartup.addListener(revisarAbasAbertas);
 revisarAbasAbertas();
 
-// Badge control from content script
-// (Removido o handler de 'setBadge': o ícone não recebe mais carimbo. O
-// content.js já não envia a mensagem — o estado da análise vive no card.)
+// Entrada manual: quando o scan não acha a composição, o card oferece "inserir
+// manualmente". Como não há mais popup no clique, isso abre o popup.html numa
+// janelinha própria (o único lugar onde o popup ainda aparece, e só a pedido).
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg.action === 'openManual') {
+    chrome.windows.create({ url: 'popup.html?manual=1', type: 'popup', width: 360, height: 580 });
+  }
+});
