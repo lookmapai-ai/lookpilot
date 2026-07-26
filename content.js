@@ -603,9 +603,11 @@
 
   // ─── Card injection ---
 
-  function setBadge(text, color) {
-    try { chrome.runtime.sendMessage({ action: 'setBadge', text, color }); } catch(e) {}
-  }
+  // Sem badge no ícone da barra. Antes carimbava ✓ / ! / … sobre o logo, mas
+  // sobre o tile magenta pequeno isso poluía a marca — e o estado da análise
+  // já vive no card na página. As chamadas ficam (custam nada) para o dia em
+  // que fizer sentido religar algum sinal.
+  function setBadge(_text, _color) {}
 
   function removeCard() {
     const el = document.getElementById('__fqa-card');

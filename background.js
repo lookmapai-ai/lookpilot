@@ -74,8 +74,8 @@ function updateTab(tabId, url) {
     chrome.action.setBadgeText({ text: '', tabId });
     chrome.action.setTitle({ title: '✓ Analisar este produto', tabId });
   } else if (isFashion && isListing) {
-    chrome.action.setBadgeText({ text: '·', tabId });
-    chrome.action.setBadgeBackgroundColor({ color: '#aaaaaa', tabId });
+    // sem badge: a dica fica no tooltip, sem carimbar o ícone
+    chrome.action.setBadgeText({ text: '', tabId });
     chrome.action.setTitle({ title: 'Clique numa peça específica', tabId });
   } else {
     chrome.action.setBadgeText({ text: '', tabId });
@@ -97,11 +97,5 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
 });
 
 // Badge control from content script
-chrome.runtime.onMessage.addListener((msg, sender) => {
-  if (msg.action === 'setBadge') {
-    const tabId = sender.tab?.id;
-    if (!tabId) return;
-    chrome.action.setBadgeText({ text: msg.text || '', tabId });
-    if (msg.color) chrome.action.setBadgeBackgroundColor({ color: msg.color, tabId });
-  }
-});
+// (Removido o handler de 'setBadge': o ícone não recebe mais carimbo. O
+// content.js já não envia a mensagem — o estado da análise vive no card.)
