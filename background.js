@@ -39,10 +39,14 @@ function classifyUrl(url) {
       /[?&](q|query|search|cat|category)=/.test(path),
       /\/(cart|checkout|bag|cesto|wishlist|account|conta|login)/.test(path),
       /\/(lookbook|campaign|video|news|stores|lojas|magazine)/.test(path),
+      // Zara/afins marcam LISTAGEM com "-l<dígitos>.html" (ex: -l1050.html) e
+      // PRODUTO com "-p<dígitos>.html". Sem isto, a listagem era lida como
+      // produto e o clique escaneava direto numa página sem peça única.
+      /-l\d{3,}\.html?(\?|$)/.test(path),
     ].some(Boolean);
     const isProduct = !nonProduct && [
-      /-[a-z]?\d{3,}\.html/.test(path),
-      path.includes('.html') && /[pl]\d{3,}/.test(path),
+      /-p?\d{3,}\.html/.test(path),
+      path.includes('.html') && /p\d{3,}/.test(path),
       /\/p\d+/.test(path),
       /-p0\d{4,}/.test(path),
       /-\d{6,}\.html/.test(path),
@@ -61,27 +65,58 @@ function classifyUrl(url) {
   }
 }
 
+// Numa página de produto, clicar no ícone deve escanear DIRETO — sem abrir um
+// popup só para conter o botão "Analisar" (as "duas caixas"). O Chrome decide
+// isso pela presença do default_popup: com popup '' o clique dispara
+// action.onClicked; com popup.html ele abre o popup. Então trocamos o popup
+// por aba: produto (e onboarding já feito) -> sem popup, escaneia; resto ->
+// popup, que aí tem o que dizer (onboarding, página errada, entrada manual).
+function definePopup(tabId, produto) {
+  chrome.storage.local.get('fqa-onboarded', (d) => {
+    const escaneiaDireto = produto && d['fqa-onboarded'];
+    chrome.action.setPopup({ tabId, popup: escaneiaDireto ? '' : 'popup.html' });
+  });
+}
+
 function updateTab(tabId, url) {
   if (!url || url.startsWith('chrome://') || url.startsWith('about:') || url.startsWith('chrome-extension://')) {
     chrome.action.setBadgeText({ text: '', tabId });
     chrome.action.setTitle({ title: 'LookPilot', tabId });
+    chrome.action.setPopup({ tabId, popup: 'popup.html' });
     return;
   }
 
   const { isFashion, isProduct, isListing } = classifyUrl(url);
+  chrome.action.setBadgeText({ text: '', tabId });
 
   if (isFashion && isProduct) {
-    chrome.action.setBadgeText({ text: '', tabId });
-    chrome.action.setTitle({ title: '✓ Analisar este produto', tabId });
+    chrome.action.setTitle({ title: 'Analisar esta peça · LookPilot', tabId });
   } else if (isFashion && isListing) {
-    // sem badge: a dica fica no tooltip, sem carimbar o ícone
-    chrome.action.setBadgeText({ text: '', tabId });
     chrome.action.setTitle({ title: 'Clique numa peça específica', tabId });
   } else {
-    chrome.action.setBadgeText({ text: '', tabId });
     chrome.action.setTitle({ title: 'LookPilot', tabId });
   }
+  definePopup(tabId, isFashion && isProduct);
 }
+
+// Clique no ícone quando NÃO há popup (página de produto): escaneia direto.
+// O card na página vira a única superfície — uma caixa, um clique.
+chrome.action.onClicked.addListener((tab) => {
+  if (!tab.id) return;
+  const enviar = () => chrome.tabs.sendMessage(tab.id, { action: 'scanPage' }, () => void chrome.runtime.lastError);
+  chrome.tabs.sendMessage(tab.id, { action: 'ping' }, (resp) => {
+    if (chrome.runtime.lastError) {
+      // content script ainda não injetado (aba aberta antes da extensão):
+      // injeta e reenvia
+      chrome.scripting.executeScript(
+        { target: { tabId: tab.id }, files: ['strings.js', 'shared.js', 'categories.js', 'content.js'] },
+        () => { if (!chrome.runtime.lastError) enviar(); }
+      );
+    } else {
+      enviar();
+    }
+  });
+});
 
 // Re-evaluate on every navigation
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -95,6 +130,18 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
     if (tab.url) updateTab(tabId, tab.url);
   });
 });
+
+// Reavalia as abas já abertas quando a extensão instala/atualiza ou o service
+// worker acorda — senão uma aba de produto aberta antes disso manteria o popup
+// (o comportamento por-aba não sobrevive ao reinício do service worker).
+function revisarAbasAbertas() {
+  chrome.tabs.query({}, (tabs) => {
+    for (const tab of tabs) if (tab.id != null && tab.url) updateTab(tab.id, tab.url);
+  });
+}
+chrome.runtime.onInstalled.addListener(revisarAbasAbertas);
+chrome.runtime.onStartup.addListener(revisarAbasAbertas);
+revisarAbasAbertas();
 
 // Badge control from content script
 // (Removido o handler de 'setBadge': o ícone não recebe mais carimbo. O

@@ -97,7 +97,29 @@ function showWrongContext(reason) {
 
 // --- Onboarding ---
 function isFirstRun() { return !localStorage.getItem('fqa-seen'); }
-function markSeen()   { localStorage.setItem('fqa-seen', '1'); }
+function markSeen() {
+  localStorage.setItem('fqa-seen', '1');
+  // O background lê isto para saber que, numa página de produto, o clique no
+  // ícone pode escanear direto (sem popup). Só é acessível via chrome.storage.
+  try {
+    chrome.storage.local.set({ 'fqa-onboarded': true });
+    // aplica já na aba atual, sem esperar a próxima navegação
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const id = tabs[0]?.id;
+      if (id != null) chrome.action.setPopup({ tabId: id, popup: '' });
+    });
+  } catch (e) {}
+}
+
+// Migração: quem já passou o onboarding antes desta mudança tem a flag só no
+// localStorage do popup. Espelha para o chrome.storage na primeira abertura.
+try {
+  if (localStorage.getItem('fqa-seen')) {
+    chrome.storage.local.get('fqa-onboarded', (d) => {
+      if (!d['fqa-onboarded']) chrome.storage.local.set({ 'fqa-onboarded': true });
+    });
+  }
+} catch (e) {}
 
 function initApp() {
   if (isFirstRun()) {

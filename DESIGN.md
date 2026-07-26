@@ -13,7 +13,7 @@ A regra que governa toda a arquitetura de UI:
 > **As duas interfaces (popup e floating card) nunca coexistem mostrando resultado. Só uma de cada vez.**
 
 O **floating card** (injetado na página da loja) é a superfície primária de resultado.
-O **popup** (ícone da extensão na toolbar) é apenas uma **camada de disparo** — nunca mostra o resultado da análise.
+Numa **página de produto** o popup nem chega a abrir: o `background.js` troca o popup por `action.onClicked` (clique-direto), o card aparece na hora e há **uma caixa só**. O popup só abre quando tem o que dizer — onboarding, página errada, ou fallback manual.\n\nO **popup** é apenas uma **camada de disparo** — nunca mostra o resultado da análise.
 
 Decisão validada com as heurísticas `ux-ui-verification`: o utilizador está a navegar na loja, não no popup. O resultado deve aparecer no contexto onde a decisão de compra acontece.
 
@@ -58,10 +58,11 @@ O popup **nunca renderiza o resultado da análise**. Ao disparar o scan, fecha-s
 
 ```
 1. Utilizador abre página de produto numa loja
-2. Clica no ícone da extensão  →  popup abre em "product-ready"
-3. Clica "Analisar esta peça"
-4. popup envia { action:'scanPage' } ao content.js  →  popup fecha (~80ms)
-5. content.js mostra o LOADING card na página
+2. Clica no ícone da extensão  →  o background já tirou o popup desta aba
+   (só em domínio de moda + URL de produto + onboarding feito), então o clique
+   dispara action.onClicked em vez de abrir o popup
+3. background envia { action:'scanPage' } ao content.js  →  SEM popup
+4. content.js mostra o LOADING card na página
 6. (delay 50ms para o browser pintar o loading)
 7. tryScan() lê a composição + retries progressivos (400/1000/2000ms para SPAs)
 8. Sucesso  →  loading é substituído pelo card de RESULTADO
