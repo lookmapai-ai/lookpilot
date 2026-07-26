@@ -68,14 +68,15 @@ function classifyUrl(url) {
 // Numa página de produto, clicar no ícone deve escanear DIRETO — sem abrir um
 // popup só para conter o botão "Analisar" (as "duas caixas"). O Chrome decide
 // isso pela presença do default_popup: com popup '' o clique dispara
-// action.onClicked; com popup.html ele abre o popup. Então trocamos o popup
-// por aba: produto (e onboarding já feito) -> sem popup, escaneia; resto ->
-// popup, que aí tem o que dizer (onboarding, página errada, entrada manual).
+// action.onClicked; com popup.html ele abre o popup. Trocamos por aba:
+//   produto -> sem popup, escaneia direto (uma caixa: o card)
+//   resto   -> popup, que aí tem o que dizer (página errada, entrada manual,
+//              onboarding na 1ª vez)
+// Sem gate de onboarding: gatear em flag exigia lê-la do storage antes de o
+// utilizador abrir o popup, e isso não era fiável (o bug das 2 caixas que
+// persistiam). Numa página de produto o card já é a melhor apresentação.
 function definePopup(tabId, produto) {
-  chrome.storage.local.get('fqa-onboarded', (d) => {
-    const escaneiaDireto = produto && d['fqa-onboarded'];
-    chrome.action.setPopup({ tabId, popup: escaneiaDireto ? '' : 'popup.html' });
-  });
+  chrome.action.setPopup({ tabId, popup: produto ? '' : 'popup.html' });
 }
 
 function updateTab(tabId, url) {
