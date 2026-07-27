@@ -74,11 +74,12 @@
   // propriedades cruas da fibra (0-10, 10 = melhor): bol=não bola,
   // ama=não amarrota, sec=seca rápido, cal=isola, res=respira, sus=sustentável.
   //
-  // `pes` (peso) chega mas NÃO é usado: a escala não bate com a realidade —
-  // marca seda (3), caxemira (2), linho e merino (4) como pesados, que são
-  // justamente os tecidos mais leves, e o poliéster (7) como o mais leve de
-  // todos. É também a única propriedade sem nota explicativa em nenhuma fibra.
-  // Enquanto não for recalibrada no fibers.json, não se afirma nada sobre peso.
+  // `pes` (peso) é a exceção: aqui 10 = MAIS pesado, não melhor — é peso
+  // literal (caxemira 2, seda 3, merino 4 são as fibras mais leves que
+  // existem; lã comum 5, poliéster 7). Uma versão anterior deste arquivo
+  // lia como se fosse "leveza" (10=melhor, igual às outras), o que invertia
+  // tudo: tratava merino — a fibra que mais esquenta sem pesar — como
+  // pesada. Corrigido; ver uso em tracosViagemBrutos.
   var props = (function () {
     var o = {}, s = Q.get('props') || '';
     s.split(',').forEach(function (par) {
@@ -450,6 +451,11 @@
     if (isCasaco) {
       if (tem('cal') && p.cal <= 4) mau('Não esquenta muito', 'Pra um casaco, é o ponto que mais pesa — essa fibra não é a primeira escolha pro frio.');
       else if (tem('cal') && p.cal >= 7) bom('Aguenta o frio', 'Uma peça só resolve, sem precisar de camadas por baixo.');
+      // peso: baixo = leve (0-10, 10=mais pesado). Num casaco é onde mais
+      // conta — é a peça que mais ocupa espaço e mais pesa no corpo o dia
+      // inteiro. Merino é o exemplo: esquenta (cal 9) e ainda é leve (pes 4).
+      if (tem('pes') && p.pes >= 7) mau('Pesa na mala e no corpo', 'É a peça que mais ocupa espaço — e você sente o peso dela o dia inteiro.');
+      else if (tem('pes') && p.pes <= 4) bom('Esquenta sem pesar', 'Aquece de verdade sem virar a peça mais pesada da mala.');
       if (tem('res') && p.res <= 4) mau('Prende o suor por dentro', 'Vira estufa assim que você entra em algum lugar aquecido ou pega o metrô lotado.');
       else if (tem('res') && p.res >= 8) bom('Esquenta sem virar estufa', 'Segura o frio de fora sem sufocar quando você entra em algum lugar aquecido.');
       // sintético esquenta menos do que a nota de calor sugere e ainda gera
@@ -459,6 +465,7 @@
       if (tem('res') && p.res <= 4) mau('Esquenta e não respira', 'O calor do corpo fica preso. Num dia de viagem longo, incomoda.');
       else if (tem('res') && p.res >= 8) bom('O corpo respira', 'O calor não fica preso, mesmo num dia inteiro fora.');
       if (tem('cal') && p.cal >= 8) bom('Aguenta o frio', 'Uma peça só resolve, sem precisar de camadas por baixo.');
+      if (tem('pes') && p.pes >= 8) mau('Pesa na mala', 'Sozinha já ocupa espaço — pensa duas vezes antes de levar mais de uma.');
     }
 
     if (tem('sec') && p.sec <= 4) mau('Seca devagar', 'Lavar no meio da viagem custa um dia à espera de secar.');
