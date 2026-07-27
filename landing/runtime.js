@@ -448,6 +448,11 @@
     if (tem('ama') && p.ama <= 5) mau('Amarrota fácil', 'Sai da mala com vincos. Precisa de ferro ou vapor antes de vestir.');
     else if (tem('ama') && p.ama >= 7) bom('Não amarrota', 'Sai da mala e vai direto pro corpo, sem passar por ferro nenhum.');
 
+    // combina fácil = menos peças na mala pro mesmo número de looks; usa o
+    // mesmo 'ver' que já move a pergunta "No dia a dia"
+    if (ver >= 70) bom('Combina com o que você já levou', 'Rende mais looks sem precisar de mais peça nenhuma na mala.');
+    else if (ver <= 45) mau('Pede combinação específica', 'Ocupa espaço na mala pra resolver só uma situação.');
+
     if (isCasaco) {
       if (tem('cal') && p.cal <= 4) mau('Não esquenta muito', 'Pra um casaco, é o ponto que mais pesa — essa fibra não é a primeira escolha pro frio.');
       else if (tem('cal') && p.cal >= 7) bom('Aguenta o frio', 'Uma peça só resolve, sem precisar de camadas por baixo.');
