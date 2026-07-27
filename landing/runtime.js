@@ -437,19 +437,28 @@
     var tem = function (k) { return p[k] !== undefined; };
     var bom  = function (titulo, texto) { out.push({ titulo: titulo, texto: texto, bom: true }); };
     var mau  = function (titulo, texto) { out.push({ titulo: titulo, texto: texto, bom: false }); };
+    // casaco é pra usar por cima: calor é o ponto principal (defeito real é
+    // NÃO esquentar, não o contrário), e não respirar não pesa contra —
+    // ninguém espera que um casaco arejar como uma camiseta
+    var isCasaco = tipoKey === 'casaco';
 
     // ordem = relevância para quem faz mala
     if (tem('ama') && p.ama <= 5) mau('Amarrota fácil', 'Sai da mala com vincos. Precisa de ferro ou vapor antes de vestir.');
     else if (tem('ama') && p.ama >= 7) bom('Não amarrota', 'Sai da mala e vai direto pro corpo, sem passar por ferro nenhum.');
 
-    if (tem('res') && p.res <= 4) mau('Esquenta e não respira', 'O calor do corpo fica preso. Num dia de viagem longo, incomoda.');
-    else if (tem('res') && p.res >= 8) bom('O corpo respira', 'O calor não fica preso, mesmo num dia inteiro fora.');
+    if (isCasaco) {
+      if (tem('cal') && p.cal <= 4) mau('Não esquenta muito', 'Pra um casaco, é o ponto que mais pesa — essa fibra não é a primeira escolha pro frio.');
+      else if (tem('cal') && p.cal >= 7) bom('Aguenta o frio', 'Uma peça só resolve, sem precisar de camadas por baixo.');
+    } else {
+      if (tem('res') && p.res <= 4) mau('Esquenta e não respira', 'O calor do corpo fica preso. Num dia de viagem longo, incomoda.');
+      else if (tem('res') && p.res >= 8) bom('O corpo respira', 'O calor não fica preso, mesmo num dia inteiro fora.');
+      if (tem('cal') && p.cal >= 8) bom('Aguenta o frio', 'Uma peça só resolve, sem precisar de camadas por baixo.');
+    }
 
     if (tem('sec') && p.sec <= 4) mau('Seca devagar', 'Lavar no meio da viagem custa um dia à espera de secar.');
     else if (tem('sec') && p.sec >= 7) bom('Seca da noite pro dia', 'Lava no lavatório à noite e de manhã está pronta.');
 
     if (tem('bol') && p.bol <= 4) mau('Cria bolinhas', 'O atrito da mala e da alça encaroça o tecido.');
-    if (tem('cal') && p.cal >= 8) bom('Aguenta o frio', 'Uma peça só resolve, sem precisar de camadas por baixo.');
 
     return out;
   }
@@ -590,8 +599,12 @@
         var nome = f ? f.nome.toLowerCase() : 'essa fibra';
         var pontos = [];
         if (props.ama !== undefined && props.ama > 5) pontos.push('==não amarrota==');
-        if (props.res !== undefined && props.cal !== undefined && props.res >= 8 && props.cal >= 7) pontos.push('aquece e respira na mesma peça');
-        else if (props.res !== undefined && props.res >= 8) pontos.push('respira bem');
+        // casaco: calor é o ponto que importa, respirar não é o critério
+        if (tipoKey === 'casaco') {
+          if (props.cal !== undefined && props.cal >= 7) pontos.push('==aguenta o frio== sem precisar de camadas por baixo');
+        } else if (props.res !== undefined && props.cal !== undefined && props.res >= 8 && props.cal >= 7) {
+          pontos.push('aquece e respira na mesma peça');
+        } else if (props.res !== undefined && props.res >= 8) pontos.push('respira bem');
         if (props.sec !== undefined && props.sec >= 7) pontos.push('seca rápido e dispensa ferro');
         if (!pontos.length) pontos.push('resolve sem drama');
         var lista = pontos.length > 1
