@@ -19,8 +19,12 @@ dos arquivos que a extensão carrega em runtime (ficam de fora os `.json`, que
 são insumos do `build.py`, os testes e a própria landing). O `servir.sh` chama
 o empacotador sozinho, então em desenvolvimento o zip nunca fica velho.
 
-⚠️ **Antes de publicar, rode `./empacotar.sh`** — senão o site serve uma versão
-antiga da extensão. O zip é artefato de build e não vai para o git.
+O `build.py` reempacota sozinho ao gerar as páginas, e o `servir.sh` também —
+o zip não envelhece por esquecimento. (Já envelheceu: o site chegou a oferecer
+uma versão de 2 dias antes, ainda com popup e com o bug da composição, porque
+o empacotamento dependia de lembrar de rodar o script.)
+
+O zip é artefato de build e não vai para o git.
 
 Baixar sozinho não basta enquanto a extensão não está na loja do Chrome: a
 pessoa precisa dos 3 passos para carregar a pasta. Por isso o botão faz as duas

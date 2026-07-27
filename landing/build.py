@@ -229,3 +229,16 @@ def build(cfg):
 
 for _cfg in PAGINAS:
     build(_cfg)
+
+# O zip que o botão "Baixar extensão" entrega tem de acompanhar o código da
+# extensão. Deixá-lo por conta de servir.sh não bastava: qualquer outra forma
+# de servir (ou de publicar) passava ao lado, e o site chegou a oferecer uma
+# versão de 2 dias antes — com popup, badge e o bug da composição. Reempacotar
+# aqui acopla o download à regeneração do site, que é o gesto natural.
+import subprocess
+try:
+    subprocess.run(["./empacotar.sh"], cwd=str(HERE), check=True,
+                   stdout=subprocess.DEVNULL)
+    print("extensão reempacotada")
+except Exception as e:
+    print("AVISO: não empacotou a extensão (%s) — rode ./empacotar.sh" % e)
