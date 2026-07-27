@@ -568,15 +568,23 @@
           : defeitos[0];
         return f + ' ' + lista + '. Dá pra levar, mas conte com ferro ou vapor — e uma lavagem a mais na volta.';
       })()),
-      // o design abria com "Lã é a fibra que mais viaja" — nomeia a fibra real
+      // o design abria com "Lã é a fibra que mais viaja" (e sempre "não
+      // amarrota", mesmo quando a fibra amarrota) — nomeia a fibra real e só
+      // os pontos fortes que ELA de fato tem
       seloLeadEl: mark((function () {
         var f = parseFibras().slice().sort(function (a, b) { return b.pct - a.pct; })[0];
         var nome = f ? f.nome.toLowerCase() : 'essa fibra';
-        var nat = classifica(parseFibras()).nat >= 50;
+        var pontos = [];
+        if (props.ama !== undefined && props.ama > 5) pontos.push('==não amarrota==');
+        if (props.res !== undefined && props.cal !== undefined && props.res >= 8 && props.cal >= 7) pontos.push('aquece e respira na mesma peça');
+        else if (props.res !== undefined && props.res >= 8) pontos.push('respira bem');
+        if (props.sec !== undefined && props.sec >= 7) pontos.push('seca rápido e dispensa ferro');
+        if (!pontos.length) pontos.push('resolve sem drama');
+        var lista = pontos.length > 1
+          ? pontos.slice(0, -1).join(', ') + ' e ' + pontos[pontos.length - 1]
+          : pontos[0];
         return (f ? nome.charAt(0).toUpperCase() + nome.slice(1) : 'Essa fibra') +
-          ' viaja bem: ==não amarrota==, ' +
-          (nat ? 'aquece e respira na mesma peça, e disfarça o uso. Você leva menos peças — e lava menos ainda.'
-               : 'seca rápido e dispensa ferro. Você leva menos peças — e resolve a lavagem no lavatório.');
+          ' viaja bem: ' + lista + '. Você leva menos peças — e lava menos ainda.';
       })()),
       // lookmap
       // o design tinha uma frase por faixa de nota (86 celebra, 58 pondera);
