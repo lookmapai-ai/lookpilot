@@ -116,7 +116,13 @@ capítulos caem sempre nas mesmas frases:
 | `modnome` / `modexplica` | modificador detectado na página (ex.: Supima) | ato 01 |
 | `fibra` | nome da fibra principal | atos 02, 03 e selo de viagem |
 | `fibratip` | prosa calibrada por fibra (`FIBER_DB.tip`) | ato 02 |
-| `props` | propriedades cruas da fibra, 0–10 (`bol`=não bola, `ama`=não amarrota, `sec`=seca rápido, `cal`=isola, `res`=respira, `pes`, `sus`) | ato 03 e selo de viagem |
+| `props` | propriedades cruas da fibra, 0–10 (`bol`=não bola, `ama`=não amarrota, `sec`=seca rápido, `cal`=isola, `res`=respira, `sus`) | ato 03 e selo de viagem |
+
+> ⚠️ `pes` (peso) chega mas **não é usado**. A escala não corresponde à
+> realidade: marca seda (3), caxemira (2), linho e merino (4) como pesados —
+> justamente os tecidos mais leves — e o poliéster (7) como o mais leve. É
+> também a única propriedade sem nota explicativa em nenhuma fibra do
+> `fibers.json`. Recalibrar é curadoria têxtil, não código.
 | `cornota` / `estampado` | cor e padrão (`detectColorPattern`) | ato 04 |
 | `tipo` | tipo de peça (`garmentType`: camiseta, camisa, blazer, calca, vestido, casaco, malha, shoes, bags) | atos 02, 03 e 04 |
 

@@ -72,7 +72,13 @@
   var fibraNome = Q.get('fibra') || '';
   var fibraTip = Q.get('fibratip') || '';
   // propriedades cruas da fibra (0-10, 10 = melhor): bol=não bola,
-  // ama=não amarrota, sec=seca rápido, cal=isola, res=respira, pes, sus
+  // ama=não amarrota, sec=seca rápido, cal=isola, res=respira, sus=sustentável.
+  //
+  // `pes` (peso) chega mas NÃO é usado: a escala não bate com a realidade —
+  // marca seda (3), caxemira (2), linho e merino (4) como pesados, que são
+  // justamente os tecidos mais leves, e o poliéster (7) como o mais leve de
+  // todos. É também a única propriedade sem nota explicativa em nenhuma fibra.
+  // Enquanto não for recalibrada no fibers.json, não se afirma nada sobre peso.
   var props = (function () {
     var o = {}, s = Q.get('props') || '';
     s.split(',').forEach(function (par) {
@@ -282,12 +288,12 @@
     }
 
     // 02 · O corpo — o que a pessoa SENTE vestindo, a partir das propriedades
-    // do corpo (respira, aquece, pesa). Cada situação tem várias formas de ser
+    // do corpo (respira, aquece). Cada situação tem várias formas de ser
     // dita, escolhidas de modo estável por peça: a mesma peça lê sempre igual,
     // peças diferentes leem diferente.
     var t2;
     if (props.res !== undefined || props.cal !== undefined) {
-      var respira = props.res, aquece = props.cal, leve = props.pes;
+      var respira = props.res, aquece = props.cal;
       var corpo;
       if (respira >= 8 && aquece >= 7) {
         corpo = variante([
@@ -320,7 +326,6 @@
           'No corpo não chama atenção: ==nem sufoca, nem deixa você com frio==.'
         ]);
       }
-      if (leve !== undefined && leve <= 3) corpo += ' E pesa no corpo.';
       t2 = corpo + ' ' + [
         variante(['No corpo é onde ela perde — você sente ao longo do dia.',
                   'É aqui que ela cobra: o corpo percebe.',
@@ -411,26 +416,51 @@
   // os traços seguem a composição real da peça, não a do suéter de demonstração
   var _mix = classifica(parseFibras());
   var _sintetica = _mix.sin >= 50;
-  var traitsOk = [
-    { titulo: 'Não amarrota', texto: _sintetica
-        ? 'Sai da mala pronta: fibra sintética não marca vinco e dispensa ferro.'
-        : 'Sai da mala e vai direto pro corpo. A fibra relaxa os vincos sozinha em poucos minutos.' },
-    { titulo: 'Uma peça, vários climas', texto: 'Segura o frio e respira no ameno. Uma peça só cobre a viagem inteira.' },
-    { titulo: _sintetica ? 'Seca da noite pro dia' : 'Areja em vez de lavar', texto: _sintetica
-        ? 'Lava no lavatório e seca rápido — não ocupa dia de viagem à espera.'
-        : 'Não guarda cheiro. Uma noite no cabide e está pronta pro dia seguinte.' }
-  ];
-  var traitsCau = [
-    { titulo: 'Amarrota fácil', texto: 'Sai da mala com vincos. Precisa de ferro ou vapor antes de vestir.' },
-    { titulo: _sintetica ? 'Esquenta e não respira' : 'Volume na mala', texto: _sintetica
-        ? 'Fibra sintética retém calor. Num dia de viagem longo, pesa.'
-        : 'Ocupa espaço e seca devagar — pesa numa mala pequena.' },
-    { titulo: 'Precisa lavar mais', texto: _sintetica
-        ? 'Retém cheiro rápido: não dá pra arejar e reusar.'
-        : 'Não dá pra esticar muitos usos entre lavagens.' }
-  ];
-  var selo = (seloAprovado ? traitsOk : traitsCau).map(function (t) {
-    return { titulo: t.titulo, texto: t.texto, cor: seloAcc, icon: seloIcon };
+
+  /* Traços do selo de viagem, DERIVADOS das propriedades da fibra.
+
+     Antes eram uma lista fixa e só os títulos trocavam — o que produzia
+     afirmações que o próprio banco contradiz: uma viscose (respira 8, tanto
+     como a lã, e nem sequer é sintética) recebia "Esquenta e não respira —
+     fibra sintética retém calor".
+
+     Agora cada traço só aparece se a propriedade o sustentar, e a lista é
+     MISTA: uma peça pouco prática que respira bem mostra as duas coisas. É
+     mais honesto e mais útil do que três defeitos em fila — e o design já
+     previa cor e ícone por traço.                                          */
+  function tracosViagem() {
+    var p = props, out = [];
+    var tem = function (k) { return p[k] !== undefined; };
+    var bom  = function (titulo, texto) { out.push({ titulo: titulo, texto: texto, bom: true }); };
+    var mau  = function (titulo, texto) { out.push({ titulo: titulo, texto: texto, bom: false }); };
+
+    // ordem = relevância para quem faz mala
+    if (tem('ama') && p.ama <= 5) mau('Amarrota fácil', 'Sai da mala com vincos. Precisa de ferro ou vapor antes de vestir.');
+    else if (tem('ama') && p.ama >= 7) bom('Não amarrota', 'Sai da mala e vai direto pro corpo, sem passar por ferro nenhum.');
+
+    if (tem('res') && p.res <= 4) mau('Esquenta e não respira', 'O calor do corpo fica preso. Num dia de viagem longo, incomoda.');
+    else if (tem('res') && p.res >= 8) bom('O corpo respira', 'O calor não fica preso, mesmo num dia inteiro fora.');
+
+    if (tem('sec') && p.sec <= 4) mau('Seca devagar', 'Lavar no meio da viagem custa um dia à espera de secar.');
+    else if (tem('sec') && p.sec >= 7) bom('Seca da noite pro dia', 'Lava no lavatório à noite e de manhã está pronta.');
+
+    if (tem('bol') && p.bol <= 4) mau('Cria bolinhas', 'O atrito da mala e da alça encaroça o tecido.');
+    if (tem('cal') && p.cal >= 8) bom('Aguenta o frio', 'Uma peça só resolve, sem precisar de camadas por baixo.');
+
+    if (!out.length) {
+      out.push(seloAprovado
+        ? { titulo: 'Boa companheira de mala', texto: 'Aguenta a viagem sem exigir cuidado especial.', bom: true }
+        : { titulo: 'Pede atenção na mala', texto: 'Não é a peça mais prática para levar numa viagem.', bom: false });
+    }
+    return out.slice(0, 3);
+  }
+
+  var selo = tracosViagem().map(function (tr) {
+    return {
+      titulo: tr.titulo, texto: tr.texto,
+      cor: tr.bom ? '#FF009D' : '#C89B5E',
+      icon: tr.bom ? '\u2713' : '!'
+    };
   });
 
   /* ---------- peças salvas (o design diz "salvas neste navegador") ---- */
@@ -525,7 +555,6 @@
         if (props.ama !== undefined && props.ama <= 5) defeitos.push('==amarrota na mala==');
         if (props.res !== undefined && props.res <= 5) defeitos.push('retém calor');
         if (props.sec !== undefined && props.sec <= 4) defeitos.push('seca devagar');
-        if (props.pes !== undefined && props.pes <= 4) defeitos.push('pesa na bagagem');
         if (!defeitos.length) defeitos.push('==amarrota na mala==');
         var lista = defeitos.length > 1
           ? defeitos.slice(0, -1).join(', ') + ' e ' + defeitos[defeitos.length - 1]
