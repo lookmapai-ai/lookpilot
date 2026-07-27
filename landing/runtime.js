@@ -71,6 +71,11 @@
   var modExplica = Q.get('modexplica') || '';
   var fibraNome = Q.get('fibra') || '';
   var fibraTip = Q.get('fibratip') || '';
+  // certificação (GRS/OCS...) — o card já usava isto pra dizer "sem
+  // certificação de reciclado, é a fibra menos sustentável"; a landing
+  // reconstruía o capítulo 01 sem esse dado, então perdia a nuance
+  var certs = (Q.get('certs') || '').split(',').filter(Boolean);
+  var mainIsSynthetic = Q.get('sintetico') === '1';
   // propriedades cruas da fibra (0-10, 10 = melhor): bol=não bola,
   // ama=não amarrota, sec=seca rápido, cal=isola, res=respira, sus=sustentável.
   //
@@ -281,6 +286,14 @@
         ? 'Tem ' + traco.nome.toLowerCase() + ' na etiqueta — ==' + traco.pct + '%==. O suficiente pra escrever no rótulo e não o suficiente pra mudar nada: quem manda são os sintéticos.'
         : 'Quase toda de sintético. A etiqueta diz ==' + comp + '==. O toque até engana; a composição, não.';
       t1 += qual >= 45 ? '' : ' É aqui que a nota perde pontos.';
+      // certificação: o card já cruzava isso com "quem manda são os
+      // sintéticos" pra explicar a sustentabilidade — a landing reconstruía
+      // o capítulo sem esse dado
+      if (mainIsSynthetic) {
+        t1 += certs.length
+          ? ' Tem certificação ==' + certs.join(', ') + '==, então a origem é verificada.'
+          : ' Sem certificação de reciclado, é a fibra menos sustentável da lista.';
+      }
     } else {
       t1 = 'É uma mistura: ==' + comp + '==. Nem fibra nobre pura, nem sintético barato — está no meio.';
       t1 += qual >= 70 ? ' É o que puxa a nota pra cima.'

@@ -160,6 +160,8 @@
           .map(k => `${k}:${historia.fibraProps[k]}`).join(','));
       }
       if (historia.tipo)       params.set('tipo',       historia.tipo);
+      if (historia.certs && historia.certs.length) params.set('certs', historia.certs.join(',').slice(0, 60));
+      if (historia.mainIsSynthetic) params.set('sintetico', '1');
       if (historia.cor) {
         if (historia.cor.note)  params.set('cornota', historia.cor.note.slice(0, 120));
         if (historia.cor.isPrint) params.set('estampado', '1');
@@ -664,7 +666,12 @@
       // linguagem natural ("estampado pede combinações pensadas").
       cor: (typeof detectColorPattern === 'function'
               ? detectColorPattern(titleText || fullPageText)
-              : null)
+              : null),
+      // certificação (GRS, OCS...): o card já usa isto pra dizer "sem
+      // certificação de reciclado, é a fibra menos sustentável" — a landing
+      // não recebia esse dado nenhum e reconstruía o capítulo 01 sem ele
+      certs: scores?.certs || [],
+      mainIsSynthetic: principal?.data?.type === 'synthetic'
     };
     const total = fibers.reduce((acc,f)=>acc+(f.pct||0),0);
     const mismatch = '';
