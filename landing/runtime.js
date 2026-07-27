@@ -437,9 +437,10 @@
     var tem = function (k) { return p[k] !== undefined; };
     var bom  = function (titulo, texto) { out.push({ titulo: titulo, texto: texto, bom: true }); };
     var mau  = function (titulo, texto) { out.push({ titulo: titulo, texto: texto, bom: false }); };
-    // casaco é pra usar por cima: calor é o ponto principal (defeito real é
-    // NÃO esquentar, não o contrário), e não respirar não pesa contra —
-    // ninguém espera que um casaco arejar como uma camiseta
+    // casaco é pra usar por cima: calor vira o critério principal (defeito
+    // real é NÃO esquentar), mas respirar continua importando nos dois
+    // sentidos — um casaco que não respira também sufoca ao entrar num
+    // lugar aquecido ou no metrô lotado, só que o jeito de sentir é outro.
     var isCasaco = tipoKey === 'casaco';
 
     // ordem = relevância para quem faz mala
@@ -449,6 +450,8 @@
     if (isCasaco) {
       if (tem('cal') && p.cal <= 4) mau('Não esquenta muito', 'Pra um casaco, é o ponto que mais pesa — essa fibra não é a primeira escolha pro frio.');
       else if (tem('cal') && p.cal >= 7) bom('Aguenta o frio', 'Uma peça só resolve, sem precisar de camadas por baixo.');
+      if (tem('res') && p.res <= 4) mau('Prende o suor por dentro', 'Vira estufa assim que você entra em algum lugar aquecido ou pega o metrô lotado.');
+      else if (tem('res') && p.res >= 8) bom('Esquenta sem virar estufa', 'Segura o frio de fora sem sufocar quando você entra em algum lugar aquecido.');
       // sintético esquenta menos do que a nota de calor sugere e ainda gera
       // estática no ar seco do inverno — vale mesmo com nota de calor ok
       if (_sintetica) mau('Sintético no frio', 'Esquenta menos do que parece e gera estática no ar seco do inverno.');
@@ -602,9 +605,14 @@
         var nome = f ? f.nome.toLowerCase() : 'essa fibra';
         var pontos = [];
         if (props.ama !== undefined && props.ama > 5) pontos.push('==não amarrota==');
-        // casaco: calor é o ponto que importa, respirar não é o critério
+        // casaco: calor é o critério principal, mas respirar continua
+        // contando — sem isso ele vira estufa ao entrar num lugar aquecido
         if (tipoKey === 'casaco') {
-          if (props.cal !== undefined && props.cal >= 7) pontos.push('==aguenta o frio== sem precisar de camadas por baixo');
+          if (props.cal !== undefined && props.cal >= 7 && props.res !== undefined && props.res >= 8) {
+            pontos.push('==aguenta o frio== sem virar estufa quando você entra em algum lugar aquecido');
+          } else if (props.cal !== undefined && props.cal >= 7) {
+            pontos.push('==aguenta o frio== sem precisar de camadas por baixo');
+          } else if (props.res !== undefined && props.res >= 8) pontos.push('respira mesmo isolando do frio');
         } else if (props.res !== undefined && props.cal !== undefined && props.res >= 8 && props.cal >= 7) {
           pontos.push('aquece e respira na mesma peça');
         } else if (props.res !== undefined && props.res >= 8) pontos.push('respira bem');
