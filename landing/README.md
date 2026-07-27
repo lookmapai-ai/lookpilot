@@ -61,6 +61,22 @@ continua sendo o mesmo, e o `build.py` reescreve-os relativos à raiz
 `LookMap Landing Extensao` do projeto no Claude — o mesmo processo da página de
 análise. As duas páginas saem do mesmo `build.py`.
 
+## Medir se as pessoas voltam
+
+`metrica.js` grava no navegador de quem usa: análises vistas, peças salvas,
+sessões (30 min sem atividade = nova) e dias desde a primeira vez. **Só
+contagens** — nada sobre qual peça, loja, preço ou score, para não haver dado
+pessoal.
+
+A pergunta que ele responde é uma só: **as pessoas voltam e salvam a segunda
+peça?** É ela que decide se a tese do histórico ("comparar antes da próxima
+compra") se sustenta — e, portanto, se vale construir conta e backend.
+
+Como ler, hoje: `diagnostico.html`. A pessoa abre e diz o que vê (serve os
+primeiros utilizadores). **Os números não chegam sozinhos** — não há servidor.
+Quando publicar, descomentar `enviar()` em `metrica.js` e apontar para um
+endpoint; o payload já é anônimo.
+
 ## Minhas peças
 
 O botão "Minhas peças" no cabeçalho troca para a vista de peças salvas. Salvar

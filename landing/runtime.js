@@ -455,6 +455,8 @@
       url: location.search
     });
     gravarGuardadas(l);
+    // mede a única coisa que decide a tese do histórico: chegou à 2ª peça?
+    if (window.metrica) window.metrica.registar('salvou', { noHistorico: l.length });
   }
 
   var view = 'detalhe';
@@ -778,6 +780,10 @@
     if (v !== view) { view = v; render(); window.scrollTo(0, 0); }
   });
   if (location.hash === '#minhas-pecas') view = 'historico';
+
+  // só conta como análise vista quando veio da extensão (tem score) — a
+  // página de demonstração não polui a medição
+  if (real && window.metrica) window.metrica.registar('analise');
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render);
   else render();

@@ -211,7 +211,8 @@ def build(cfg):
   </head>
   <body>
   {body}
-  <script src="{cfg["runtime"]}?v={_rt_ver}"></script>
+  <script src="metrica.js"></script>
+<script src="{cfg["runtime"]}?v={_rt_ver}"></script>
   </body>
   </html>
   """
