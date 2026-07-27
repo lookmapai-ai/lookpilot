@@ -417,9 +417,6 @@
     };
   });
 
-  var seloAprovado = vg >= 7;
-  var seloAcc = seloAprovado ? '#FF009D' : '#C89B5E';
-  var seloIcon = seloAprovado ? '✓' : '!';
   // os traços seguem a composição real da peça, não a do suéter de demonstração
   var _mix = classifica(parseFibras());
   var _sintetica = _mix.sin >= 50;
@@ -435,7 +432,7 @@
      MISTA: uma peça pouco prática que respira bem mostra as duas coisas. É
      mais honesto e mais útil do que três defeitos em fila — e o design já
      previa cor e ícone por traço.                                          */
-  function tracosViagem() {
+  function tracosViagemBrutos() {
     var p = props, out = [];
     var tem = function (k) { return p[k] !== undefined; };
     var bom  = function (titulo, texto) { out.push({ titulo: titulo, texto: texto, bom: true }); };
@@ -454,6 +451,23 @@
     if (tem('bol') && p.bol <= 4) mau('Cria bolinhas', 'O atrito da mala e da alça encaroça o tecido.');
     if (tem('cal') && p.cal >= 8) bom('Aguenta o frio', 'Uma peça só resolve, sem precisar de camadas por baixo.');
 
+    return out;
+  }
+
+  var _tracosBrutos = tracosViagemBrutos();
+  // Selo "aprovado" exigia só a MÉDIA (vg>=7) — deixava a peça ser aprovada
+  // com um card de traço reprovando a mesma propriedade logo abaixo (ex.:
+  // algodão "aprovado pra viagem" ao lado de "Amarrota fácil"). Agora um
+  // único traço ruim já tira o selo binário, mesmo com a média boa; sem
+  // dado de propriedade nenhum, cai de volta pra média (análise real pode
+  // não trazer todas as propriedades).
+  var _temMau = _tracosBrutos.some(function (t) { return !t.bom; });
+  var seloAprovado = _tracosBrutos.length ? (vg >= 7 && !_temMau) : vg >= 7;
+  var seloAcc = seloAprovado ? '#FF009D' : '#C89B5E';
+  var seloIcon = seloAprovado ? '✓' : '!';
+
+  function tracosViagem() {
+    var out = _tracosBrutos.slice();
     if (!out.length) {
       out.push(seloAprovado
         ? { titulo: 'Boa companheira de mala', texto: 'Aguenta a viagem sem exigir cuidado especial.', bom: true }
@@ -553,7 +567,7 @@
       seloViagem: vg,
       seloAprovado: seloAprovado,
       seloCautela: !seloAprovado,
-      seloMini: vg >= 7 ? 'Ótima pra levar' : vg >= 5 ? 'Dá pra levar, com ressalvas' : 'Pouco prática',
+      seloMini: seloAprovado ? 'Ótima pra levar' : vg >= 5 ? 'Dá pra levar, com ressalvas' : 'Pouco prática',
       // a variante de cautela afirmava "amarrota fácil e retém calor e cheiro"
       // para qualquer fibra; agora nomeia só os defeitos que esta fibra tem
       seloLeadCautelaEl: mark((function () {
