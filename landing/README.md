@@ -14,6 +14,11 @@ Destino do botão "Ver análise completa →" do card da extensão.
 
 ## Baixar extensão
 
+> **Se o link "não funciona", rode primeiro:** `node tests/entrega.js`
+> Ele diz qual dos elos quebrou e o que fazer. Já quebrou duas vezes com o
+> mesmo sintoma e causas diferentes: zip velho (servia a extensão antiga) e
+> servidor fora (arquivo certo, ninguém servindo).
+
 O botão entrega `lookpilot-extensao.zip`, gerado por `./empacotar.sh` a partir
 dos arquivos que a extensão carrega em runtime (ficam de fora os `.json`, que
 são insumos do `build.py`, os testes e a própria landing). O `servir.sh` chama

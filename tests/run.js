@@ -1060,4 +1060,13 @@ if (failures.length > 0) {
 }
 
 console.log('══════════════════════════════════════════════════════════\n');
+// A entrega da extensão (o zip que o botão baixa) tem o seu próprio teste,
+// porque já quebrou duas vezes sem que nada aqui percebesse.
+try {
+  require('child_process').execSync('node ' + require('path').join(__dirname, 'entrega.js'),
+    { stdio: 'inherit' });
+} catch (e) {
+  process.exit(1);
+}
+
 process.exit(failed > 0 ? 1 : 0);
