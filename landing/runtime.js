@@ -294,7 +294,7 @@
     var t2;
     if (props.res !== undefined || props.cal !== undefined) {
       var respira = props.res, aquece = props.cal;
-      var corpo;
+      var corpo, condicional = false;
       if (respira >= 8 && aquece >= 7) {
         corpo = variante([
           '==Aquece sem abafar.== Segura o frio e ainda deixa o corpo respirar — dá pra passar o dia inteiro com ela.',
@@ -302,12 +302,14 @@
           '==Quente e arejada ao mesmo tempo==, o que é raro. Aguenta a rua fria e o interior aquecido sem te fazer suar.'
         ]);
       } else if (respira >= 8 && aquece <= 4) {
+        condicional = true;
         corpo = variante([
           'É fresca: ==o corpo respira== e o calor não fica preso. Resolve bem no calor — no frio, pede uma camada por cima.',
           '==Deixa o corpo respirar.== No calor é um alívio; quando esfria, você vai querer algo por cima.',
           'Leve no corpo e ==arejada==. Feita pros dias quentes — sozinha, no frio, não segura.'
         ]);
       } else if (respira <= 4 && aquece >= 7) {
+        condicional = true;
         corpo = variante([
           'Segura bem o frio, mas ==não respira==. Em lugar fechado, ou num dia que estica, você começa a sentir.',
           'Aquece — e ==guarda esse calor todo==. Boa na rua, sufocante assim que você entra em algum lugar.',
@@ -326,7 +328,12 @@
           'No corpo não chama atenção: ==nem sufoca, nem deixa você com frio==.'
         ]);
       }
-      t2 = corpo + ' ' + [
+      // Ramos condicionais (fresca-mas-esfria / quente-mas-abafa) já trazem a
+      // própria ressalva — colar um fechamento genérico de confiança por
+      // cima criava contradição (ex.: "pede camada por cima" seguido de
+      // "veste e some, no bom sentido"). Só os ramos sem ressalva embutida
+      // (bom/ruim/neutro nos dois eixos) levam essa cauda.
+      t2 = condicional ? corpo : corpo + ' ' + [
         variante(['No corpo é onde ela perde — você sente ao longo do dia.',
                   'É aqui que ela cobra: o corpo percebe.',
                   'O incômodo aparece justamente no uso longo.'], 7),
