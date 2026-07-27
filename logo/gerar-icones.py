@@ -1,108 +1,80 @@
 #!/usr/bin/env python3
 """
-gerar-icones.py — desenha o ícone da barra do navegador (e o SVG da marca).
+gerar-icones.py — compõe a marca "lp" para o ícone da barra do navegador.
 
-  python3 logo/gerar-icones.py           # grava icon16/48/128.png + lookpilot-mini.svg
-  python3 logo/gerar-icones.py --provas  # grava ampliações em logo/provas/ para conferir
+  python3 logo/gerar-icones.py     # grava logo/lookpilot-mini.svg e logo/tamanhos/*.svg
 
-Por que existe: os ícones eram exportados à mão do lookpilot-mini.svg, que
-tinha dois defeitos de desenho —
+As LETRAS não são desenhadas aqui: são as autênticas do logo, em **Bellota
+Text**, vetorizadas. O script só as compõe — o defeito nunca esteve nas letras,
+esteve no enquadramento:
 
-  1. a perna do "p" descia até y=232 num quadrado de 200, ou seja FICAVA FORA
-     do quadrado, flutuando em transparência (invisível em barra clara, solta
-     em barra escura);
-  2. a haste do "l" tinha 8,5% da largura: a 16px virava 1,4px e evaporava.
+  · a perna do "p" descia até y=232 num quadrado de 200, ou seja ficava FORA
+    do quadrado, flutuando em transparência (invisível em barra clara, solta
+    em barra escura);
+  · e não havia ajuste por tamanho: o mesmo enquadramento que respira a 128
+    deixa o traço fino demais a 16.
 
-Aqui o desenho é geométrico, renderizado a 512 e reamostrado. Cada tamanho tem
-o seu peso, porque um traço elegante a 128 desaparece a 16 — e o vazio do "p"
-tem um piso, senão fecha e a letra vira um borrão.
+Agora a caixa real das letras (147,9 × 217,1) é medida e encaixada no tile com
+uma folga por tamanho — quanto menor o ícone, mais apertado, para o traço
+engordar proporcionalmente.
 
-Marca: o magenta #FF009D é a assinatura na barra (é o que distingue o ícone
-entre uma dúzia de outros), com o monograma "lp" em branco. Dentro do produto
-o sistema é Apple White — tinta preenche, magenta acentua — mas o ícone é
-ativo de marca, e a regra documentada no DESIGN.md §6 é justamente que o
-magenta sobrevive no wordmark e no ícone.
+Rasterizar: abra logo/rasterizar.html no navegador (ele desenha os SVG num
+canvas e oferece os PNG). PIL não desenha curvas de Bézier, por isso a
+rasterização é feita no navegador, que é também quem vai exibir o ícone.
 """
-import sys, pathlib
-from PIL import Image, ImageDraw
+import pathlib
 
-RAIZ = pathlib.Path(__file__).parent.parent
-S = 512                       # canvas de trabalho
-MAGENTA = (255, 0, 157, 255)  # #FF009D
-BRANCO = (255, 255, 255, 255)
+AQUI = pathlib.Path(__file__).parent
 
-# Geometria do monograma, em unidades de 512.
-# O vazio do "p" (r_in) NÃO acompanha o peso: se acompanhasse, fecharia a 16px.
-GEOMETRIA = {
-    128: dict(haste=56, r_in=30, gap=16),   # mais fino: há espaço para elegância
-    48:  dict(haste=60, r_in=30, gap=15),
-    16:  dict(haste=64, r_in=30, gap=14),   # mais gordo: sobrevive à redução
-}
+# Caixa real das letras, medida com getBBox() no navegador.
+CAIXA = dict(x=30.16, y=15.06, w=147.912, h=217.14)
 
+# "lp" em Bellota Text, vetorizado — as letras do logo, sem redesenho.
+LP = (
+    "M30.16 15.06H47.76V175.22H30.16V15.06ZM129.672 61.92C139.939 61.92 148.666 64.4867 "
+    "155.852 69.62C163.186 74.7533 168.686 81.6467 172.352 90.3C176.166 98.8067 178.072 "
+    "108.193 178.072 118.46C178.072 129.753 175.872 139.873 171.472 148.82C167.219 157.62 "
+    "160.912 164.587 152.552 169.72C144.339 174.707 134.659 177.2 123.512 177.2C119.112 "
+    "177.2 111.632 176.54 101.072 175.22V232.2H83.6922V98C83.6922 86.56 80.6122 78.2 "
+    "74.4522 72.92L86.5522 61.7C88.7522 63.02 90.9522 65 93.1522 67.64C95.3522 70.1333 "
+    "97.1855 73.0667 98.6522 76.44C102.172 72.04 106.792 68.52 112.512 65.88C118.232 "
+    "63.24 123.952 61.92 129.672 61.92ZM122.412 160.92C134.732 160.92 144.046 157.18 "
+    "150.352 149.7C156.806 142.22 160.032 132.247 160.032 119.78C160.032 108.047 157.319 "
+    "98.22 151.892 90.3C146.466 82.2333 139.206 78.2 130.112 78.2C122.926 78.2 116.399 "
+    "80.5467 110.532 85.24C104.812 89.7867 101.659 95.6533 101.072 102.84V159.6C109.872 "
+    "160.48 116.986 160.92 122.412 160.92Z"
+)
 
-def desenha(haste, r_in, gap, tile=MAGENTA, tinta=BRANCO):
-    im = Image.new("RGBA", (S, S), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
+MAGENTA = "#FF009D"   # o mesmo acento do design v15 (15 ocorrências lá; o
+                      # #EF23A1 do arquivo antigo do wordmark é resíduo)
 
-    # tile com cantos generosos, no espírito dos cartões do design
-    d.rounded_rectangle([0, 0, S - 1, S - 1], radius=int(S * 0.23), fill=tile)
-
-    r = haste // 2
-    lx = 150
-    # "l" — ascendente
-    d.rounded_rectangle([lx, 112, lx + haste, 336], radius=r, fill=tinta)
-
-    # "p" — haste com a perna abaixo da linha de base, agora DENTRO do tile
-    px = lx + haste + gap
-    d.rounded_rectangle([px, 184, px + haste, 408], radius=r, fill=tinta)
-
-    # bolha do "p": anel de espessura igual à haste, com o vazio começando
-    # exatamente na borda direita da haste
-    r_out = r_in + haste
-    cx, cy = px + haste + r_in, 260
-    d.ellipse([cx - r_out, cy - r_out, cx + r_out, cy + r_out], fill=tinta)
-    d.ellipse([cx - r_in, cy - r_in, cx + r_in, cy + r_in], fill=tile)
-    return im
+# folga por tamanho: quanto menor, mais apertado (traço proporcionalmente maior)
+FOLGAS = {128: 0.18, 48: 0.15, 16: 0.12}
 
 
-def svg(haste, r_in, gap):
-    """Fonte vetorial equivalente, para quem precisar do desenho em SVG."""
-    r = haste / 2
-    lx = 150
-    px = lx + haste + gap
-    r_out = r_in + haste
-    cx, cy = px + haste + r_in, 260
-    anel = (r_in + r_out) / 2
-    return f'''<svg width="{S}" height="{S}" viewBox="0 0 {S} {S}" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="{S}" height="{S}" rx="{int(S*0.23)}" fill="#FF009D"/>
-  <rect x="{lx}" y="112" width="{haste}" height="224" rx="{r}" fill="#FFFFFF"/>
-  <rect x="{px}" y="184" width="{haste}" height="224" rx="{r}" fill="#FFFFFF"/>
-  <circle cx="{cx}" cy="{cy}" r="{anel}" stroke="#FFFFFF" stroke-width="{haste}" fill="none"/>
-</svg>
-'''
+def compor(S, folga):
+    b = CAIXA
+    alvo = S * (1 - 2 * folga)
+    k = min(alvo / b["w"], alvo / b["h"])
+    tx = (S - b["w"] * k) / 2 - b["x"] * k
+    ty = (S - b["h"] * k) / 2 - b["y"] * k
+    r = round(S * 0.23)
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{S}" height="{S}" '
+        f'viewBox="0 0 {S} {S}">\n'
+        f'  <rect width="{S}" height="{S}" rx="{r}" fill="{MAGENTA}"/>\n'
+        f'  <g transform="translate({tx:.2f},{ty:.2f}) scale({k:.4f})">\n'
+        f'    <path d="{LP}" fill="#FFFFFF"/>\n'
+        f'  </g>\n'
+        f'</svg>\n'
+    )
 
 
 if __name__ == "__main__":
-    if "--provas" in sys.argv:
-        pasta = RAIZ / "logo" / "provas"
-        pasta.mkdir(exist_ok=True)
-        Z = 13
-        largura = len(GEOMETRIA) * (16 * Z + 24) + 20
-        folha = Image.new("RGBA", (largura, 16 * Z + 80), (255, 255, 255, 255))
-        dd = ImageDraw.Draw(folha)
-        x = 14
-        for tam, g in GEOMETRIA.items():
-            im = desenha(**g).resize((tam, tam), Image.LANCZOS)
-            im.save(pasta / f"icone-{tam}.png")
-            dd.text((x, 10), f"{tam}px", fill=(0, 0, 0))
-            base = Image.new("RGBA", (16 * Z, 16 * Z), (248, 248, 250, 255))
-            base.alpha_composite(im.resize((16 * Z, 16 * Z), Image.NEAREST))
-            folha.alpha_composite(base, (x, 30))
-            x += 16 * Z + 24
-        folha.save(pasta / "conferir.png")
-        print("provas em logo/provas/conferir.png")
-    else:
-        for tam, g in GEOMETRIA.items():
-            desenha(**g).resize((tam, tam), Image.LANCZOS).save(RAIZ / f"icon{tam}.png")
-        (RAIZ / "logo" / "lookpilot-mini.svg").write_text(svg(**GEOMETRIA[128]))
-        print("icon16.png, icon48.png, icon128.png e logo/lookpilot-mini.svg gravados")
+    (AQUI / "lookpilot-mini.svg").write_text(compor(512, FOLGAS[128]))
+    pasta = AQUI / "tamanhos"
+    pasta.mkdir(exist_ok=True)
+    for tam, folga in FOLGAS.items():
+        (pasta / f"icone-{tam}.svg").write_text(compor(512, folga))
+    print("logo/lookpilot-mini.svg + logo/tamanhos/*.svg")
+    print("para os PNG: abra logo/rasterizar.html no navegador")
