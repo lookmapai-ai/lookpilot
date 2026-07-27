@@ -7,4 +7,7 @@ files.zip
 *.zip
 LookMap.html
 LookPilot*.html
-landing/lookpilot-extensao.zip
+
+# landing/lookpilot-extensao.zip É versionado: é o arquivo que o botão
+# "Baixar extensão" entrega em produção (não tem servidor gerando na hora).
+!landing/lookpilot-extensao.zip
