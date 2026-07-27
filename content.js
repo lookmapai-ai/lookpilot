@@ -6,14 +6,12 @@
 
   // ┌── ONDE VIVE A PÁGINA DE RESULTADOS ────────────────────────────┐
   // │ DEV  = servidor local (rode `landing/servir.sh` antes)         │
-  // │ PROD = lookmap.ai — só funciona depois de publicar a página lá  │
-  // │ Hoje o link de produção está morto (nada publicado ainda), por  │
-  // │ isso o padrão é DEV. Troque para PROD ao publicar.              │
+  // │ PROD = lookpilotapp.com, já publicado na Vercel                │
   // └────────────────────────────────────────────────────────────────┘
-  const LOOKMAP_DEV = true;
+  const LOOKMAP_DEV = false;
   const LOOKMAP_BASE_URL = LOOKMAP_DEV
     ? 'http://localhost:8777/analise.html'
-    : 'https://lookmap.ai/analise';
+    : 'https://www.lookpilotapp.com/analise.html';
 
   // Preço a partir do JSON-LD schema.org (Product -> offers.price). É o que a
   // loja declara ao Google, por isso acompanha promoções melhor que as meta

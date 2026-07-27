@@ -9,10 +9,10 @@ function applyI18n() {
 
 // --- LookMap URL builder ---
 // Mantenha em sincronia com LOOKMAP_DEV/LOOKMAP_BASE_URL no content.js.
-const LOOKMAP_DEV = true;
+const LOOKMAP_DEV = false;
 const LOOKMAP_BASE_URL = LOOKMAP_DEV
   ? 'http://localhost:8777/analise.html'
-  : 'https://lookmap.ai/analise';
+  : 'https://www.lookpilotapp.com/analise.html';
 
 function buildAnaliseURLFromStorage(last) {
   const s = last.scores;
