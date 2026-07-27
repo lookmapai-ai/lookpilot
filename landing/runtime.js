@@ -449,6 +449,9 @@
     if (isCasaco) {
       if (tem('cal') && p.cal <= 4) mau('Não esquenta muito', 'Pra um casaco, é o ponto que mais pesa — essa fibra não é a primeira escolha pro frio.');
       else if (tem('cal') && p.cal >= 7) bom('Aguenta o frio', 'Uma peça só resolve, sem precisar de camadas por baixo.');
+      // sintético esquenta menos do que a nota de calor sugere e ainda gera
+      // estática no ar seco do inverno — vale mesmo com nota de calor ok
+      if (_sintetica) mau('Sintético no frio', 'Esquenta menos do que parece e gera estática no ar seco do inverno.');
     } else {
       if (tem('res') && p.res <= 4) mau('Esquenta e não respira', 'O calor do corpo fica preso. Num dia de viagem longo, incomoda.');
       else if (tem('res') && p.res >= 8) bom('O corpo respira', 'O calor não fica preso, mesmo num dia inteiro fora.');
