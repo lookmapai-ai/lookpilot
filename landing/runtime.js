@@ -619,46 +619,71 @@
       seloAprovado: seloAprovado,
       seloCautela: !seloAprovado,
       seloMini: seloAprovado ? 'Ótima pra levar' : vg >= 5 ? 'Dá pra levar, com ressalvas' : 'Pouco prática',
-      // a variante de cautela afirmava "amarrota fácil e retém calor e cheiro"
-      // para qualquer fibra; agora nomeia só os defeitos que esta fibra tem
+      /* Antes: [nome da fibra] + [defeitos juntados com "e"] + uma cauda fixa
+         igual pra toda peça ("conte com ferro ou vapor"). Três problemas:
+         o nome da fibra virava sujeito solto ("Algodão amarrota"), a lista
+         denunciava montagem, e a cauda não checava o defeito — mandava
+         passar a ferro uma peça cujo único problema era reter calor.
+         Agora cada combinação de defeitos tem frase inteira, escrita como
+         cena concreta, com o conselho que corresponde ao problema real. */
       seloLeadCautelaEl: mark((function () {
-        var f = fibraNome || 'Essa fibra';
-        var defeitos = [];
-        if (props.ama !== undefined && props.ama <= 5) defeitos.push('==amarrota na mala==');
-        if (props.res !== undefined && props.res <= 5) defeitos.push('retém calor');
-        if (props.sec !== undefined && props.sec <= 4) defeitos.push('seca devagar');
-        if (!defeitos.length) defeitos.push('==amarrota na mala==');
-        var lista = defeitos.length > 1
-          ? defeitos.slice(0, -1).join(', ') + ' e ' + defeitos[defeitos.length - 1]
-          : defeitos[0];
-        return f + ' ' + lista + '. Dá pra levar, mas conte com ferro ou vapor — e uma lavagem a mais na volta.';
+        var o = tipoArt === 'este' ? 'o' : 'a';
+        var A = props.ama !== undefined && props.ama <= 5;   // amarrota
+        var B = props.res !== undefined && props.res <= 5;   // abafa
+        var S = props.sec !== undefined && props.sec <= 4;   // seca devagar
+        var FRASES = {
+          A: ['==Sai amassad' + o + ' da mala==, por melhor que você dobre. Dá pra levar — só conte com um ferro do outro lado.',
+              '==Amassa na mala.== Dobrar com cuidado adia o vinco, não resolve: no destino é ferro ou vapor antes de vestir.'],
+          AB: ['==Amassa na mala== e ainda prende o calor num dia inteiro fora. Vale levar se for peça-chave; senão, cobra mais do que entrega.',
+               'Chega ==amassad' + o + '== e ==abafa== quando o dia estica. Dá pra levar, mas não é a peça que resolve sozinha.'],
+          AS: ['==Sai amassad' + o + ' da mala== e, se você lavar no meio da viagem, perde um dia inteiro esperando secar.',
+               '==Amassa e seca devagar==: lavar no meio do caminho custa um dia de espera, além do ferro no destino.'],
+          ABS: ['Amassa, abafa e ainda demora a secar. É a peça que mais vai dar trabalho nessa mala.',
+                '==Amarrota, retém calor e seca devagar.== Dá pra levar, mas prepare-se: ferro no destino e paciência depois de lavar.'],
+          B: ['==Prende o calor.== Num dia inteiro na rua você sente — e viagem costuma ser exatamente isso.',
+              '==Abafa quando o dia estica.== Funciona se o destino for frio; no calor, incomoda.'],
+          BS: ['==Abafa num dia longo== e ==demora a secar== depois de lavar. Leve se o clima do destino ajudar.',
+               'Retém calor e seca devagar — duas coisas que pesam justamente em viagem.'],
+          S: ['==Seca devagar.== Se a ideia era lavar no meio da viagem e usar de novo, conte com um dia inteiro de espera.',
+              '==Demora a secar.== Lavar à noite e vestir de manhã não vai dar certo com esta peça.'],
+          '': ['Pede um pouco de atenção na mala. Nada que atrapalhe a viagem — mas também não é a peça que você esquece que levou.']
+        };
+        var chave = (A ? 'A' : '') + (B ? 'B' : '') + (S ? 'S' : '');
+        return variante(FRASES[chave] || FRASES[''], 11);
       })()),
-      // o design abria com "Lã é a fibra que mais viaja" (e sempre "não
-      // amarrota", mesmo quando a fibra amarrota) — nomeia a fibra real e só
-      // os pontos fortes que ELA de fato tem
+      // Mesma reescrita do texto de cautela acima: frase inteira por caso,
+      // em vez de "[fibra] viaja bem: [lista]. [cauda fixa]".
       seloLeadEl: mark((function () {
-        var f = parseFibras().slice().sort(function (a, b) { return b.pct - a.pct; })[0];
-        var nome = f ? f.nome.toLowerCase() : 'essa fibra';
-        var pontos = [];
-        if (props.ama !== undefined && props.ama > 5) pontos.push('==não amarrota==');
-        // casaco: calor é o critério principal, mas respirar continua
-        // contando — sem isso ele vira estufa ao entrar num lugar aquecido
+        var naoAmarrota = props.ama !== undefined && props.ama > 5;
+        var secaRapido  = props.sec !== undefined && props.sec >= 7;
+        var respira     = props.res !== undefined && props.res >= 8;
+        var aquece      = props.cal !== undefined && props.cal >= 7;
+
+        // casaco: o que importa é resolver o frio sem virar estufa por dentro
         if (tipoKey === 'casaco') {
-          if (props.cal !== undefined && props.cal >= 7 && props.res !== undefined && props.res >= 8) {
-            pontos.push('==aguenta o frio== sem virar estufa quando você entra em algum lugar aquecido');
-          } else if (props.cal !== undefined && props.cal >= 7) {
-            pontos.push('==aguenta o frio== sem precisar de camadas por baixo');
-          } else if (props.res !== undefined && props.res >= 8) pontos.push('respira mesmo isolando do frio');
-        } else if (props.res !== undefined && props.cal !== undefined && props.res >= 8 && props.cal >= 7) {
-          pontos.push('aquece e respira na mesma peça');
-        } else if (props.res !== undefined && props.res >= 8) pontos.push('respira bem');
-        if (props.sec !== undefined && props.sec >= 7) pontos.push('seca rápido e dispensa ferro');
-        if (!pontos.length) pontos.push('resolve sem drama');
-        var lista = pontos.length > 1
-          ? pontos.slice(0, -1).join(', ') + ' e ' + pontos[pontos.length - 1]
-          : pontos[0];
-        return (f ? nome.charAt(0).toUpperCase() + nome.slice(1) : 'Essa fibra') +
-          ' viaja bem: ' + lista + '. Você leva menos peças — e lava menos ainda.';
+          if (aquece && respira) return variante([
+            '==Resolve o frio sem virar estufa== quando você entra em algum lugar aquecido. Um casaco só, sem camadas por baixo — e sobra mala.',
+            'Segura a rua fria e aguenta o interior aquecido ==sem te fazer suar==. Num casaco, isso é o que separa levar de carregar.'
+          ], 13);
+          if (aquece) return variante([
+            '==Segura o frio sozinho.== Você não precisa empilhar camadas por baixo, e só isso já libera metade da mala.',
+            'Aguenta o frio ==sem reforço==: um casaco, nada por baixo, e a mala agradece.'
+          ], 13);
+          if (respira) return '==Respira mesmo isolando do frio==, então dá pra entrar num lugar aquecido sem precisar tirar na hora.';
+        }
+
+        if (naoAmarrota && secaRapido) return variante([
+          '==Sai da mala pronta pra vestir== e, se você lavar à noite, de manhã está seca. É o tipo de peça que deixa a mala menor.',
+          'Nenhum ferro envolvido, e ==lava à noite pra vestir de manhã==. Uma peça dessas rende como três.'
+        ], 13);
+        if (naoAmarrota) return variante([
+          '==Sai da mala e vai direto pro corpo== — nenhum ferro envolvido. Numa viagem curta isso vale mais do que parece.',
+          'Dobra, viaja, veste. ==Sem vinco e sem ferro==, que é o que você quer de uma peça de mala.'
+        ], 13);
+        if (secaRapido) return '==Lava no lavatório à noite, veste de manhã.== Uma peça dessas substitui três na mala.';
+        if (respira && aquece) return '==Aguenta a rua fria e o interior aquecido sem te fazer suar== — o que, numa peça só, é raro.';
+        if (respira) return '==Respira bem==: o calor do corpo não fica preso, mesmo num dia inteiro fora.';
+        return 'Resolve a viagem sem exigir cuidado nenhum. É a peça que entra na mala sem você pensar duas vezes.';
       })()),
       // lookmap
       // o design tinha uma frase por faixa de nota (86 celebra, 58 pondera);
