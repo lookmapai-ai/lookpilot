@@ -488,7 +488,18 @@
     const compEl = document.querySelector('[class*="ompositionList"],[class*="omposition-list"],[class*="ompositionText"]');
     if (compEl) {
       const root = compEl.closest('ul,[class*="ompositionList"]') || compEl;
-      const compText = (root.textContent || '').trim();
+      // .textContent gruda elementos vizinhos sem separador nenhum quando o
+      // HTML fonte não tem espaço entre as tags (comum em markup minificado)
+      // — "Materiais" + "Composição" + "algodão" viravam
+      // "materiaiscomposiçãoalgodão" (H&M). Junta folha por folha com quebra
+      // de linha, igual ao fallback logo abaixo.
+      let compText = '';
+      root.querySelectorAll('*').forEach(el => {
+        if (el.children.length > 0) return;
+        const t = (el.textContent || '').trim();
+        if (t) compText += '\n' + t;
+      });
+      compText = (compText || root.textContent || '').trim();
       if (/\d{1,3}\s*%\s*[a-zà-öø-ÿ]/i.test(compText)) return compText;
     }
 
