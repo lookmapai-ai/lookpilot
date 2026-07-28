@@ -479,14 +479,35 @@
   }
 
   var _tracosBrutos = tracosViagemBrutos();
-  // Selo "aprovado" exigia só a MÉDIA (vg>=7) — deixava a peça ser aprovada
-  // com um card de traço reprovando a mesma propriedade logo abaixo (ex.:
-  // algodão "aprovado pra viagem" ao lado de "Amarrota fácil"). Agora um
-  // único traço ruim já tira o selo binário, mesmo com a média boa; sem
-  // dado de propriedade nenhum, cai de volta pra média (análise real pode
-  // não trazer todas as propriedades).
-  var _temMau = _tracosBrutos.some(function (t) { return !t.bom; });
-  var seloAprovado = _tracosBrutos.length ? (vg >= 7 && !_temMau) : vg >= 7;
+  /* O selo PESA, não veta.
+
+     Histórico: primeiro o selo olhava só a média (vg>=7), e aprovava peça
+     com um card reprovando logo abaixo ("Aprovado pra viagem" ao lado de
+     "Amarrota fácil"). A correção foi longe demais — passou a bastar UM
+     traço ruim pra reprovar, e aí quase nada era aprovado: não existe fibra
+     sem defeito (algodão amassa, poliéster abafa, linho amassa muito, lã
+     seca devagar). Selo que fica sempre no mesmo estado não informa nada.
+
+     A contradição de verdade era de TEXTO — o lead prometia "não amarrota"
+     numa peça que amarrota —, e isso se resolve em seloLeadEl, que só cita
+     qualidade que a fibra tem.
+
+     Agora: aprovado = média boa E os pontos bons superam os ruins. Poliéster
+     (não amassa, seca rápido, mas abafa) passa; algodão (respira, mas amassa
+     e seca devagar) fica em "dá pra levar, com ressalvas", que é a leitura
+     honesta. Um defeito visível ao lado do selo deixa de ser contradição:
+     o selo dá o veredito, os cards dão o preço a pagar.                    */
+  var _bons = _tracosBrutos.filter(function (t) { return t.bom; }).length;
+  var _maus = _tracosBrutos.length - _bons;
+  // Uma exceção à contagem: amassar muito é desqualificante pra mala, e
+  // contar traços como se pesassem igual aprovaria linho (amassa=1, o pior
+  // do banco) por respirar e secar bem. Peça que sai inutilizável da
+  // bagagem não é compensada por outra virtude — é o único ponto onde o
+  // contexto "viagem" justifica um corte seco. Pega linho, cânhamo, rami.
+  var _amassaMuito = props.ama !== undefined && props.ama <= 3;
+  var seloAprovado = _tracosBrutos.length
+    ? (vg >= 7 && _bons > _maus && !_amassaMuito)
+    : vg >= 7;
   var seloAcc = seloAprovado ? '#FF009D' : '#C89B5E';
   var seloIcon = seloAprovado ? '✓' : '!';
 
