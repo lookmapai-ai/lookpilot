@@ -80,7 +80,7 @@
       ],
       resp1El: mark('O LookPilot abre a etiqueta e lê fibra a fibra — ==100% lã ou 94% sintético==, sem marketing pelo meio. O que a loja esconde nas letras miúdas, você vê num relance.'),
       resp2El: mark('A composição vira uma ==nota de 0 a 100== e um veredito direto — de "não vale a pena" a "pode comprar tranquila". Você decide com a cabeça, não com a vitrine.'),
-      resp3El: mark('Cada peça analisada fica guardada no seu histórico — e, um dia, vira o ==LookMap==: o mapa do guarda-roupa inteiro. Com o tempo, você compra menos e melhor, porque já sabe o que tem.')
+      resp3El: mark('Gostou do resultado? ==Salve a peça== com um clique. Com o tempo, isso vira o ==LookMap==: o mapa do guarda-roupa inteiro — e você compra menos e melhor, porque já sabe o que tem.')
     };
   }
 
