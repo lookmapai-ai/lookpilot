@@ -70,7 +70,12 @@
                (document.title || '');
     // Limpa sufixos da loja: "Top às riscas | MANGO", "Calças - Mulher | Zara"
     nome = nome.split('|')[0].replace(/\s[-–]\s*(mulher|homem|women|men|unisex|criança|kids).*$/i, '').trim();
-    const imagem = meta('meta[property="og:image"]') || meta('meta[name="twitter:image"]') || '';
+    // Ordem de confiança para a foto principal: JSON-LD (a mesma etiqueta que
+    // o preço usa, porque é o que a própria loja manda pro Google) -> og:image
+    // -> twitter:image. Antes só a galeria olhava o JSON-LD primeiro; a foto
+    // grande do topo ia direto pro og:image, ignorando a fonte mais confiável.
+    const imagemJsonLd = getJsonLdImages()[0] || '';
+    const imagem = imagemJsonLd || meta('meta[property="og:image"]') || meta('meta[name="twitter:image"]') || '';
     // O preço vinha só de meta tags, que várias lojas deixam desatualizadas
     // (ficam com o preço antigo depois de promoção) ou preenchem com outra
     // variante. O JSON-LD schema.org é o que a própria loja usa para o Google,
@@ -90,6 +95,33 @@
     return { nome, imagem, preco, moeda, loja, galeria: getGallery(imagem) };
   }
 
+  // Fotos declaradas no JSON-LD schema.org Product — a "etiqueta oficial" que
+  // a própria loja escreve para o Google indexar o produto. É a fonte mais
+  // confiável: existe especificamente para descrever ESTE produto, ao
+  // contrário de vasculhar a página atrás de qualquer <img> que pareça certa.
+  function getJsonLdImages() {
+    const urls = [];
+    const push = (u) => {
+      if (!u) return;
+      try { u = new URL(u, location.href).href; } catch (e) { return; }
+      if (/^https?:/.test(u) && !urls.includes(u)) urls.push(u);
+    };
+    try {
+      document.querySelectorAll('script[type="application/ld+json"]').forEach((s) => {
+        let data; try { data = JSON.parse(s.textContent); } catch (e) { return; }
+        const nodes = Array.isArray(data) ? data : (data['@graph'] || [data]);
+        nodes.forEach((n) => {
+          if (!n || !/product/i.test(n['@type'] || '')) return;
+          const img = n.image;
+          if (typeof img === 'string') push(img);
+          else if (Array.isArray(img)) img.forEach((i) => push(typeof i === 'string' ? i : i && i.url));
+          else if (img && img.url) push(img.url);
+        });
+      });
+    } catch (e) {}
+    return urls;
+  }
+
   // Reúne 2–3 fotos do produto (não só a og:image) para dar ritmo visual aos
   // quatro cartões da landing. Fontes, por ordem de fiabilidade:
   //   1) JSON-LD schema.org Product (campo `image`, string ou array)
@@ -104,21 +136,7 @@
       if (/^https?:/.test(u) && !urls.includes(u)) urls.push(u);
     };
     push(primeira);
-
-    // 1) JSON-LD
-    try {
-      document.querySelectorAll('script[type="application/ld+json"]').forEach((s) => {
-        let data; try { data = JSON.parse(s.textContent); } catch (e) { return; }
-        const nodes = Array.isArray(data) ? data : (data['@graph'] || [data]);
-        nodes.forEach((n) => {
-          if (!n || !/product/i.test(n['@type'] || '')) return;
-          const img = n.image;
-          if (typeof img === 'string') push(img);
-          else if (Array.isArray(img)) img.forEach((i) => push(typeof i === 'string' ? i : i && i.url));
-          else if (img && img.url) push(img.url);
-        });
-      });
-    } catch (e) {}
+    getJsonLdImages().forEach(push);
 
     // 2) várias og:image
     document.querySelectorAll('meta[property="og:image"],meta[property="og:image:url"]')
