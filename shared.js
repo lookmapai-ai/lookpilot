@@ -380,8 +380,9 @@ function verdict(scores) {
 
 function scoreColor(v) { return v >= 75 ? '#16a34a' : v >= 55 ? '#d97706' : '#dc2626'; }
 
-function conclusionText(scores, fibers) {
+function conclusionText(scores, fibers, garmentType) {
   const en = typeof LP_LANG !== 'undefined' && LP_LANG === 'en';
+  const isCasaco = garmentType === 'casaco';
   const sorted  = [...(fibers || [])].sort((a, b) => (b.pct || 0) - (a.pct || 0));
   const main    = sorted[0];
   const second  = sorted[1];
@@ -428,6 +429,10 @@ function conclusionText(scores, fibers) {
       const pills = ['acrílico','acrilico','acrylic'].includes(mainLower);
       if (isVirgin && isKnitwear) {
         why = `${mainName} at ${mainPct}% keeps you warm and is easy to care for${pills ? ', but tends to pill over time' : ''}. No recycled certification — the least sustainable option — but functional for a winter piece.`;
+      } else if (isVirgin && isCasaco) {
+        // a coat isn't worn on warm days by design — "not for warm days" made
+        // no sense as a caveat here; the real trade-off is breathability indoors
+        why = `${mainName} at ${mainPct}% is durable and low-maintenance, but doesn't breathe well — can feel stuffy the moment you step somewhere heated. No recycled certification either.`;
       } else if (isVirgin) {
         why = `${mainName} at ${mainPct}% is durable and low-maintenance, but has two downsides: poor breathability (gets hot) and no recycled certification. Good for practical use, not for warm days.`;
       } else if (isKnitwear) {
@@ -500,6 +505,11 @@ function conclusionText(scores, fibers) {
     const pills = ['acrílico','acrilico','acrylic'].includes(mainLower);
     if (isVirgin && isKnitwear) {
       why = `${mainName} em ${mainPct}% aquece bem e é fácil de cuidar${pills ? ', mas faz bolinhas com o tempo' : ''}. Sem certificação de reciclado, é a fibra menos sustentável — mas para uma peça de inverno, cumpre.`;
+    } else if (isVirgin && isCasaco) {
+      // casaco não é peça pra dia quente por definição — "não para os dias
+      // quentes" não fazia sentido como ressalva aqui; o ponto real é não
+      // respirar quando você entra num lugar aquecido
+      why = `${mainName} em ${mainPct}% é resistente e fácil de cuidar, mas não respira bem — pode sufocar assim que você entra em algum lugar aquecido. Também não tem certificação de reciclado.`;
     } else if (isVirgin) {
       why = `${mainName} em ${mainPct}% é resistente e fácil de cuidar, mas tem dois poréns: não respira bem (esquenta mais) e, sem certificação de reciclado, é a fibra menos sustentável. Boa para uso prático, não para os dias quentes.`;
     } else if (isKnitwear) {

@@ -735,7 +735,7 @@
         <!-- Card = gancho: só o veredito + uma linha. O detalhe completo
              (dimensões, fibras, travel, guardar, histórico) vive na landing. -->
         <div style="font-size:12px;color:#6E6E73;line-height:1.55;margin-bottom:12px;">
-          ${(category === 'shoes' || category === 'bags') && typeof getCategoryConclusion === 'function' ? getCategoryConclusion(scores, category, (scores.fibers||fibers)[0]?.data?.label || (scores.fibers||fibers)[0]?.name) : conclusionText(scores, scores.fibers || [...fibers])}
+          ${(category === 'shoes' || category === 'bags') && typeof getCategoryConclusion === 'function' ? getCategoryConclusion(scores, category, (scores.fibers||fibers)[0]?.data?.label || (scores.fibers||fibers)[0]?.name) : conclusionText(scores, scores.fibers || [...fibers], garmentType)}
         </div>
 
         ${conf != null ? `
