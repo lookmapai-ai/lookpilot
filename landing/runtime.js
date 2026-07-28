@@ -300,18 +300,25 @@
     // Sem cauda por faixa de conforto: colar um fechamento genérico em toda
     // frase era a mesma montagem mecânica do selo, e às vezes contradizia a
     // ressalva que a própria frase já trazia.
+    //
+    // Cuidado de escrita aqui: verbo em 3ª pessoa abrindo a frase sem sujeito
+    // lê como ORDEM em pt-BR ("Deixa o corpo respirar" = alguém te mandando
+    // deixar). Pior com verbos frequentes no imperativo falado (deixa, veste,
+    // segura). Onde a frase precisa abrir no verbo, prefira a forma negada —
+    // "não abafa" não tem leitura imperativa, porque a ordem negativa em
+    // pt-BR usa subjuntivo ("não abafe").
     var t2;
     if (props.res !== undefined || props.cal !== undefined) {
       var respira = props.res, aquece = props.cal;
       if (respira >= 8 && aquece >= 7) {
         t2 = variante([
           '==Aquece sem abafar.== Dá pra passar o dia inteiro com ela.',
-          'Segura o frio ==sem virar estufa== quando você entra em algum lugar aquecido.'
+          '==Não vira estufa==: segura o frio e ainda deixa o corpo respirar.'
         ]);
       } else if (respira >= 8 && aquece <= 4) {
         t2 = variante([
           'É fresca: ==o corpo respira==. No frio, pede uma camada por cima.',
-          '==Deixa o corpo respirar.== Quando esfria, você vai querer algo por cima.'
+          '==Não abafa== — o calor sai em vez de ficar preso. Quando esfria, pede algo por cima.'
         ]);
       } else if (respira <= 4 && aquece >= 7) {
         t2 = variante([
@@ -320,12 +327,12 @@
         ]);
       } else if (respira <= 4) {
         t2 = variante([
-          '==Abafa.== Num dia longo, cansa mais do que parece.',
+          '==Abafa==: o calor do corpo não sai. Num dia inteiro fora, você vai querer tirar.',
           '==Não deixa a pele respirar.== Numa tarde inteira vestida, incomoda.'
         ]);
       } else {
         t2 = variante([
-          'Veste sem drama: nem abafa, nem esquenta demais.',
+          'Nem abafa, nem esquenta demais — ==no corpo, não chama atenção==.',
           '==Fica no meio== — e por isso serve quase sempre.'
         ]);
       }
@@ -455,7 +462,7 @@
       else if (tem('res') && p.res >= 8) bom('Esquenta sem virar estufa', 'Segura o frio de fora sem sufocar quando você entra em algum lugar aquecido.');
       // sintético esquenta menos do que a nota de calor sugere e ainda gera
       // estática no ar seco do inverno — vale mesmo com nota de calor ok
-      if (_sintetica) mau('Sintético no frio', 'Esquenta menos do que parece e gera estática no ar seco do inverno.');
+      if (_sintetica) mau('Sintético no frio', 'Esquenta menos que lã no mesmo peso, e gera estática no ar seco do inverno.');
     } else {
       if (tem('res') && p.res <= 4) mau('Esquenta e não respira', 'O calor do corpo fica preso. Num dia de viagem longo, incomoda.');
       else if (tem('res') && p.res >= 8) bom('O corpo respira', 'O calor não fica preso, mesmo num dia inteiro fora.');
@@ -639,14 +646,14 @@
         }
 
         if (naoAmarrota && secaRapido) return variante([
-          '==Sai da mala pronta pra vestir==, e lava à noite pra usar de manhã.',
+          '==Sai da mala pronta pra vestir==, e lavada à noite já está seca de manhã.',
           'Sem ferro, e ==seca da noite pro dia==. Uma peça dessas rende como três.'
         ], 13);
         if (naoAmarrota) return variante([
           '==Sai da mala e vai direto pro corpo==, sem ferro nenhum.',
-          'Dobra, viaja, veste: ==sem vinco e sem ferro==.'
+          'Vai na mala e sai pronta: ==sem vinco, sem ferro==.'
         ], 13);
-        if (secaRapido) return '==Lava à noite, veste de manhã.== Uma peça dessas substitui três.';
+        if (secaRapido) return '==Lavada à noite, está seca de manhã.== Uma peça dessas substitui três.';
         if (respira && aquece) return '==Aguenta a rua fria e o interior aquecido sem te fazer suar== — o que é raro.';
         if (respira) return '==Respira bem==: o calor não fica preso, mesmo num dia inteiro fora.';
         return 'Resolve a viagem sem exigir cuidado nenhum.';
