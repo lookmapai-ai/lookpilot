@@ -101,6 +101,16 @@ def build_fiber_db(kb):
     lines = ["const FIBER_DB = {"]
     for fid, fdata in kb['fibras'].items():
         s = derive_fiber_scores(fdata['propriedades'], fdata['viagem'])
+        # `scores_curados` vence a derivação. Existe porque a fórmula mede
+        # ROBUSTEZ e chama isso de qualidade — o que pune fibra nobre por ser
+        # delicada (caxemira derivava 58, quando a leitura certa é 82). Antes
+        # esses valores viviam só no shared.js, editados à mão, e cada `build`
+        # os revertia em silêncio. Agora a exceção mora ao lado do dado que
+        # ela contradiz, com o motivo escrito em `_nota`.
+        for campo, valor in (fdata.get('scores_curados') or {}).items():
+            if campo.startswith('_'):
+                continue
+            s[campo] = clamp(valor)
         ftype = CAT_MAP.get(fdata['categoria'], 'semi')
         tip = fdata['viagem']['nota']
         # Propriedades narrativas: os 5 scores são a média que decide a nota,

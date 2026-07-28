@@ -298,6 +298,14 @@
         "facilidade_manutencao": "Exige lavagem delicada; encolhe e feltra com calor e fricção.",
         "sustentabilidade": "Renovável e biodegradável, mas pecuária tem pegada de carbono. Responsible Wool Standard melhora."
       },
+      "scores_curados": {
+        "quality": 72,
+        "comfort": 82,
+        "durability": 66,
+        "maintenance": 48,
+        "travel": 72,
+        "_nota": "Lã aguenta muito mais uso real do que a fórmula sugere: mantém forma, resiste a odor (lava-se menos, logo desgasta-se menos) e envelhece bem. A derivação não captura nenhuma dessas três coisas."
+      },
       "aplicacoes_ideais": {
         "camiseta": 3,
         "camisa": 4,
@@ -869,6 +877,14 @@
         "bolinhas": "Propensa a pilling no início pela fibra curta e macia; estabiliza com uso.",
         "durabilidade": "Delicada — fibra fina é menos resistente à abrasão que lã.",
         "sustentabilidade": "Sobrepastoreio de cabras causa desertificação; Good Cashmere Standard mitiga."
+      },
+      "scores_curados": {
+        "quality": 82,
+        "comfort": 94,
+        "durability": 50,
+        "maintenance": 35,
+        "travel": 72,
+        "_nota": "Qualidade de MATERIAL, não robustez. A fórmula deriva 58 porque pesa durabilidade e resistência, punindo a caxemira por ser delicada — mas fragilidade é a natureza dela, não um defeito de qualidade. A baixa durabilidade continua honesta no campo durability (50)."
       },
       "aplicacoes_ideais": {
         "camiseta": 3,
@@ -1606,6 +1622,13 @@
         "absorcao_umidade": "MR ~16%; absorve suor e regula temperatura excepcionalmente.",
         "odor": "Antibacteriana natural — pode usar várias vezes sem lavar nem cheirar.",
         "sustentabilidade": "Renovável; Responsible Wool Standard garante bem-estar animal e manejo do solo."
+      },
+      "scores_curados": {
+        "quality": 80,
+        "comfort": 92,
+        "durability": 68,
+        "maintenance": 62,
+        "_nota": "Mesma razão da lã, com a fibra ultrafina (<22 mícron) a somar conforto junto à pele e resistência natural a odor — que a fórmula também não vê."
       },
       "aplicacoes_ideais": {
         "camiseta": 7,
