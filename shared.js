@@ -288,23 +288,33 @@ function calcScores(fibers, pageText, certText, titleText) {
 // Pesos dinâmicos por tipo de peça. Cada tipo valoriza fatores diferentes.
 // A arquitetura aceita dados futuros (gramatura, acabamento, marca, preço)
 // sem quebrar — fatores ausentes simplesmente não entram na média.
+//
+// `comfort` entrou aqui depois de ficar claro que a nota de compra nunca o
+// olhava — uma peça podia ter conforto 82 (texto e selo de viagem elogiando
+// "não abafa", "corpo respira") e mesmo assim tirar nota baixa, porque o
+// número final era média de OUTRAS seis coisas. O peso varia por tipo:
+// pesa mais onde a peça se usa direto na pele o dia inteiro (roupa íntima,
+// camiseta, esportiva), menos onde importa mais estrutura/acabamento
+// (blazer, casaco, bolsa).
 const BUY_WEIGHTS = {
-  // fator:        qual  durab versat manut custo travel
-  clothing:     { quality:0.22, durability:0.18, versatility:0.18, maintenance:0.12, costBenefit:0.15, travel:0.15 },
-  camiseta:     { quality:0.20, durability:0.15, versatility:0.22, maintenance:0.15, costBenefit:0.15, travel:0.13 },
-  camisa:       { quality:0.22, durability:0.18, versatility:0.20, maintenance:0.13, costBenefit:0.12, travel:0.15 },
-  blazer:       { quality:0.28, durability:0.22, versatility:0.18, maintenance:0.08, costBenefit:0.12, travel:0.12 },
-  calca:        { quality:0.22, durability:0.25, versatility:0.18, maintenance:0.10, costBenefit:0.13, travel:0.12 },
-  vestido:      { quality:0.25, durability:0.15, versatility:0.20, maintenance:0.10, costBenefit:0.15, travel:0.15 },
-  casaco:       { quality:0.28, durability:0.25, versatility:0.12, maintenance:0.08, costBenefit:0.12, travel:0.15 },
-  roupa_esportiva:{ quality:0.18, durability:0.22, versatility:0.12, maintenance:0.18, costBenefit:0.12, travel:0.18 },
-  roupa_intima: { quality:0.20, durability:0.15, versatility:0.10, maintenance:0.25, costBenefit:0.15, travel:0.15 },
+  // fator:            qual  durab versat manut custo travel comf
+  clothing:       { quality:0.19, durability:0.15, versatility:0.15, maintenance:0.10, costBenefit:0.13, travel:0.13, comfort:0.15 },
+  camiseta:       { quality:0.16, durability:0.12, versatility:0.18, maintenance:0.12, costBenefit:0.12, travel:0.12, comfort:0.18 },
+  camisa:         { quality:0.20, durability:0.15, versatility:0.17, maintenance:0.11, costBenefit:0.10, travel:0.13, comfort:0.14 },
+  blazer:         { quality:0.25, durability:0.20, versatility:0.16, maintenance:0.07, costBenefit:0.11, travel:0.11, comfort:0.10 },
+  calca:          { quality:0.19, durability:0.22, versatility:0.16, maintenance:0.09, costBenefit:0.11, travel:0.10, comfort:0.13 },
+  vestido:        { quality:0.21, durability:0.13, versatility:0.17, maintenance:0.09, costBenefit:0.13, travel:0.13, comfort:0.14 },
+  casaco:         { quality:0.25, durability:0.23, versatility:0.11, maintenance:0.07, costBenefit:0.11, travel:0.13, comfort:0.10 },
+  roupa_esportiva:{ quality:0.15, durability:0.19, versatility:0.10, maintenance:0.15, costBenefit:0.10, travel:0.15, comfort:0.16 },
+  roupa_intima:   { quality:0.16, durability:0.12, versatility:0.08, maintenance:0.20, costBenefit:0.12, travel:0.12, comfort:0.20 },
   // malha/camisola: lava-se raramente (lã é antiodor), manutenção pesa menos;
   // qualidade e durabilidade (pilling, manter a forma) pesam mais
-  malha:        { quality:0.25, durability:0.22, versatility:0.18, maintenance:0.05, costBenefit:0.15, travel:0.15 },
-  // calçados e bolsas valorizam durabilidade e qualidade do material
-  shoes:        { quality:0.28, durability:0.30, versatility:0.12, maintenance:0.10, costBenefit:0.10, travel:0.10 },
-  bags:         { quality:0.30, durability:0.32, versatility:0.10, maintenance:0.10, costBenefit:0.08, travel:0.10 },
+  malha:          { quality:0.21, durability:0.18, versatility:0.15, maintenance:0.04, costBenefit:0.13, travel:0.13, comfort:0.16 },
+  // calçados e bolsas valorizam durabilidade e qualidade do material.
+  // Conforto pesa em calçado (você caminha nele o dia todo); em bolsa é
+  // secundário — o campo existe mas mede o material, não o uso.
+  shoes:          { quality:0.23, durability:0.26, versatility:0.10, maintenance:0.09, costBenefit:0.09, travel:0.09, comfort:0.14 },
+  bags:           { quality:0.28, durability:0.31, versatility:0.09, maintenance:0.09, costBenefit:0.08, travel:0.09, comfort:0.06 },
 };
 
 function buyScore(scores, garmentType) {
@@ -314,6 +324,7 @@ function buyScore(scores, garmentType) {
     quality: scores.quality, durability: scores.durability,
     versatility: scores.versatility, maintenance: scores.maintenance,
     costBenefit: scores.costBenefit, travel: scores.travel,
+    comfort: scores.comfort,
   };
   let sum = 0, wsum = 0;
   for (const k in w) {
