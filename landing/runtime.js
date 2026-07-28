@@ -76,6 +76,9 @@
   // reconstruía o capítulo 01 sem esse dado, então perdia a nuance
   var certs = (Q.get('certs') || '').split(',').filter(Boolean);
   var mainIsSynthetic = Q.get('sintetico') === '1';
+  // versatilidade no escopo de fora: tracosViagemBrutos() também usa (fica
+  // fora de prosaCartoes(), que já tinha a sua própria cópia local)
+  var ver = int('versatilidade', 50);
   // propriedades cruas da fibra (0-10, 10 = melhor): bol=não bola,
   // ama=não amarrota, sec=seca rápido, cal=isola, res=respira, sus=sustentável.
   //
