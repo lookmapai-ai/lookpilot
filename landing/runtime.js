@@ -76,6 +76,11 @@
   // reconstruía o capítulo 01 sem esse dado, então perdia a nuance
   var certs = (Q.get('certs') || '').split(',').filter(Boolean);
   var mainIsSynthetic = Q.get('sintetico') === '1';
+  // malha amarrota muito menos que tecido plano da MESMA fibra (camiseta de
+  // jersey vs camisa de popeline, ambas 100% algodão). O card já usava este
+  // sinal; aqui ele faltava, e a página dizia "Amarrota fácil" numa peça que
+  // o card, logo acima, dizia que amassa pouco.
+  var ehMalha = Q.get('malha') === '1';
   // versatilidade no escopo de fora: tracosViagemBrutos() também usa (fica
   // fora de prosaCartoes(), que já tinha a sua própria cópia local)
   var ver = int('versatilidade', 50);
@@ -448,7 +453,10 @@
     var isCasaco = tipoKey === 'casaco';
 
     // ordem = relevância para quem faz mala
-    if (tem('ama') && p.ama <= 5) mau('Amarrota fácil', 'Sai da mala com vincos. Precisa de ferro ou vapor antes de vestir.');
+    // A mesma fibra amarrota conforme a construção: em malha, muito menos.
+    // Mesma regra que conclusionText() já aplica no card.
+    if (tem('ama') && p.ama <= 5 && ehMalha) bom('Malha amassa pouco', 'Num tecido plano esta fibra amarrotaria; em malha, sai da mala bem melhor.');
+    else if (tem('ama') && p.ama <= 5) mau('Amarrota fácil', 'Sai da mala com vincos. Precisa de ferro ou vapor antes de vestir.');
     else if (tem('ama') && p.ama >= 7) bom('Não amarrota', 'Sai da mala e vai direto pro corpo, sem passar por ferro nenhum.');
 
     // combina fácil = menos peças na mala pro mesmo número de looks; usa o
@@ -518,7 +526,9 @@
   // do banco) por respirar e secar bem. Peça que sai inutilizável da
   // bagagem não é compensada por outra virtude — é o único ponto onde o
   // contexto "viagem" justifica um corte seco. Pega linho, cânhamo, rami.
-  var _amassaMuito = props.ama !== undefined && props.ama <= 3;
+  // ...e o corte duro também respeita a construção: o veto existe pra peça
+  // que sai inutilizável da mala, o que não é o caso de uma malha.
+  var _amassaMuito = props.ama !== undefined && props.ama <= 3 && !ehMalha;
   var seloAprovado = _tracosBrutos.length
     ? (vg >= 7 && _bons > _maus && !_amassaMuito)
     : vg >= 7;

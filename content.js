@@ -166,6 +166,7 @@
       }
       if (historia.certs && historia.certs.length) params.set('certs', historia.certs.join(',').slice(0, 60));
       if (historia.mainIsSynthetic) params.set('sintetico', '1');
+      if (historia.isKnit) params.set('malha', '1');
       if (historia.cor) {
         if (historia.cor.note)  params.set('cornota', historia.cor.note.slice(0, 120));
         if (historia.cor.isPrint) params.set('estampado', '1');
@@ -690,6 +691,12 @@
       // que a peça leva consigo para o LookMap — lá o valor não é a peça
       // isolada, é poder filtrar "quais das minhas peças servem pra isso".
       fibraSelos: principal?.data?.s || null,
+      // Malha amarrota MUITO menos que tecido plano da mesma fibra — uma
+      // camiseta de jersey de algodão sai da mala bem, uma camisa de
+      // popeline do mesmo algodão não. conclusionText() já usa isto no card
+      // (suprime "amassa com facilidade" e explica porquê); a landing dizia
+      // "Amarrota fácil" na mesma peça, porque o sinal não atravessava.
+      isKnit: !!scores.isKnit,
       // Cor/padrão: o maior fator de combinação, e o que falta ao capítulo
       // "vai sair do armário?". detectColorPattern já devolve nota em
       // linguagem natural ("estampado pede combinações pensadas").
