@@ -8,7 +8,7 @@ Destino do botão "Ver análise completa →" do card da extensão.
 |---|---|
 | `v15-source.dc.html` | **Fonte do design**, puxado do projeto claude.ai/design ("Prompt landing LookMap" → `LookPilot Experiencia v15 Apple White.dc.html`). Não editar à mão: é a cópia do design. |
 | `build.py` | Traduz o fonte para HTML normal. **Não redesenha nada** — copia marcação e estilos verbatim e só converte `sc-if`/`sc-for`/`{{ }}`/`style-hover` para HTML+atributos de binding. |
-| `runtime.js` | Dá vida à página: lê os parâmetros da URL que a extensão envia, preenche os bindings e reproduz as animações (reveal, parallax, contagem, scan da etiqueta). |
+| `runtime.js` | Dá vida à página: lê os parâmetros da URL que a extensão envia, preenche os bindings e reproduz as animações (reveal, parallax, contagem, scan da etiqueta). **Depois de mexer aqui, rode `node tests/pagina.js`** — um erro de JS neste arquivo não degrada nada, derruba a tela inteira em silêncio. |
 | `analise.html` | **Gerado** por `build.py`. É o arquivo a publicar. |
 | `images/` | Wordmarks. As fotos do produto vêm da URL (a extensão raspa a galeria da loja). |
 

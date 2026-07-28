@@ -1060,13 +1060,16 @@ if (failures.length > 0) {
 }
 
 console.log('══════════════════════════════════════════════════════════\n');
-// A entrega da extensão (o zip que o botão baixa) tem o seu próprio teste,
-// porque já quebrou duas vezes sem que nada aqui percebesse.
-try {
-  require('child_process').execSync('node ' + require('path').join(__dirname, 'entrega.js'),
-    { stdio: 'inherit' });
-} catch (e) {
-  process.exit(1);
+// Duas superfícies fora do motor têm teste próprio, porque cada uma já
+// quebrou sem que nada aqui percebesse:
+//   pagina.js — a página de análise (um erro de JS derruba a tela inteira)
+//   entrega.js — o zip que o botão "Baixar extensão" entrega
+let extras = 0;
+for (const t of ['pagina.js', 'entrega.js']) {
+  try {
+    require('child_process').execSync('node ' + require('path').join(__dirname, t),
+      { stdio: 'inherit' });
+  } catch (e) { extras++; }
 }
 
-process.exit(failed > 0 ? 1 : 0);
+process.exit(failed > 0 || extras > 0 ? 1 : 0);
