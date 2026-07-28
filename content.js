@@ -160,6 +160,10 @@
           .map(k => `${k}:${historia.fibraProps[k]}`).join(','));
       }
       if (historia.tipo)       params.set('tipo',       historia.tipo);
+      if (historia.fibraSelos) {
+        params.set('selos', Object.keys(historia.fibraSelos)
+          .map(k => `${k}:${historia.fibraSelos[k]}`).join(','));
+      }
       if (historia.certs && historia.certs.length) params.set('certs', historia.certs.join(',').slice(0, 60));
       if (historia.mainIsSynthetic) params.set('sintetico', '1');
       if (historia.cor) {
@@ -682,6 +686,10 @@
       // naquela propriedade). São elas que dão história concreta: "bol" baixo
       // vira "forma bolinhas", "ama" baixo vira "amarrota".
       fibraProps: principal?.data?.p || null,
+      // Selos de aptidão (clima/cabine): vêm curados no fibers.json e são o
+      // que a peça leva consigo para o LookMap — lá o valor não é a peça
+      // isolada, é poder filtrar "quais das minhas peças servem pra isso".
+      fibraSelos: principal?.data?.s || null,
       // Cor/padrão: o maior fator de combinação, e o que falta ao capítulo
       // "vai sair do armário?". detectColorPattern já devolve nota em
       // linguagem natural ("estampado pede combinações pensadas").

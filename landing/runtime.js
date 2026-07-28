@@ -96,6 +96,20 @@
     });
     return o;
   })();
+  /* ---------- selos de aptidão -----------------------------------
+     Nascem aqui, na análise de uma peça, mas o valor deles é no LookMap:
+     lá a pergunta deixa de ser "esta peça serve?" e vira "quais das minhas
+     peças servem pra este roteiro?". Por isso ficam GRAVADOS na peça salva
+     (ver salvarPeca) — sem isso o filtro nasceria sem dado pra filtrar.
+     Fonte: blocos `climas` e `viagem` do fibers.json, curados por fibra. */
+  var selosFibra = (function () {
+    var o = {}, s = Q.get('selos') || '';
+    s.split(',').forEach(function (par) {
+      var kv = par.split(':');
+      if (kv[0] && kv[1] !== undefined) o[kv[0].trim()] = parseInt(kv[1], 10);
+    });
+    return o;
+  })();
   var corNota = Q.get('cornota') || '';
   var estampado = Q.get('estampado') === '1';
   // tipo de peça detectado pela extensão (garmentType) -> substantivo natural
@@ -511,6 +525,26 @@
   var seloAcc = seloAprovado ? '#FF009D' : '#C89B5E';
   var seloIcon = seloAprovado ? '✓' : '!';
 
+  /* Aptidões da peça, no formato que o LookMap vai filtrar. Chave curta e
+     estável — é ela que fica gravada no localStorage, então mudar o nome
+     depois invalida o histórico de quem já salvou.
+       viagem  <- o selo que já existia (média + balanço dos traços)
+       frio    <- climas.inverno
+       quente  <- climas.verao
+       cabine  <- viagem.ocupa_pouco_espaco && funciona_mala_capsula
+     Rain Ready, Hiking e Business ficaram DE FORA de propósito: dependem de
+     acabamento e de corte, que a etiqueta não diz. Um selo errado custa mais
+     do que um selo ausente.                                              */
+  function aptidoes() {
+    var a = [];
+    if (seloAprovado) a.push('viagem');
+    if (selosFibra.inverno !== undefined && selosFibra.inverno >= 8) a.push('frio');
+    if (selosFibra.verao !== undefined && selosFibra.verao >= 8) a.push('quente');
+    if (selosFibra.cabine) a.push('cabine');
+    return a;
+  }
+  var APTIDAO_NOME = { viagem: 'Viagem', frio: 'Clima frio', quente: 'Clima quente', cabine: 'Cabine' };
+
   function tracosViagem() {
     var out = _tracosBrutos.slice();
     if (!out.length) {
@@ -548,6 +582,11 @@
     l.unshift({
       id: pecaId, tipo: nome, nota: score, loja: loja,
       thumb: imagem, verdict: verdictParam || '', quando: Date.now(),
+      // aptidões gravadas na peça: é sobre elas que o filtro do LookMap
+      // trabalha ("quais das minhas peças servem pra este roteiro?"). Dá
+      // pra rederivar da url guardada, mas gravar aqui deixa o filtro
+      // trivial e independente do formato dos parâmetros mudar.
+      aptidoes: aptidoes(),
       url: location.search
     });
     gravarGuardadas(l);
@@ -612,7 +651,15 @@
       seloViagem: vg,
       seloAprovado: seloAprovado,
       seloCautela: !seloAprovado,
-      seloMini: seloAprovado ? 'Ótima pra levar' : vg >= 5 ? 'Dá pra levar, com ressalvas' : 'Pouco prática',
+      // O chip do selo passa a carregar também as outras aptidões da peça
+      // (clima frio/quente, cabine). É extensão do TEXTO, não do layout —
+      // o desenho do bloco fica intacto.
+      seloMini: (function () {
+        var base = seloAprovado ? 'Ótima pra levar' : vg >= 5 ? 'Dá pra levar, com ressalvas' : 'Pouco prática';
+        var extras = aptidoes().filter(function (k) { return k !== 'viagem'; })
+                               .map(function (k) { return APTIDAO_NOME[k]; });
+        return extras.length ? base + ' · ' + extras.join(' · ') : base;
+      })(),
       /* Antes: [nome da fibra] + [defeitos juntados com "e"] + uma cauda fixa
          igual pra toda peça ("conte com ferro ou vapor"). Três problemas:
          o nome da fibra virava sujeito solto ("Algodão amarrota"), a lista

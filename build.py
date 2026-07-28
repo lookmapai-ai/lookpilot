@@ -114,12 +114,23 @@ def build_fiber_db(kb):
             f"cal:{pr['isolamento_termico']}, res:{pr['respirabilidade']}, "
             f"pes:{pr['peso']}, sus:{pr['sustentabilidade']}"
         )
+        # Selos de aptidão: os blocos `climas` e `viagem` do fibers.json já
+        # vêm curados por fibra e estavam a ser descartados aqui (só o
+        # travel_score passava). São a base dos selos que a peça leva para o
+        # LookMap — Clima quente, Clima frio, Cabine.
+        cl = fdata.get('climas', {})
+        vg = fdata.get('viagem', {})
+        cabine = 1 if (vg.get('ocupa_pouco_espaco') and vg.get('funciona_mala_capsula')) else 0
+        s_selos = (
+            f"verao:{cl.get('verao', 5)}, inverno:{cl.get('inverno', 5)}, "
+            f"cabine:{cabine}"
+        )
         for label in LABEL_KEYS.get(fid, [fid]):
             lines.append(
                 f"  {js_str(label)}: {{ quality:{s['quality']}, comfort:{s['comfort']}, "
                 f"durability:{s['durability']}, maintenance:{s['maintenance']}, travel:{s['travel']}, "
                 f"type:'{ftype}', label:{js_str(fdata['nome'])}, tip:{js_str(tip)}, "
-                f"p:{{ {p_narr} }} }},"
+                f"p:{{ {p_narr} }}, s:{{ {s_selos} }} }},"
             )
     lines.append("};")
     return '\n'.join(lines)
@@ -153,6 +164,20 @@ def build_materials(kb):
     )
 
 
+def comparar_calibracao(shared_atual, db_novo):
+    """Entradas cujos 5 scores no shared.js diferem do que este script deriva.
+
+    Existem porque alguém afinou os números à mão no shared.js sem levar a
+    mudança de volta ao fibers.json. Enquanto isso não for reconciliado, o
+    build não pode sobrescrever sem avisar."""
+    campos = r'quality:\d+, comfort:\d+, durability:\d+, maintenance:\d+, travel:\d+'
+    def ler(t):
+        return {m.group(1): m.group(2)
+                for m in re.finditer(r'^  "([^"]+)": \{ (' + campos + r')', t, re.M)}
+    a, b = ler(shared_atual), ler(db_novo)
+    return [k for k in a if k in b and a[k] != b[k]]
+
+
 def replace_block(text, pattern, replacement, name):
     new, n = re.subn(pattern, lambda m: replacement, text, count=1, flags=re.DOTALL)
     if n == 0:
@@ -172,9 +197,31 @@ def main():
 
     # shared.js — FIBER_DB
     shared = open(SHARED, encoding='utf-8').read()
-    shared = replace_block(shared, r'const FIBER_DB = \{.*?\n\};', build_fiber_db(kb), 'FIBER_DB')
-    open(SHARED, 'w', encoding='utf-8').write(shared)
-    print("  ✓ shared.js — FIBER_DB regenerado")
+    novo_db = build_fiber_db(kb)
+
+    # GUARDA: o shared.js do repositório tem entradas calibradas À MÃO que já
+    # não batem com o que este script deriva do fibers.json (27 de 65 na
+    # última verificação: algodão, lã, linho, caxemira...). Sem este aviso,
+    # rodar o build reverte essa calibração em silêncio — e só um teste
+    # congelado apanha. Enquanto as duas fontes não forem reconciliadas,
+    # o build pergunta antes de sobrescrever.
+    divergentes = comparar_calibracao(shared, novo_db)
+    if divergentes:
+        print(f"\n  ⚠ ATENÇÃO: {len(divergentes)} entradas do shared.js têm números")
+        print("    calibrados à mão que NÃO batem com o derivado do fibers.json:")
+        for k in divergentes[:8]:
+            print(f"      · {k}")
+        if len(divergentes) > 8:
+            print(f"      · (+{len(divergentes) - 8} outras)")
+        print("\n    Continuar SOBRESCREVE essa calibração (os testes congelados vão falhar).")
+        if input("    Sobrescrever mesmo assim? [s/N] ").strip().lower() not in ('s', 'sim'):
+            print("    FIBER_DB preservado — nada foi alterado no shared.js.")
+            novo_db = None
+
+    if novo_db is not None:
+        shared = replace_block(shared, r'const FIBER_DB = \{.*?\n\};', novo_db, 'FIBER_DB')
+        open(SHARED, 'w', encoding='utf-8').write(shared)
+        print("  ✓ shared.js — FIBER_DB regenerado")
 
     # categories.js — MATERIALS
     cats = open(CATEGORIES, encoding='utf-8').read()
