@@ -341,7 +341,7 @@
     // é o defeito concreto (bolinhas) em vez da faixa da nota.
     var t3;
     if (props.bol !== undefined && props.bol <= 4) {
-      t3 = '==Vai criar bolinhas== onde a roupa roça — cintura, axila, alça da bolsa.' +
+      t3 = '==Vai criar bolinhas== nos pontos de atrito — cintura, axila, alça da bolsa.' +
         (props.ama !== undefined && props.ama <= 4 ? ' E sai amassada da gaveta.' : '') +
         (dur >= 60 ? ' O tecido aguenta; a aparência é que cansa antes.' : '');
     } else if (props.bol !== undefined && props.bol >= 8 && dur >= 60) {
