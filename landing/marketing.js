@@ -74,9 +74,9 @@
       arrowDown: setaBaixar(),
       heroSubEl: mark('O ==LookPilot== lê a etiqueta por você em qualquer loja online e diz, em segundos, se a peça vale mesmo a pena.'),
       passos: [
-        { n: '1', txt: 'Baixe a pasta da extensão e descompacte no seu computador.' },
+        { n: '1', txt: 'Clique duas vezes no arquivo .zip baixado — ele descompacta sozinho numa pasta chamada "lookpilot".' },
         { n: '2', txt: 'Abra chrome://extensions e ligue o Modo do desenvolvedor.' },
-        { n: '3', txt: 'Clique em “Carregar sem compactação” e escolha a pasta. Pronto — abra qualquer loja.' }
+        { n: '3', txt: 'Clique em “Carregar sem compactação” e escolha essa pasta "lookpilot" que acabou de aparecer (não o arquivo .zip). Pronto — abra qualquer loja.' }
       ],
       resp1El: mark('O LookPilot abre a etiqueta e lê fibra a fibra — ==100% lã ou 94% sintético==, sem marketing pelo meio. O que a loja esconde nas letras miúdas, você vê num relance.'),
       resp2El: mark('A composição vira uma ==nota de 0 a 100== e um veredicto direto: vale a pena, compra ponderada ou deixa ficar. Você decide com a cabeça, não com a vitrine.'),

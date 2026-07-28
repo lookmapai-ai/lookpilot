@@ -858,7 +858,8 @@
       </div>
       <div style="padding:4px 14px 16px;text-align:center;">
         <div style="font-size:12px;color:#6E6E73;line-height:1.55;margin-bottom:12px;">${t('card_not_found').replace('\n','<br>')}</div>
-        <button id="__fqa-manual" style="display:flex;width:100%;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#1D1D1F;background:#F5F5F7;border:none;cursor:pointer;padding:10px;border-radius:9px;letter-spacing:0.02em;font-family:inherit;">Inserir composição manualmente</button>
+        <button id="__fqa-manual" style="display:flex;width:100%;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#1D1D1F;background:#F5F5F7;border:none;cursor:pointer;padding:10px;border-radius:9px;letter-spacing:0.02em;font-family:inherit;margin-bottom:8px;">Inserir composição manualmente</button>
+        <button id="__fqa-report" style="display:flex;width:100%;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#86868B;background:none;border:none;cursor:pointer;padding:6px;font-family:inherit;">Avisar que essa loja não funciona</button>
       </div>
     `;
     document.body.appendChild(card);
@@ -867,6 +868,14 @@
     const manual = card.querySelector('#__fqa-manual');
     if (manual) manual.addEventListener('click', () => {
       try { chrome.runtime.sendMessage({ action: 'openManual' }); } catch (e) {}
+    });
+    // sem backend ainda: cai no e-mail. Numa amostra pequena de teste, isto
+    // já é suficiente pra saber quais lojas faltam cobrir.
+    const report = card.querySelector('#__fqa-report');
+    if (report) report.addEventListener('click', () => {
+      const assunto = encodeURIComponent('LookPilot não leu esta loja');
+      const corpo = encodeURIComponent('Página onde falhou:\n' + location.href);
+      window.open('mailto:nathy.glima@gmail.com?subject=' + assunto + '&body=' + corpo, '_blank');
     });
   }
 
