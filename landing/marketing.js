@@ -72,7 +72,7 @@
         document.documentElement.style.overflow = '';
       },
       arrowDown: setaBaixar(),
-      heroSubEl: mark('O ==LookPilot== lê a etiqueta por você em qualquer loja online e diz, em segundos, se a peça vale mesmo a pena.'),
+      heroSubEl: mark('O ==LookPilot== lê a etiqueta por você em qualquer loja online — sozinho ou com sua ajuda — e diz, em segundos, se a peça vale mesmo a pena.'),
       passos: [
         { n: '1', txt: 'Clique duas vezes no arquivo .zip baixado — ele descompacta sozinho numa pasta chamada "lookpilot".' },
         { n: '2', txt: 'Abra chrome://extensions e ligue o Modo do desenvolvedor.' },
