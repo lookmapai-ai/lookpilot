@@ -162,8 +162,12 @@ def build(cfg):
         'letter-spacing:-.01em;text-decoration:none;cursor:pointer;white-space:nowrap;'
         'touch-action:manipulation;transition:opacity .25s ease,transform .25s ease" '
         'data-hovercls="hbaixar">'
-        '<span aria-hidden="true" style="display:inline-block;width:8px;height:8px;'
-        'border-radius:999px;background:#FF009D"></span>Baixar extensão</a>')
+        '<span aria-hidden="true" style="display:inline-flex;width:14px;height:14px">'
+        '<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" aria-hidden="true">'
+        '<path d="M12 4v13m0 0l-5-5m5 5l5-5" stroke="currentColor" stroke-width="2" '
+        'stroke-linecap="round" stroke-linejoin="round"/>'
+        '<path d="M5 20h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
+        '</svg></span>Baixar extensão</a>')
       hover_rules.append(("hbaixar", "opacity:.88;transform:translateY(-1px)"))
       # o header da análise vinha com 10px de padding e o da home com 12px:
       # ao navegar entre as páginas o cabeçalho saltava 4px
