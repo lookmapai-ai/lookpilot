@@ -582,7 +582,17 @@
         // Texto do próprio container e dos próximos irmãos
         const container = el.closest('section,div,article,dl,ul') || el.parentElement;
         if (container) {
-          zone = (container.textContent || '').trim();
+          // .textContent gruda elementos vizinhos sem separador nenhum quando
+          // o HTML fonte não tem espaço de sobra entre as tags (comum em
+          // markup minificado) — "Materiais"+"Composição"+"algodão" viravam
+          // uma palavra só (bug real na H&M). Junta folha por folha.
+          let leafText = '';
+          container.querySelectorAll('*').forEach(leaf => {
+            if (leaf.children.length > 0) return;
+            const t = (leaf.textContent || '').trim();
+            if (t) leafText += '\n' + t;
+          });
+          zone = (leafText || container.textContent || '').trim();
           if (zone.length > 30 && zone.length < 2500 && /\d+\s*%|%\s*\d+|algod|cotton|poli|polyester|elasta|elastane|lyocell|lã|wool|linho|linen|viscose|couro|pele|leather|nylon|silk|seda/i.test(zone)) {
             return zone;
           }
