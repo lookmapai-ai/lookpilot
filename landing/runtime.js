@@ -465,9 +465,17 @@
     else if (tem('ama') && p.ama >= 7) bom('Não amarrota', 'Sai da mala e vai direto pro corpo, sem passar por ferro nenhum.');
 
     // combina fácil = menos peças na mala pro mesmo número de looks; usa o
-    // mesmo 'ver' que já move a pergunta "No dia a dia"
-    if (ver >= 70) bom('Combina com o que você já levou', 'Rende mais looks sem precisar de mais peça nenhuma na mala.');
-    else if (ver <= 45) mau('Pede combinação específica', 'Ocupa espaço na mala pra resolver só uma situação.');
+    // mesmo 'ver' que já move a pergunta "No dia a dia". Estampado precisa
+    // do mesmo cuidado de lá: mesmo com nota boa, ainda é estampado — não dá
+    // pra prometer "combina com tudo" sem reconhecer isso.
+    if (estampado) {
+      if (ver >= 60) bom('Rende mesmo sendo estampado', 'Vira o ponto de partida do look em vez de pedir peça lisa extra na mala.');
+      else mau('Estampado pede combinação pensada', 'Não é a peça que resolve com qualquer coisa que você levou.');
+    } else if (ver >= 70) {
+      bom('Combina com o que você já levou', 'Rende mais looks sem precisar de mais peça nenhuma na mala.');
+    } else if (ver <= 45) {
+      mau('Pede combinação específica', 'Ocupa espaço na mala pra resolver só uma situação.');
+    }
 
     if (isCasaco) {
       if (tem('cal') && p.cal <= 4) mau('Não esquenta muito', 'Pra um casaco, é o ponto que mais pesa — essa fibra não é a primeira escolha pro frio.');
