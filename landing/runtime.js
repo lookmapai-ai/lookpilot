@@ -260,112 +260,80 @@
     var t1;
     var secundaria = lista.slice().sort(function (a, b) { return b.pct - a.pct; })[1];
     if (!lista.length) {
-      t1 = 'A composição não veio na página da loja. Sem etiqueta, a nota se apoia no resto — e é por isso que ela não sobe mais.';
+      t1 = 'A composição não veio na página. Sem etiqueta, a nota se apoia no resto.';
     } else if (modNome && modExplica) {
       // história "não é a fibra comum": o modificador detectado na página
       t1 = 'Não é ' + principal.nome.toLowerCase() + ' qualquer: é ==' + modNome + '==. ' + modExplica;
     } else if (mistura && secundaria) {
       // história da mistura: o que a fibra secundária faz NESTA dose
-      t1 = 'Na etiqueta, ==' + comp + '==. Os ' + secundaria.pct + '% de ' +
+      t1 = '==' + comp + '==. Os ' + secundaria.pct + '% de ' +
            secundaria.nome.toLowerCase() + ' não estão ali por acaso: ' +
            mistura.charAt(0).toLowerCase() + mistura.slice(1);
     } else if (mix.nat >= 90) {
-      // três formas de contar a mesma verdade — a fórmula repetida em todas as
-      // peças era o que mais denunciava texto gerado. A escolha é estável por
-      // peça (não muda a cada recarregamento).
       var f = principal.nome.toLowerCase();
-      var variantes = [
-        'De ' + f + ', e só. A etiqueta foi lida fio por fio: ==' + comp + '==, sem nenhuma fibra sintética escondida.',
-        '==' + comp.charAt(0).toUpperCase() + comp.slice(1) + '.== Sem mistura, sem sintético escondido no meio — o que está no rótulo é o que você veste.',
-        'É ' + f + ' de verdade. Lemos o rótulo inteiro à procura de sintético escondido e não achamos nada: ==' + comp + '==.'
-      ];
-      t1 = variantes[(f.length + score) % variantes.length];
-      t1 += qual >= 70 ? ' É o que puxa a nota pra cima.' : ' A matéria segura a nota, sem a levantar.';
+      t1 = variante([
+        'De ' + f + ', e só: ==' + comp + '==, sem sintético escondido.',
+        '==' + comp.charAt(0).toUpperCase() + comp.slice(1) + '.== O que está no rótulo é o que você veste.'
+      ], f.length);
     } else if (mix.sin >= 70) {
       var traco = lista.find(function (f) {
         return NATURAIS.some(function (x) { return f.nome.toLowerCase().indexOf(x) === 0; });
       });
       t1 = traco
-        ? 'Tem ' + traco.nome.toLowerCase() + ' na etiqueta — ==' + traco.pct + '%==. O suficiente pra escrever no rótulo e não o suficiente pra mudar nada: quem manda são os sintéticos.'
-        : 'Quase toda de sintético. A etiqueta diz ==' + comp + '==. O toque até engana; a composição, não.';
-      t1 += qual >= 45 ? '' : ' É aqui que a nota perde pontos.';
-      // certificação: o card já cruzava isso com "quem manda são os
-      // sintéticos" pra explicar a sustentabilidade — a landing reconstruía
-      // o capítulo sem esse dado
+        ? 'Tem ' + traco.nome.toLowerCase() + ' na etiqueta — ==' + traco.pct + '%==. Suficiente pra escrever no rótulo, não pra mudar nada.'
+        : 'Quase toda de sintético: ==' + comp + '==. O toque engana; a composição, não.';
+      // certificação: o card já cruza isso com o domínio sintético pra
+      // explicar a sustentabilidade
       if (mainIsSynthetic) {
         t1 += certs.length
           ? ' Tem certificação ==' + certs.join(', ') + '==, então a origem é verificada.'
-          : ' Sem certificação de reciclado, é a fibra menos sustentável da lista.';
+          : ' Sem certificação de reciclado, é a fibra menos sustentável.';
       }
     } else {
-      t1 = 'É uma mistura: ==' + comp + '==. Nem fibra nobre pura, nem sintético barato — está no meio.';
-      t1 += qual >= 70 ? ' É o que puxa a nota pra cima.'
-          : qual >= 45 ? ' A matéria segura a nota, sem a levantar.'
-                       : ' É aqui que a nota perde pontos.';
+      t1 = 'Mistura: ==' + comp + '==. Nem fibra nobre pura, nem sintético barato.';
     }
 
     // 02 · O corpo — o que a pessoa SENTE vestindo, a partir das propriedades
     // do corpo (respira, aquece). Cada situação tem várias formas de ser
     // dita, escolhidas de modo estável por peça: a mesma peça lê sempre igual,
     // peças diferentes leem diferente.
+    // Sem cauda por faixa de conforto: colar um fechamento genérico em toda
+    // frase era a mesma montagem mecânica do selo, e às vezes contradizia a
+    // ressalva que a própria frase já trazia.
     var t2;
     if (props.res !== undefined || props.cal !== undefined) {
       var respira = props.res, aquece = props.cal;
-      var corpo, condicional = false;
       if (respira >= 8 && aquece >= 7) {
-        corpo = variante([
-          '==Aquece sem abafar.== Segura o frio e ainda deixa o corpo respirar — dá pra passar o dia inteiro com ela.',
-          'Segura o frio ==sem virar estufa==. Você entra no ônibus lotado e não precisa arrancá-la do corpo.',
-          '==Quente e arejada ao mesmo tempo==, o que é raro. Aguenta a rua fria e o interior aquecido sem te fazer suar.'
+        t2 = variante([
+          '==Aquece sem abafar.== Dá pra passar o dia inteiro com ela.',
+          'Segura o frio ==sem virar estufa== quando você entra em algum lugar aquecido.'
         ]);
       } else if (respira >= 8 && aquece <= 4) {
-        condicional = true;
-        corpo = variante([
-          'É fresca: ==o corpo respira== e o calor não fica preso. Resolve bem no calor — no frio, pede uma camada por cima.',
-          '==Deixa o corpo respirar.== No calor é um alívio; quando esfria, você vai querer algo por cima.',
-          'Leve no corpo e ==arejada==. Feita pros dias quentes — sozinha, no frio, não segura.'
+        t2 = variante([
+          'É fresca: ==o corpo respira==. No frio, pede uma camada por cima.',
+          '==Deixa o corpo respirar.== Quando esfria, você vai querer algo por cima.'
         ]);
       } else if (respira <= 4 && aquece >= 7) {
-        condicional = true;
-        corpo = variante([
-          'Segura bem o frio, mas ==não respira==. Em lugar fechado, ou num dia que estica, você começa a sentir.',
-          'Aquece — e ==guarda esse calor todo==. Boa na rua, sufocante assim que você entra em algum lugar.',
-          '==Esquenta rápido e não deixa sair.== No frio de fora ajuda; no aquecido de dentro, incomoda.'
+        t2 = variante([
+          'Segura o frio, mas ==não respira==. Em lugar fechado você sente.',
+          'Aquece — e ==guarda esse calor todo==. Boa na rua, sufocante assim que você entra.'
         ]);
       } else if (respira <= 4) {
-        corpo = variante([
-          '==Abafa.== O calor do corpo não sai, e num dia longo isso cansa mais do que parece.',
-          '==Não deixa a pele respirar.== Numa tarde inteira vestida, você sente o corpo pedindo ar.',
-          'Prende o calor. ==Num dia cheio incomoda== — ainda mais em lugar fechado.'
+        t2 = variante([
+          '==Abafa.== Num dia longo, cansa mais do que parece.',
+          '==Não deixa a pele respirar.== Numa tarde inteira vestida, incomoda.'
         ]);
       } else {
-        corpo = variante([
-          'Veste sem drama: não abafa nem esquenta demais, cumpre o dia.',
-          'Nem quente nem fresca — ==fica no meio==, e por isso serve quase sempre.',
-          'No corpo não chama atenção: ==nem sufoca, nem deixa você com frio==.'
+        t2 = variante([
+          'Veste sem drama: nem abafa, nem esquenta demais.',
+          '==Fica no meio== — e por isso serve quase sempre.'
         ]);
       }
-      // Ramos condicionais (fresca-mas-esfria / quente-mas-abafa) já trazem a
-      // própria ressalva — colar um fechamento genérico de confiança por
-      // cima criava contradição (ex.: "pede camada por cima" seguido de
-      // "veste e some, no bom sentido"). Só os ramos sem ressalva embutida
-      // (bom/ruim/neutro nos dois eixos) levam essa cauda.
-      t2 = condicional ? corpo : corpo + ' ' + [
-        variante(['No corpo é onde ela perde — você sente ao longo do dia.',
-                  'É aqui que ela cobra: o corpo percebe.',
-                  'O incômodo aparece justamente no uso longo.'], 7),
-        variante(['Nada que incomode, mas também não é a que você procura primeiro.',
-                  'Cumpre o dia sem reclamação, sem virar favorita.',
-                  'Serve bem, sem ser a que você pega por impulso.'], 7),
-        variante(['É das que você esquece que está usando.',
-                  'Veste e some — no bom sentido.',
-                  'Do tipo que você põe e não pensa mais nela.'], 7)
-      ][faixa(conf, 70, 45)];
     } else {
       t2 = [
-        'Pesa no uso. ' + (mix.sin >= 70 ? 'Fibra sintética ==retém calor e respira pouco==: num dia longo ou lugar fechado, abafa.' : 'Não é a peça que você vai querer vestir o dia inteiro.'),
-        'Veste bem, sem encantar. Cumpre o dia sem incomodar, mas ' + (mix.sin >= 50 ? 'a parte sintética cobra em dias quentes.' : 'não é a peça mais confortável do armário.'),
-        (principal ? principal.nome + ' ' : '') + '==veste bem de verdade==: aquece ou refresca conforme o dia e respira em vez de virar estufa.'
+        mix.sin >= 70 ? 'Sintético ==retém calor e respira pouco==: num dia longo, abafa.' : 'Não é a peça que você vai querer vestir o dia inteiro.',
+        'Cumpre o dia sem incomodar, mas ' + (mix.sin >= 50 ? 'a parte sintética cobra no calor.' : 'não é a mais confortável do armário.'),
+        (principal ? principal.nome + ' ' : '') + '==veste bem de verdade==: respira em vez de virar estufa.'
       ][faixa(conf, 70, 45)];
     }
 
@@ -373,18 +341,16 @@
     // é o defeito concreto (bolinhas) em vez da faixa da nota.
     var t3;
     if (props.bol !== undefined && props.bol <= 4) {
-      t3 = '==Vai criar bolinhas.== Onde a roupa roça o dia inteiro — cintura, axila, alça da bolsa — o tecido encaroça' +
-        (props.ama !== undefined && props.ama <= 4 ? ', e ainda sai amassada da gaveta' : '') + '. ' +
-        (dur >= 60 ? 'O tecido em si aguenta bem; o que cansa antes é a aparência.'
-                   : 'É o que faz ' + (tipoArt === 'este' ? 'este ' : 'esta ') + tipo + ' parecer velh' + (tipoArt === 'este' ? 'o' : 'a') + ' antes da hora.');
+      t3 = '==Vai criar bolinhas== onde a roupa roça — cintura, axila, alça da bolsa.' +
+        (props.ama !== undefined && props.ama <= 4 ? ' E sai amassada da gaveta.' : '') +
+        (dur >= 60 ? ' O tecido aguenta; a aparência é que cansa antes.' : '');
     } else if (props.bol !== undefined && props.bol >= 8 && dur >= 60) {
-      t3 = 'Envelhece bem. Depois de muita lavagem continua com a mesma cara — ==não é do tipo que enche de bolinhas==. ' +
-        (man >= 60 ? 'E não pede nada de especial: lavagem normal e pronto.'
-                   : 'Só cobra atenção na hora de lavar.');
+      t3 = 'Envelhece bem: depois de muita lavagem, mesma cara. ==Não enche de bolinhas.==' +
+        (man >= 60 ? ' Lavagem normal e pronto.' : ' Só cobra atenção na hora de lavar.');
     } else t3 = [
-      'Pouco. ' + (mix.sin >= 50 ? 'O sintético ==forma bolinhas== com o atrito e desbota.' : 'A malha cede com o uso.') + ' É peça pra meses, não pra anos.',
-      'Dura, com cuidado. Aguenta a temporada se você respeitar a lavagem — ' + (man >= 60 ? 'e a manutenção é simples.' : 'mas ==a manutenção é exigente==.'),
-      'Vai durar. ' + (fibraNome ? 'A ' + fibraNome.toLowerCase() + ' aguenta' : 'A fibra aguenta') + ' o uso repetido sem perder a forma' + (man >= 60 ? ', e o cuidado é simples.' : ' — desde que você respeite a lavagem.') + ' É ' + tipo + ' pra ==durar temporadas==.'
+      (mix.sin >= 50 ? 'O sintético ==forma bolinhas== com o atrito e desbota.' : 'A malha cede com o uso.') + ' Peça pra meses, não pra anos.',
+      'Dura se você respeitar a lavagem — ' + (man >= 60 ? 'e a manutenção é simples.' : 'mas ==a manutenção é exigente==.'),
+      'Aguenta o uso repetido sem perder a forma' + (man >= 60 ? ', e o cuidado é simples.' : ' — desde que você respeite a lavagem.')
     ][faixa(dur, 70, 45)];
 
     // 04 · No dia a dia — a cor e o padrão são o maior fator de combinação,
@@ -392,28 +358,28 @@
     // versatilidade entra como consequência.
     var t4;
     if (estampado) {
-      t4 = 'Depende do resto do armário. ==Estampado pede peças lisas à volta== — não entra em qualquer look. ' +
-        (ver >= 60 ? 'Ainda assim rende: o estampado vira o ponto de partida do look, não o obstáculo.'
+      t4 = '==Estampado pede peças lisas à volta.== ' +
+        (ver >= 60 ? 'Ainda assim rende: vira o ponto de partida do look, não o obstáculo.'
                    : 'Sai menos que ' + (tipoArt === 'este' ? 'um ' : 'uma ') + tipo + ' lisa, e o preço por uso sobe junto.');
     } else if (/neutr/i.test(corNota)) {
       // cor neutra e lisa — não repetir "combina com tudo" duas vezes
       t4 = [
-        'Combina fácil, mas mesmo assim fica no cabide: o que segura ' + tipoArt + ' ' + tipo + ' não é a cor.',
-        'Entra em quase tudo que você já tem. Não é a primeira escolha da manhã, mas resolve.',
-        'Entra em qualquer combinação. É ' + tipoArt + ' ' + tipo + ' que você ==veste sem pensar== — e é sempre essa que mais sai do armário.'
+        'Combina fácil e mesmo assim fica no cabide: o que segura não é a cor.',
+        'Entra em quase tudo que você já tem, sem ser a primeira escolha da manhã.',
+        'Entra em qualquer combinação. É ' + tipoArt + ' ' + tipo + ' que você ==veste sem pensar==.'
       ][faixa(ver, 70, 45)];
     } else if (corNota) {
       // cor marcante: a cor é que decide a frequência de uso
       t4 = [
-        'A cor manda aqui: ==pede o resto do look em volta== e por isso sai pouco. O preço por uso sobe.',
+        'A cor manda aqui: ==pede o resto do look em volta== e sai pouco.',
         'A cor pede um pouco de intenção, mas cabe no que você já tem.',
-        'Mesmo com cor marcante, ==sai muito==: funciona com o que você já usa e ainda dá o ponto de cor.'
+        'Mesmo com cor marcante, ==sai muito==: funciona com o que você já usa.'
       ][faixa(ver, 70, 45)];
     } else {
       t4 = [
-        'Pouco. É peça de ocasião: ==pede combinação específica== e acaba parada no cabide. Custe o que custar, o preço por uso sobe.',
-        'De vez em quando. Combina com o que você já tem, mas não é a primeira escolha — vai sair do armário sem pressa.',
-        'Vai, e muito. ==Funciona como neutro==: cai bem com jeans, alfaiataria e saia. Peça que combina sem você pensar acaba sendo a mais barata que você tem.'
+        'Peça de ocasião: ==pede combinação específica== e fica parada no cabide.',
+        'Combina com o que você já tem, mas não é a primeira escolha.',
+        'Vai, e muito. ==Funciona como neutro==: jeans, alfaiataria, saia.'
       ][faixa(ver, 70, 45)];
     }
 
@@ -632,21 +598,21 @@
         var B = props.res !== undefined && props.res <= 5;   // abafa
         var S = props.sec !== undefined && props.sec <= 4;   // seca devagar
         var FRASES = {
-          A: ['==Sai amassad' + o + ' da mala==, por melhor que você dobre. Dá pra levar — só conte com um ferro do outro lado.',
-              '==Amassa na mala.== Dobrar com cuidado adia o vinco, não resolve: no destino é ferro ou vapor antes de vestir.'],
-          AB: ['==Amassa na mala== e ainda prende o calor num dia inteiro fora. Vale levar se for peça-chave; senão, cobra mais do que entrega.',
-               'Chega ==amassad' + o + '== e ==abafa== quando o dia estica. Dá pra levar, mas não é a peça que resolve sozinha.'],
-          AS: ['==Sai amassad' + o + ' da mala== e, se você lavar no meio da viagem, perde um dia inteiro esperando secar.',
-               '==Amassa e seca devagar==: lavar no meio do caminho custa um dia de espera, além do ferro no destino.'],
-          ABS: ['Amassa, abafa e ainda demora a secar. É a peça que mais vai dar trabalho nessa mala.',
-                '==Amarrota, retém calor e seca devagar.== Dá pra levar, mas prepare-se: ferro no destino e paciência depois de lavar.'],
-          B: ['==Prende o calor.== Num dia inteiro na rua você sente — e viagem costuma ser exatamente isso.',
-              '==Abafa quando o dia estica.== Funciona se o destino for frio; no calor, incomoda.'],
-          BS: ['==Abafa num dia longo== e ==demora a secar== depois de lavar. Leve se o clima do destino ajudar.',
-               'Retém calor e seca devagar — duas coisas que pesam justamente em viagem.'],
-          S: ['==Seca devagar.== Se a ideia era lavar no meio da viagem e usar de novo, conte com um dia inteiro de espera.',
-              '==Demora a secar.== Lavar à noite e vestir de manhã não vai dar certo com esta peça.'],
-          '': ['Pede um pouco de atenção na mala. Nada que atrapalhe a viagem — mas também não é a peça que você esquece que levou.']
+          A: ['==Sai amassad' + o + ' da mala==, por melhor que você dobre. Conte com um ferro do outro lado.',
+              '==Amassa na mala.== No destino é ferro ou vapor antes de vestir.'],
+          AB: ['==Amassa na mala== e prende o calor num dia inteiro fora.',
+               'Chega ==amassad' + o + '== e ==abafa== quando o dia estica.'],
+          AS: ['==Sai amassad' + o + ' da mala==, e lavar no meio da viagem custa um dia esperando secar.',
+               '==Amassa e seca devagar.== Ferro no destino, e paciência se lavar.'],
+          ABS: ['Amassa, abafa e demora a secar. É a peça que mais vai dar trabalho.',
+                '==Amarrota, retém calor e seca devagar.== Dá pra levar, mas cobra.'],
+          B: ['==Prende o calor.== Num dia inteiro na rua você sente.',
+              '==Abafa quando o dia estica.== Funciona se o destino for frio.'],
+          BS: ['==Abafa num dia longo== e ==demora a secar==. Leve se o clima ajudar.',
+               'Retém calor e seca devagar — os dois pesam em viagem.'],
+          S: ['==Seca devagar.== Lavar no meio da viagem custa um dia de espera.',
+              '==Demora a secar.== Lavar à noite e vestir de manhã não vai dar.'],
+          '': ['Pede um pouco de atenção na mala, mas nada que atrapalhe a viagem.']
         };
         var chave = (A ? 'A' : '') + (B ? 'B' : '') + (S ? 'S' : '');
         return variante(FRASES[chave] || FRASES[''], 11);
@@ -662,28 +628,28 @@
         // casaco: o que importa é resolver o frio sem virar estufa por dentro
         if (tipoKey === 'casaco') {
           if (aquece && respira) return variante([
-            '==Resolve o frio sem virar estufa== quando você entra em algum lugar aquecido. Um casaco só, sem camadas por baixo — e sobra mala.',
-            'Segura a rua fria e aguenta o interior aquecido ==sem te fazer suar==. Num casaco, isso é o que separa levar de carregar.'
+            '==Resolve o frio sem virar estufa== quando você entra em algum lugar aquecido.',
+            'Segura a rua fria e aguenta o interior aquecido ==sem te fazer suar==.'
           ], 13);
           if (aquece) return variante([
-            '==Segura o frio sozinho.== Você não precisa empilhar camadas por baixo, e só isso já libera metade da mala.',
-            'Aguenta o frio ==sem reforço==: um casaco, nada por baixo, e a mala agradece.'
+            '==Segura o frio sozinho==, sem camadas por baixo — e isso já libera mala.',
+            'Aguenta o frio ==sem reforço==: um casaco, nada por baixo.'
           ], 13);
-          if (respira) return '==Respira mesmo isolando do frio==, então dá pra entrar num lugar aquecido sem precisar tirar na hora.';
+          if (respira) return '==Respira mesmo isolando do frio==: dá pra entrar num lugar aquecido sem tirar.';
         }
 
         if (naoAmarrota && secaRapido) return variante([
-          '==Sai da mala pronta pra vestir== e, se você lavar à noite, de manhã está seca. É o tipo de peça que deixa a mala menor.',
-          'Nenhum ferro envolvido, e ==lava à noite pra vestir de manhã==. Uma peça dessas rende como três.'
+          '==Sai da mala pronta pra vestir==, e lava à noite pra usar de manhã.',
+          'Sem ferro, e ==seca da noite pro dia==. Uma peça dessas rende como três.'
         ], 13);
         if (naoAmarrota) return variante([
-          '==Sai da mala e vai direto pro corpo== — nenhum ferro envolvido. Numa viagem curta isso vale mais do que parece.',
-          'Dobra, viaja, veste. ==Sem vinco e sem ferro==, que é o que você quer de uma peça de mala.'
+          '==Sai da mala e vai direto pro corpo==, sem ferro nenhum.',
+          'Dobra, viaja, veste: ==sem vinco e sem ferro==.'
         ], 13);
-        if (secaRapido) return '==Lava no lavatório à noite, veste de manhã.== Uma peça dessas substitui três na mala.';
-        if (respira && aquece) return '==Aguenta a rua fria e o interior aquecido sem te fazer suar== — o que, numa peça só, é raro.';
-        if (respira) return '==Respira bem==: o calor do corpo não fica preso, mesmo num dia inteiro fora.';
-        return 'Resolve a viagem sem exigir cuidado nenhum. É a peça que entra na mala sem você pensar duas vezes.';
+        if (secaRapido) return '==Lava à noite, veste de manhã.== Uma peça dessas substitui três.';
+        if (respira && aquece) return '==Aguenta a rua fria e o interior aquecido sem te fazer suar== — o que é raro.';
+        if (respira) return '==Respira bem==: o calor não fica preso, mesmo num dia inteiro fora.';
+        return 'Resolve a viagem sem exigir cuidado nenhum.';
       })()),
       // lookmap
       // o design tinha uma frase por faixa de nota (86 celebra, 58 pondera);
