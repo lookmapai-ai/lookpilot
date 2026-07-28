@@ -19,8 +19,11 @@ Em cada produto, checar:
 
 ## Lojas pra checar
 
-- [ ] H&M — só tem teste evitando um bug antigo, não cobertura de formato
-- [ ] Renner
+- [x] Renner — testada, card leu certo (trench coat, poliéster 81%)
+- [x] Riachuelo — testada
+- [ ] H&M — achado e corrigido um bug (rótulos grudando no nome da fibra:
+      "materiaiscomposiçãoalgodão"). Testar de novo depois do próximo push
+      pra confirmar que ficou certo.
 - [ ] C&A
 - [ ] Amaro
 - [ ] Shein
