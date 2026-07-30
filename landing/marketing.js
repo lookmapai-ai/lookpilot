@@ -48,7 +48,16 @@
     return svg;
   }
 
+  // Marca o evento no Vercel Analytics, se estiver ligado. window.va só
+  // existe depois do script /_vercel/insights carregar E o Web Analytics
+  // estar ativado no painel do projeto — por isso o teste de tipo, senão
+  // quebraria a página inteira em qualquer lugar sem essa flag ligada.
+  function evento(nome) {
+    if (typeof window.va === 'function') window.va('event', { name: nome });
+  }
+
   function baixar() {
+    evento('baixar_extensao');
     if (DOWNLOAD_URL) {
       // <a download> em vez de window.open: não abre aba nem é bloqueado como popup
       var a = document.createElement('a');
