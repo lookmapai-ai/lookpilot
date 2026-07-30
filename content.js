@@ -885,7 +885,7 @@
         <button id="__fqa-close" aria-label="Fechar" style="all:initial;cursor:pointer;color:#86868B;font-size:20px;line-height:1;padding:0 2px;">×</button>
       </div>
       <div style="padding:20px 16px 22px;text-align:center;">
-        <svg class="__fqa-spin" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FF009D" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 10px;">
+        <svg class="__fqa-spin" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FF009D" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:block !important;width:28px !important;height:28px !important;max-width:28px !important;flex-shrink:0 !important;margin:0 auto 10px;">
           <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
           <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
           <rect x="7" y="7" width="10" height="10" rx="1"/>
