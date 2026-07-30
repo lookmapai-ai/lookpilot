@@ -48,12 +48,14 @@
     return svg;
   }
 
-  // Marca o evento no Vercel Analytics, se estiver ligado. window.va só
-  // existe depois do script /_vercel/insights carregar E o Web Analytics
-  // estar ativado no painel do projeto — por isso o teste de tipo, senão
-  // quebraria a página inteira em qualquer lugar sem essa flag ligada.
+  // Marca o evento nos dois analytics. Cada teste de tipo é porque o script
+  // correspondente pode não ter carregado ainda (ou nem existir, ex.: se um
+  // bloqueador de anúncio barrar o Google) — sem o teste, isso quebraria a
+  // página inteira. Vercel (grátis) só mostra visita, não clique — por isso
+  // o Google Analytics entrou também, é quem mostra os eventos de verdade.
   function evento(nome) {
     if (typeof window.va === 'function') window.va('event', { name: nome });
+    if (typeof window.gtag === 'function') window.gtag('event', nome);
   }
 
   function baixar() {

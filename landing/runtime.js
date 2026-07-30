@@ -586,10 +586,11 @@
   function estaGuardada() {
     return lerGuardadas().some(function (h) { return h.id === pecaId; });
   }
-  // Mesmo mecanismo de marketing.js: window.va só existe com o Vercel
-  // Web Analytics ligado no painel do projeto. Sem isso, não faz nada.
+  // Mesmo mecanismo de marketing.js: ver nota lá. Vercel + Google Analytics,
+  // cada um só dispara se o próprio script dele tiver carregado.
   function evento(nome) {
     if (typeof window.va === 'function') window.va('event', { name: nome });
+    if (typeof window.gtag === 'function') window.gtag('event', nome);
   }
 
   function salvarPeca() {

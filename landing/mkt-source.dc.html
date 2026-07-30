@@ -32,6 +32,15 @@ a:hover{color:#000000}
      não faz nada. Eventos de clique específicos (baixar/salvar) usam
      window.va(), definido por este mesmo script. -->
 <script defer src="/_vercel/insights/script.js"></script>
+<!-- Google Analytics: visitas + os mesmos dois eventos (baixar/salvar),
+     porque o Vercel Analytics grátis não mostra clique específico. -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-48Y19CCPGX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-48Y19CCPGX');
+</script>
 </helmet>
 <div style="position:relative;display:flex;flex-direction:column;min-height:100dvh;background:#FFFFFF;color:#1D1D1F;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:17px;line-height:1.5;overflow:clip">
 
