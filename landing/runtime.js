@@ -388,23 +388,26 @@
         (ver >= 60 ? 'Ainda assim rende: vira o ponto de partida do look, não o obstáculo.'
                    : 'Sai menos que ' + (tipoArt === 'este' ? 'um ' : 'uma ') + tipo + ' lisa, e o preço por uso sobe junto.');
     } else if (/neutr/i.test(corNota)) {
-      // cor neutra e lisa — não repetir "combina com tudo" duas vezes
+      // A extensão não conhece o seu guarda-roupa — só sabe se a cor é
+      // neutra e se é estampado. "Combina com o que você já tem" prometia um
+      // conhecimento que não existe; a nota é sobre a peça em si (cor lisa e
+      // neutra combina fácil, ponto), não sobre o que está no seu armário.
       t4 = [
         'Combina fácil e mesmo assim fica no cabide: o que segura não é a cor.',
-        'Entra em quase tudo que você já tem, sem ser a primeira escolha da manhã.',
+        '==Combina fácil==, sem ser a primeira escolha da manhã.',
         'Entra em qualquer combinação. É ' + tipoArt + ' ' + tipo + ' que você ==veste sem pensar==.'
       ][faixa(ver, 70, 45)];
     } else if (corNota) {
       // cor marcante: a cor é que decide a frequência de uso
       t4 = [
         'A cor manda aqui: ==pede o resto do look em volta== e sai pouco.',
-        'A cor pede um pouco de intenção, mas cabe no que você já tem.',
-        'Mesmo com cor marcante, ==sai muito==: funciona com o que você já usa.'
+        'A cor pede um pouco de intenção, mas ainda é fácil de combinar.',
+        'Mesmo com cor marcante, ==sai muito==: é fácil de combinar.'
       ][faixa(ver, 70, 45)];
     } else {
       t4 = [
         'Peça de ocasião: ==pede combinação específica== e fica parada no cabide.',
-        'Combina com o que você já tem, mas não é a primeira escolha.',
+        '==Combina fácil==, mas não é a primeira escolha.',
         'Vai, e muito. ==Funciona como neutro==: jeans, alfaiataria, saia.'
       ][faixa(ver, 70, 45)];
     }
@@ -465,9 +468,9 @@
     // pra prometer "combina com tudo" sem reconhecer isso.
     if (estampado) {
       if (ver >= 60) bom('Rende mesmo sendo estampado', 'Vira o ponto de partida do look em vez de pedir peça lisa extra na mala.');
-      else mau('Estampado pede combinação pensada', 'Não é a peça que resolve com qualquer coisa que você levou.');
+      else mau('Estampado pede combinação pensada', 'Não resolve sozinha — precisa de mais peças lisas em volta.');
     } else if (ver >= 70) {
-      bom('Combina com o que você já levou', 'Rende mais looks sem precisar de mais peça nenhuma na mala.');
+      bom('Fácil de combinar', 'Rende mais looks sem precisar de mais peça nenhuma na mala.');
     } else if (ver <= 45) {
       mau('Pede combinação específica', 'Ocupa espaço na mala pra resolver só uma situação.');
     }
