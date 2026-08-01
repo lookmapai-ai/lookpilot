@@ -335,9 +335,12 @@
           '==Não vira estufa==: segura o frio e ainda deixa o corpo respirar.'
         ]);
       } else if (respira >= 8 && aquece <= 4) {
+        // "camada por cima" só faz sentido pra parte de cima do corpo — uma
+        // calça não veste outra calça por cima. Frase sem direção implícita,
+        // funciona pra qualquer peça.
         t2 = variante([
-          'É fresca: ==o corpo respira==. No frio, pede uma camada por cima.',
-          '==Não abafa== — o calor sai em vez de ficar preso. Quando esfria, pede algo por cima.'
+          'É fresca: ==o corpo respira==. No frio, sozinha não segura.',
+          '==Não abafa== — o calor sai em vez de ficar preso. No frio, pede reforço.'
         ]);
       } else if (respira <= 4 && aquece >= 7) {
         t2 = variante([
