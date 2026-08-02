@@ -173,12 +173,14 @@ Extraído de `landing/analise-v15.html`. **9 cores, uma superfície.** Contraste
 
 ---
 
-## 8. URL de destino (landing futura)
+## 8. URL de destino
+
+> **Domínio oficial: `lookpilotapp.com`.** É o que `content.js` e `popup.js` já usam. `lookmap.ai` aparecia aqui como destino previsto e foi descartado — a marca fica num domínio só.
 
 `buildAnaliseURL()` (content.js) e `buildAnaliseURLFromStorage()` (popup.js) constroem:
 
 ```
-https://lookmap.ai/analise?score=...&verdict=...&qualidade=...&durabilidade=...
+https://www.lookpilotapp.com/analise.html?score=...&verdict=...&qualidade=...&durabilidade=...
   &conforto=...&versatilidade=...&manutencao=...&custo=...&viagem=...
   &fibras=Poliéster:93,Elastano:7&nome=...&imagem=...&galeria=<url1>|<url2>|<url3>
   &preco=...&moeda=...&loja=...&confianca=...&origem=<url-produto>
@@ -221,4 +223,4 @@ https://lookmap.ai/analise?score=...&verdict=...&qualidade=...&durabilidade=...
 ## 11. Pendências conhecidas
 
 - [ ] Guardar nome do produto nas entradas de histórico
-- [ ] Criar a landing `lookmap.ai/analise` que consome os URL params
+- [ ] Criar a landing `lookpilotapp.com/analise.html` que consome os URL params
