@@ -522,11 +522,19 @@
      numa peça que amarrota —, e isso se resolve em seloLeadEl, que só cita
      qualidade que a fibra tem.
 
-     Agora: aprovado = média boa E os pontos bons superam os ruins. Poliéster
-     (não amassa, seca rápido, mas abafa) passa; algodão (respira, mas amassa
-     e seca devagar) fica em "dá pra levar, com ressalvas", que é a leitura
-     honesta. Um defeito visível ao lado do selo deixa de ser contradição:
-     o selo dá o veredito, os cards dão o preço a pagar.                    */
+     Agora: aprovado = média boa E os pontos bons não perdem dos ruins.
+     Poliéster (não amassa, seca rápido, mas abafa) passa; algodão (respira,
+     mas amassa e seca devagar) fica em "dá pra levar, com ressalvas", que é
+     a leitura honesta. Um defeito visível ao lado do selo deixa de ser
+     contradição: o selo dá o veredito, os cards dão o preço a pagar.
+
+     Ajuste: EMPATE também aprova (>=, não >). A maioria das fibras só tem
+     2-4 traços relevantes no total, e empate (1 bom/1 mau, 2/2) é o
+     resultado mais comum, não a exceção — exigir maioria clara reprovava
+     quase tudo que não fosse neutro-perfeito. Medido contra o banco: com
+     ">" e cor de peça comum ("cor média"), só 5 de 13 fibras aprovavam; com
+     ">=", 9 de 13. Reprovar deve significar "os defeitos SUPERAM as
+     qualidades", não "não superam por uma margem confortável".            */
   var _bons = _tracosBrutos.filter(function (t) { return t.bom; }).length;
   var _maus = _tracosBrutos.length - _bons;
   // Uma exceção à contagem: amassar muito é desqualificante pra mala, e
@@ -538,7 +546,7 @@
   // que sai inutilizável da mala, o que não é o caso de uma malha.
   var _amassaMuito = props.ama !== undefined && props.ama <= 3 && !ehMalha;
   var seloAprovado = _tracosBrutos.length
-    ? (vg >= 7 && _bons > _maus && !_amassaMuito)
+    ? (vg >= 7 && _bons >= _maus && !_amassaMuito)
     : vg >= 7;
   var seloAcc = seloAprovado ? '#FF009D' : '#C89B5E';
   var seloIcon = seloAprovado ? '✓' : '!';
