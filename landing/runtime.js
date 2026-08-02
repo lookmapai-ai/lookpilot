@@ -339,7 +339,7 @@
         // calça não veste outra calça por cima. Frase sem direção implícita,
         // funciona pra qualquer peça.
         t2 = variante([
-          'É fresca: ==o corpo respira==. No frio, sozinha não segura.',
+          'É fresca: ==o corpo respira==. No frio, não resolve sozinha.',
           '==Não abafa== — o calor sai em vez de ficar preso. No frio, pede reforço.'
         ]);
       } else if (respira <= 4 && aquece >= 7) {
