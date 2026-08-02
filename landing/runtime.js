@@ -348,8 +348,10 @@
           'Aquece — e ==guarda esse calor todo==. Boa na rua, sufocante assim que você entra.'
         ]);
       } else if (respira <= 4) {
+        // "você vai querer tirar" também pressupõe peça de cima (dá pra tirar
+        // uma jaqueta em público; uma calça, não). Mesmo ajuste de antes.
         t2 = variante([
-          '==Abafa==: o calor do corpo não sai. Num dia inteiro fora, você vai querer tirar.',
+          '==Abafa==: o calor do corpo não sai. Num dia inteiro fora, cansa.',
           '==Não deixa a pele respirar.== Numa tarde inteira vestida, incomoda.'
         ]);
       } else {
