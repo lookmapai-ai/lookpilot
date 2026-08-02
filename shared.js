@@ -278,10 +278,17 @@ function calcScores(fibers, pageText, certText, titleText) {
   const overall     = Math.min(100, Math.round(qualityFinal * 0.25 + comfort * 0.15 + durability * 0.20 + versatility * 0.15 + costBenefit * 0.15 + maintenance * 0.10) + (certBonus > 0 ? 2 : 0));
 
   const isKnit = /tricot|tric[ôo]|knit|malha|jersey|jacquard|knitwear|croch[eê]|crochet|sweater|camisola|pullover|pul[oô]ver|cardigan|cardig[aã]|gola alta|tur(t|l)eneck|jumper|camisaco/i.test(pageText || '');
+  // Tecido grosso e estruturado (sarja, gabardine, ganga/denim, canvas, brim,
+  // corte "carpinteiro"/workwear) amarrota muito menos que o algodão fino
+  // médio do banco — o mesmo raciocínio do isKnit, só que pro lado oposto do
+  // espectro (tecido plano mas GROSSO, em vez de malha). Sem isto, uma
+  // bermuda "carpinteiro" (na prática quase jeans) herdava o amassa:3 médio
+  // do algodão fino, quando quem já viu a peça sabe que ela não amarrota.
+  const isHeavyWoven = /sarja|gabardine|ganga\b|denim|canvas|\bbrim\b|carpinteiro|workwear|twill|cargo|caqui pesad[oa]|drill/i.test(pageText || '');
   // Semente de variação: primeiro tipo de peça encontrado no texto → frases variam entre tipos de peça
   const garmentWords = (pageText || '').toLowerCase().match(/camisa|t-?shirt|camiseta|vestido|cal[çc]a|saia|blusa|top|casaco|blaz[eê]r|jaqueta|short|macac[ãa]o|sobretudo|cardigan|camisola|sweater|polo/);
   const productSeed = garmentWords ? garmentWords[0] : '';
-  return { quality: qualityFinal, comfort, durability, maintenance, versatility, costBenefit, travel, travelMaterial, packability, warmth, overall, natPct, synPct, certs, fibers, qualityModifier: qmod, isKnit, productSeed, colorInfo };
+  return { quality: qualityFinal, comfort, durability, maintenance, versatility, costBenefit, travel, travelMaterial, packability, warmth, overall, natPct, synPct, certs, fibers, qualityModifier: qmod, isKnit, isHeavyWoven, productSeed, colorInfo };
 }
 
 // ─── Buy Score: o score principal do copiloto ─────────────────────
@@ -605,8 +612,12 @@ function travelText(scores, fibers) {
 
   // Se há parceiro anti-wrinkle significativo (>5%), o amarrotamento é reduzido
   const wrinkles = mainWrinkles && !(hasAntiWrinkle && antiPct >= 5);
-  // isKnit passado via scores (detetado no pageText em calcScores)
+  // isKnit/isHeavyWoven passados via scores (detetados no pageText em calcScores)
   const isKnit = scores?.isKnit || false;
+  // sarja, ganga, canvas, corte "carpinteiro"... tecido grosso amarrota bem
+  // menos que o algodão fino médio do banco — mesmo raciocínio da malha, do
+  // outro lado do espectro de construção.
+  const isHeavyWoven = scores?.isHeavyWoven || false;
 
   const dry  = d.type === 'synthetic';
   const isMerino = ['merino','lã merino'].includes(mainName);
@@ -625,8 +636,9 @@ function travelText(scores, fibers) {
   if ((scores.versatility || 0) >= 75 && colorOk && !isMerino && !isWool) pros.push('combina com tudo');
   if ((scores.maintenance || 0) >= 80 && !wrinkles) pros.push('fácil de cuidar');
 
-  // Só adiciona "amassa" se realmente amassa E não é malha
-  if (wrinkles && !isKnit) cons.push('amassa com facilidade');
+  // Só adiciona "amassa" se realmente amassa E não é malha nem tecido grosso
+  if (wrinkles && !isKnit && !isHeavyWoven) cons.push('amassa com facilidade');
+  if (wrinkles && isHeavyWoven) pros.push('tecido grosso, não amassa como o fino');
   // "demora a secar" só para fibras que de facto secam devagar (algodão, viscose).
   // Linho, cânhamo e rami são fibras bast que secam rápido — não entram aqui.
   const SLOW_DRY = ['algodão','algodao','cotton','coton','viscose','rayon','raiom','modal','lyocell','liocel','tencel'];

@@ -81,6 +81,10 @@
   // sinal; aqui ele faltava, e a página dizia "Amarrota fácil" numa peça que
   // o card, logo acima, dizia que amassa pouco.
   var ehMalha = Q.get('malha') === '1';
+  // sarja, ganga, canvas, corte "carpinteiro"... o mesmo raciocínio da
+  // malha, do outro lado do espectro: tecido plano mas GROSSO amarrota bem
+  // menos que o algodão fino médio do banco.
+  var naoAmarrotaPelaEspessura = ehMalha || Q.get('encorpado') === '1';
   // versatilidade no escopo de fora: tracosViagemBrutos() também usa (fica
   // fora de prosaCartoes(), que já tinha a sua própria cópia local)
   var ver = int('versatilidade', 50);
@@ -461,9 +465,11 @@
     var isCasaco = tipoKey === 'casaco';
 
     // ordem = relevância para quem faz mala
-    // A mesma fibra amarrota conforme a construção: em malha, muito menos.
+    // A mesma fibra amarrota conforme a construção: em malha ou tecido
+    // grosso/estruturado (sarja, ganga, corte "carpinteiro"), muito menos.
     // Mesma regra que conclusionText() já aplica no card.
     if (tem('ama') && p.ama <= 5 && ehMalha) bom('Malha amassa pouco', 'Num tecido plano esta fibra amarrotaria; em malha, sai da mala bem melhor.');
+    else if (tem('ama') && p.ama <= 5 && naoAmarrotaPelaEspessura) bom('Tecido grosso, não amassa como o fino', 'É estruturado — bem diferente do algodão fino que sai amassado da mala.');
     else if (tem('ama') && p.ama <= 5) mau('Amarrota fácil', 'Sai da mala com vincos. Precisa de ferro ou vapor antes de vestir.');
     else if (tem('ama') && p.ama >= 7) bom('Não amarrota', 'Sai da mala e vai direto pro corpo, sem passar por ferro nenhum.');
 
@@ -544,7 +550,7 @@
   // contexto "viagem" justifica um corte seco. Pega linho, cânhamo, rami.
   // ...e o corte duro também respeita a construção: o veto existe pra peça
   // que sai inutilizável da mala, o que não é o caso de uma malha.
-  var _amassaMuito = props.ama !== undefined && props.ama <= 3 && !ehMalha;
+  var _amassaMuito = props.ama !== undefined && props.ama <= 3 && !naoAmarrotaPelaEspessura;
   var seloAprovado = _tracosBrutos.length
     ? (vg >= 7 && _bons >= _maus && !_amassaMuito)
     : vg >= 7;
