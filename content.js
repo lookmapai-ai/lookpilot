@@ -759,7 +759,14 @@
     card.style.cssText = 'all:initial;position:fixed;bottom:20px;right:20px;z-index:2147483647;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;background:#FFFFFF;border:1px solid #E8E8ED;border-radius:14px;box-shadow:0 4px 28px rgba(0,0,0,0.13);width:280px;overflow:hidden;';
 
     // Buy Score: o score principal, com pesos do tipo de peça
-    const garmentType = section.garmentType || (scores.isKnit ? 'malha' : category);
+    // isBulkyGarment (casaco/jaqueta/corta-vento...) já existia em shared.js
+    // só pra calcular volume na mala — nunca virava o TIPO da peça. Sem isto,
+    // um casaco caía em "clothing" genérico: peso de conforto errado (0.15,
+    // pensado pra roupa que toca a pele o dia todo) em vez do peso de casaco
+    // (0.10, calibrado pra estrutura importar mais) — e nenhuma das frases
+    // específicas de casaco (calor como critério principal, etc.) disparava.
+    const garmentType = section.garmentType
+      || (scores.isBulkyGarment ? 'casaco' : (scores.isKnit ? 'malha' : category));
     // O tipo entra na história para a landing parar de dizer "peça" no genérico
     // ("esta camiseta sai do armário" lê melhor que "esta peça").
     historia.tipo = garmentType;
