@@ -355,7 +355,7 @@
         // "você vai querer tirar" também pressupõe peça de cima (dá pra tirar
         // uma jaqueta em público; uma calça, não). Mesmo ajuste de antes.
         t2 = variante([
-          '==Abafa==: o calor do corpo não sai. Num dia inteiro fora, cansa.',
+          '==Abafa==: o calor do corpo não sai — e isso pesa num dia inteiro fora.',
           '==Não deixa a pele respirar.== Numa tarde inteira vestida, incomoda.'
         ]);
       } else {
