@@ -228,6 +228,16 @@ function calcScores(fibers, pageText, certText, titleText) {
   const total = fibers.reduce((s, f) => s + (f.pct || 0), 0) || 100;
   const certBonus = Math.min(8, certs.length * 4);
 
+  // Especificação técnica (impermeável, corta-vento, membrana, rating tipo
+  // "10k") é sinal real de engenharia da peça — não vem da fibra, vem da
+  // descrição do produto. Um poliéster "qualquer" e um poliéster com
+  // membrana impermeável 10k são peças objetivamente diferentes, mas o
+  // sistema baseado só em fibra não enxergava essa diferença. Bônus modesto
+  // (mesma ordem de grandeza do de certificação) — a especificação já se
+  // prova sozinha no card via techSpecNota, isto só ajusta a nota.
+  const hasTechSpec = /imperme[aá]vel|waterproof|corta-?vento|windproof|\bwind[- ]?resistant\b|membrana|\bdwr\b|water[- ]?repellent|à prova de (água|chuva)|\b\d{1,2}(?:[.,]?000)?\s?k\/\d{1,2}(?:[.,]?000)?\s?k\b|\b\d{1,2}(?:[.,]?000)?\s?k\b(?=.{0,40}(imperme|water|chuva))/i.test(pageText || '');
+  const techBonus = hasTechSpec ? 6 : 0;
+
   // Modificador de qualidade (Pima, Supima, penteado...) na fibra dominante
   const domFiber = [...fibers].sort((a,b)=>(b.pct||0)-(a.pct||0))[0];
   const qmod = typeof detectQualityModifier === 'function' ? detectQualityModifier(domFiber?.name, pageText) : null;
@@ -274,8 +284,9 @@ function calcScores(fibers, pageText, certText, titleText) {
     travel = Math.round(travelMaterial * 0.55 + packability * 0.30 + versatility * 0.15);
   }
   travel = Math.max(0, Math.min(100, travel));
-  const qualityFinal = Math.min(100, quality + certBonus);
-  const overall     = Math.min(100, Math.round(qualityFinal * 0.25 + comfort * 0.15 + durability * 0.20 + versatility * 0.15 + costBenefit * 0.15 + maintenance * 0.10) + (certBonus > 0 ? 2 : 0));
+  const qualityFinal = Math.min(100, quality + certBonus + techBonus);
+  const durabilityFinal = Math.min(100, durability + (hasTechSpec ? 4 : 0));
+  const overall     = Math.min(100, Math.round(qualityFinal * 0.25 + comfort * 0.15 + durabilityFinal * 0.20 + versatility * 0.15 + costBenefit * 0.15 + maintenance * 0.10) + (certBonus > 0 ? 2 : 0));
 
   const isKnit = /tricot|tric[ôo]|knit|malha|jersey|jacquard|knitwear|croch[eê]|crochet|sweater|camisola|pullover|pul[oô]ver|cardigan|cardig[aã]|gola alta|tur(t|l)eneck|jumper|camisaco/i.test(pageText || '');
   // Tecido grosso e estruturado (sarja, gabardine, ganga/denim, canvas, brim,
@@ -288,7 +299,7 @@ function calcScores(fibers, pageText, certText, titleText) {
   // Semente de variação: primeiro tipo de peça encontrado no texto → frases variam entre tipos de peça
   const garmentWords = (pageText || '').toLowerCase().match(/camisa|t-?shirt|camiseta|vestido|cal[çc]a|saia|blusa|top|casaco|blaz[eê]r|jaqueta|short|macac[ãa]o|sobretudo|cardigan|camisola|sweater|polo/);
   const productSeed = garmentWords ? garmentWords[0] : '';
-  return { quality: qualityFinal, comfort, durability, maintenance, versatility, costBenefit, travel, travelMaterial, packability, warmth, overall, natPct, synPct, certs, fibers, qualityModifier: qmod, isKnit, isHeavyWoven, isBulkyGarment, productSeed, colorInfo };
+  return { quality: qualityFinal, comfort, durability: durabilityFinal, maintenance, versatility, costBenefit, travel, travelMaterial, packability, warmth, overall, natPct, synPct, certs, fibers, qualityModifier: qmod, isKnit, isHeavyWoven, isBulkyGarment, hasTechSpec, productSeed, colorInfo };
 }
 
 // ─── Buy Score: o score principal do copiloto ─────────────────────
@@ -577,6 +588,14 @@ function conclusionText(scores, fibers, garmentType) {
   }
   if (s?.colorInfo?.note && s.colorInfo.isPrint) {
     why = `${why} Para combinar, atenção: ${s.colorInfo.note}.`;
+  }
+  // Especificação técnica (impermeável, corta-vento, membrana...) some no
+  // texto onde ela decide comprar ou não — sem isto a nota sobe sozinha, sem
+  // explicação, e vira número mágico.
+  if (s?.hasTechSpec) {
+    why = en
+      ? `${why} Has real technical specs listed (waterproof/windproof) — that's engineering, not just fibre.`
+      : `${why} Tem especificação técnica de verdade na etiqueta (impermeável/corta-vento) — isso é engenharia da peça, não só a fibra.`;
   }
 
   } // end PT branch
