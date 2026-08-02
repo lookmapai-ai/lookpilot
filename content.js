@@ -702,10 +702,29 @@
       // Sem isto os capítulos 02-04 caem sempre nas mesmas frases por faixa.
       fibraNome:  principal?.data?.label || principal?.name || '',
       fibraTip:   principal?.data?.tip || '',
-      // Propriedades cruas da fibra principal (0-10, 10 = melhor desempenho
-      // naquela propriedade). São elas que dão história concreta: "bol" baixo
-      // vira "forma bolinhas", "ama" baixo vira "amarrota".
-      fibraProps: principal?.data?.p || null,
+      // Propriedades da MISTURA, ponderadas pela % de cada fibra — não só a
+      // principal. Um short 72% algodão + 25% lyocell + 3% elastano usava só
+      // o "ama:3" do algodão (o pior valor do banco), fingindo que os outros
+      // 28% não existem — mas lyocell (ama:5) e elastano (ama:8) amarrotam
+      // bem menos, e 25% é proporção grande o suficiente pra mudar o
+      // resultado de verdade (a peça sai da faixa de "amassa muito" pro
+      // corte duro do selo de viagem). Fibras-traço (<1%, tipo elastano de
+      // acabamento) continuam pesando pouco, exatamente como devem.
+      fibraProps: (function () {
+        const chaves = ['bol', 'ama', 'sec', 'cal', 'res', 'pes', 'sus'];
+        const soma = {}; let pesoTotal = 0;
+        chaves.forEach((k) => { soma[k] = 0; });
+        (fibrasHist || []).forEach((f) => {
+          const p = f?.data?.p, pct = f?.pct || 0;
+          if (!p || !pct) return;
+          pesoTotal += pct;
+          chaves.forEach((k) => { if (p[k] !== undefined) soma[k] += p[k] * pct; });
+        });
+        if (!pesoTotal) return principal?.data?.p || null;
+        const out = {};
+        chaves.forEach((k) => { out[k] = Math.round(soma[k] / pesoTotal); });
+        return out;
+      })(),
       // Selos de aptidão (clima/cabine): vêm curados no fibers.json e são o
       // que a peça leva consigo para o LookMap — lá o valor não é a peça
       // isolada, é poder filtrar "quais das minhas peças servem pra isso".
