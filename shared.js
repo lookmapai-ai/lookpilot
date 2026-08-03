@@ -267,6 +267,54 @@ function calcScores(fibers, pageText, certText, titleText) {
   // parte da peça é enchimento, não tecido.
   const isPadded = /acolchoad|quilted|puffer|puffect|\bpenas?\b|\bdown\b|duvet|plumas|recheio|enchimento/i.test(textoAmplo);
 
+  // ─── Ficha técnica: os números que a própria loja publica ──────────
+  // Numa peça técnica a etiqueta de composição é a parte MENOS informativa.
+  // Quem procura um casaco de montanha não quer saber se dura no uso diário
+  // — não é peça de uso diário. Quer saber quanta chuva aguenta, até que
+  // temperatura serve, e quanto pesa. A loja publica tudo isso, com número,
+  // e o LookPilot ignorava por completo enquanto pontuava a peça pela fibra
+  // do casco. Estes são os valores que decidem a compra neste contexto.
+  const fichaTecnica = (function () {
+    const t = textoAmplo;
+    const ficha = {};
+
+    // Coluna de água: quanta chuva a membrana aguenta antes de passar.
+    // Aceita "15 000 mm", "15.000mm", "10K mm", "10 000 mm".
+    let mm = null;
+    const MM_K = /\b(\d{1,2})\s?k\s?mm\b/i.exec(t);
+    if (MM_K) mm = parseInt(MM_K[1], 10) * 1000;
+    if (mm === null) {
+      const MM = /\b(\d{1,2})[.,\s]?(\d{3})\s?mm\b/.exec(t);
+      if (MM) mm = parseInt(MM[1] + MM[2], 10);
+    }
+    if (mm) ficha.impermeabilidadeMm = mm;
+
+    // Poder de expansão da pena (fill power, em cuin): a medida de qualidade
+    // do recheio. É o número que separa uma pena boa de uma pena qualquer —
+    // e não tem equivalente nenhum na etiqueta de composição.
+    const CUIN = /(\d{3})\s?cuin\b/i.exec(t) || /poder de expans[ãa]o\D{0,12}(\d{3})/i.exec(t);
+    if (CUIN) ficha.fillPower = parseInt(CUIN[1], 10);
+
+    // Peso da peça: num casaco de montanha, decide tanto quanto o calor.
+    const PESO = /\b(\d{3,4})\s?g\b(?=[^.]{0,40}(?:tamanho|peso|size|weight)|)/i.exec(t)
+              || /peso\D{0,40}?(\d{3,4})\s?g\b/i.exec(t);
+    if (PESO) ficha.pesoG = parseInt(PESO[1], 10);
+
+    // Proporção de PENUGEM no recheio (80% down / 20% feather): a penugem é
+    // o floco macio que retém ar; a pena é a pluma com haste, que enche mas
+    // aquece menos. Mais penugem = mais calor por grama.
+    // Só "penugem"/"down" contam — "plumas"/"penas" é o outro componente, e
+    // apanhá-las dava leituras invertidas ("10% Plumas" virava 10% penugem).
+    // E abaixo de 50% não é a parte dominante do recheio: não vale manchete.
+    const DOWN = /(\d{1,3})\s?%\s*(?:de\s+)?(?:penugem|down\b)/i.exec(t);
+    if (DOWN) {
+      const pct = parseInt(DOWN[1], 10);
+      if (pct >= 50) ficha.penugemPct = pct;
+    }
+
+    return Object.keys(ficha).length ? ficha : null;
+  })();
+
   // Nome comercial de tecnologia da marca (HEATTECH, AIRism...). Primeira
   // versão disto tratava como marketing puro e não somava nada — pesquisa
   // depois mostrou que é engenharia real: HEATTECH junta viscose (absorve
@@ -278,11 +326,57 @@ function calcScores(fibers, pageText, certText, titleText) {
   // conforto — pra esse tipo de peça (roupa térmica), "esquenta de verdade"
   // é o motivo real de compra, então precisa contar na nota, não só no
   // texto.
+  // A lista tinha duas entradas (HEATTECH, AIRism) e ignorava o resto do
+  // sector. Numa peça técnica a tecnologia é frequentemente o que MAIS decide
+  // conforto térmico — mais do que a fibra da etiqueta, que só descreve o
+  // casco. Um casaco "100% poliéster" com PrimaLoft dentro e um "100%
+  // poliéster" sem nada tinham exatamente a mesma leitura.
+  //
+  // `o_que` explica o mecanismo em linguagem de gente. `conforto` é o bónus
+  // (0-10) na nota de conforto: só isolamento e gestão de humidade entram,
+  // porque é isso que a pessoa sente vestindo. Membrana não entra no conforto
+  // — entra em hasTechSpec, que já mexe em qualidade e durabilidade.
   const BRAND_TECH = [
-    { re: /heattech/i, nome: 'HEATTECH' },
-    { re: /\bairism\b/i, nome: 'AIRism' },
+    // ── isolamento: substituem ou complementam a pena ────────────────
+    { re: /primaloft/i,               nome: 'PrimaLoft',  conforto: 8,
+      o_que: 'isolamento sintético que continua a aquecer mesmo molhado, que é o ponto fraco da pena' },
+    { re: /thinsulate/i,              nome: 'Thinsulate', conforto: 7,
+      o_que: 'fibra muito fina que aquece com pouca espessura, sem volume de casaco' },
+    { re: /thermoball/i,              nome: 'ThermoBall', conforto: 7,
+      o_que: 'isolamento em bolas que imita a pena, e aguenta molhar' },
+    { re: /thermolite/i,              nome: 'Thermolite', conforto: 6,
+      o_que: 'fibra oca que segura ar quente sem pesar' },
+    { re: /polartec/i,                nome: 'Polartec',   conforto: 7,
+      o_que: 'malha térmica que aquece e deixa o suor sair, referência do sector' },
+    { re: /omni-?heat/i,              nome: 'Omni-Heat',  conforto: 6,
+      o_que: 'forro refletor que devolve o calor do próprio corpo' },
+    // ── gestão de humidade e calor junto à pele ──────────────────────
+    { re: /heattech/i,                nome: 'HEATTECH',   conforto: 8,
+      o_que: 'transforma a humidade do corpo em calor, e prende esse calor junto à pele' },
+    { re: /\bairism\b/i,              nome: 'AIRism',     conforto: 6,
+      o_que: 'puxa o suor para fora e seca depressa, para não colar ao corpo' },
+    { re: /coolmax/i,                 nome: 'Coolmax',    conforto: 6,
+      o_que: 'afasta o suor da pele e espalha-o para secar mais depressa' },
+    { re: /dri-?fit|climacool/i,      nome: 'tecido de secagem rápida', conforto: 5,
+      o_que: 'tira o suor da pele em vez de o segurar' },
+    // ── membranas: entram em impermeabilidade, não em conforto ───────
+    { re: /gore-?tex/i,               nome: 'GORE-TEX',   conforto: 0,
+      o_que: 'a membrana de referência: barra a chuva e ainda deixa o vapor do corpo sair' },
+    { re: /sympatex/i,                nome: 'Sympatex',   conforto: 0,
+      o_que: 'membrana impermeável e respirável, sem PFC' },
+    { re: /novadry/i,                 nome: 'Novadry',    conforto: 0,
+      o_que: 'membrana impermeável e respirável da Decathlon' },
+    // ── segurança: não aquece, mas é informação de compra real ───────
+    { re: /\brecco\b/i,               nome: 'RECCO',      conforto: 0,
+      o_que: 'refletor que as equipas de resgate detetam sob a neve; não aquece, mas conta em montanha' },
   ];
-  const brandTech = (BRAND_TECH.find((b) => b.re.test(textoAmplo)) || {}).nome || null;
+  // Quando a peça anuncia várias, ganha a que mais mexe no que se sente
+  // vestindo. Sem isto, um casaco com PrimaLoft E RECCO podia ser resumido
+  // pelo refletor de resgate — verdadeiro, mas não é o que decide a compra.
+  const brandTechInfo = BRAND_TECH
+    .filter((b) => b.re.test(textoAmplo))
+    .sort((a, b) => (b.conforto || 0) - (a.conforto || 0))[0] || null;
+  const brandTech = brandTechInfo ? brandTechInfo.nome : null;
 
   // Temperatura mínima suportada (peças técnicas de inverno) — verificado
   // com peças reais: Oysho ("certificado para resistir a temperaturas de
@@ -311,7 +405,11 @@ function calcScores(fibers, pageText, certText, titleText) {
   const avg = key => Math.round(fibers.reduce((s, f) => s + ((f.data?.[key] || 0) * (f.pct / total)), 0));
 
   const quality     = avg('quality');
-  const comfortBonus = brandTech ? 8 : 0;
+  // Cada tecnologia tem o seu peso: PrimaLoft e HEATTECH mexem mesmo no que
+  // se sente vestindo (8); Coolmax menos (6); GORE-TEX e RECCO não mexem em
+  // conforto nenhum (0) — a membrana já conta em hasTechSpec, e o RECCO é
+  // segurança. Antes era 8 fixo para qualquer nome reconhecido.
+  const comfortBonus = brandTechInfo ? (brandTechInfo.conforto || 0) : 0;
   const comfort     = Math.min(100, avg('comfort') + comfortBonus);
   const durability  = avg('durability');
   const maintenance = avg('maintenance');
@@ -360,7 +458,7 @@ function calcScores(fibers, pageText, certText, titleText) {
   // Semente de variação: primeiro tipo de peça encontrado no texto → frases variam entre tipos de peça
   const garmentWords = (pageText || '').toLowerCase().match(/camisa|t-?shirt|camiseta|vestido|cal[çc]a|saia|blusa|top|casaco|blaz[eê]r|jaqueta|short|macac[ãa]o|sobretudo|cardigan|camisola|sweater|polo/);
   const productSeed = garmentWords ? garmentWords[0] : '';
-  return { quality: qualityFinal, comfort, durability: durabilityFinal, maintenance, versatility, costBenefit, travel, travelMaterial, packability, warmth, overall, natPct, synPct, certs, fibers, qualityModifier: qmod, isKnit, isHeavyWoven, isBulkyGarment, isPadded, hasTechSpec, brandTech, temperaturaMin, productSeed, colorInfo };
+  return { quality: qualityFinal, comfort, durability: durabilityFinal, maintenance, versatility, costBenefit, travel, travelMaterial, packability, warmth, overall, natPct, synPct, certs, fibers, qualityModifier: qmod, isKnit, isHeavyWoven, isBulkyGarment, isPadded, fichaTecnica, hasTechSpec, brandTech, brandTechInfo, temperaturaMin, productSeed, colorInfo };
 }
 
 // ─── Que tipo de peça é essa? ─────────────────────────────────────
@@ -486,6 +584,53 @@ function verdict(scores) {
 }
 
 function scoreColor(v) { return v >= 75 ? '#16a34a' : v >= 55 ? '#d97706' : '#dc2626'; }
+
+// ─── Ficha técnica em linguagem de gente ──────────────────────────
+// Vive fora do conclusionText() porque a página de análise mostra o mesmo
+// texto, e a leitura dos números (o que é muito, o que é pouco) não pode
+// existir em dois sítios: divergiriam na primeira alteração.
+//
+// O número cru não informa quem não é do meio — "10 000 mm" não diz nada
+// sozinho. O valor está na tradução.
+function fichaTecnicaTexto(s) {
+  const ft = s && s.fichaTecnica;
+  if (!ft) return '';
+  const partes = [];
+  if (ft.impermeabilidadeMm) {
+    const mm = ft.impermeabilidadeMm;
+    // Referências do sector: 5 000 mm chuva fraca; 10 000 mm é o mínimo
+    // sério para neve; 15 000 mm é montanha; 20 000 mm é expedição.
+    const leitura = mm >= 20000 ? 'nível expedição, aguenta o que vier'
+                  : mm >= 15000 ? 'aguenta chuva forte e neve o dia todo, nível montanha'
+                  : mm >= 10000 ? 'aguenta chuva de verdade e um dia de neve'
+                  : mm >= 5000  ? 'segura chuva fraca e neve seca, não temporal'
+                  : 'só resiste a borrifo, não conte com ela na chuva';
+    partes.push(`${mm.toLocaleString('pt-PT')} mm de coluna de água: ${leitura}`);
+  }
+  if (ft.fillPower) {
+    const fp = ft.fillPower;
+    // Fill power (cuin) mede o volume que a pena ocupa: quanto mais alto,
+    // mais ar ela segura, logo mais calor por grama.
+    const leitura = fp >= 800 ? 'pena de altíssima qualidade, muito calor por grama'
+                  : fp >= 700 ? 'pena muito boa, aquece bastante sem pesar'
+                  : fp >= 600 ? 'pena de boa qualidade'
+                  : 'pena comum: aquece, mas precisa de mais volume pra isso';
+    partes.push(`${fp} cuin de poder de expansão: ${leitura}`);
+  }
+  if (ft.penugemPct != null) {
+    partes.push(`${ft.penugemPct}% de penugem no recheio, e é a penugem que dá calor por grama`);
+  }
+  if (ft.pesoG) {
+    // Abaixo de 500 g é ultraleve (o MT900 da Decathlon pesa 463 g e cabe
+    // no próprio bolso); 500-800 g é casaco de inverno normal.
+    const leitura = ft.pesoG <= 500 ? 'ultraleve, dobra dentro do próprio bolso'
+                  : ft.pesoG <= 800 ? 'peso normal pra um casaco quente'
+                  : 'pesa na mala';
+    partes.push(`${ft.pesoG} g: ${leitura}`);
+  }
+  if (!partes.length) return '';
+  return `A ficha da loja: ${partes.join('; ')}. Numa peça técnica é isto que decide a compra, mais do que a fibra da etiqueta.`;
+}
 
 function conclusionText(scores, fibers, garmentType) {
   const en = typeof LP_LANG !== 'undefined' && LP_LANG === 'en';
@@ -627,7 +772,11 @@ function conclusionText(scores, fibers, garmentType) {
     // deliberada de leveza, e cobrar respirabilidade dele é cobrar da parte
     // errada da peça.
     if (isCasaco && s?.isPadded) {
-      why = `${mainName} em ${mainPct}% é só o tecido de fora — num casaco acolchoado o que aquece é o recheio, e ele não aparece na etiqueta de composição. O sintético fino aqui é escolha de propósito: segura o vento, pesa quase nada e comprime bem na mala.${certNote} A etiqueta não conta o essencial desta peça; olhe o poder de aquecimento (fill power) e a temperatura que a loja indica.`;
+      // O fecho só manda procurar a ficha quando não conseguimos lê-la. Se a
+      // lemos, mandar procurar seria absurdo — ela vem logo a seguir.
+      const semFicha = !s?.fichaTecnica;
+      why = `${mainName} em ${mainPct}% é só o tecido de fora — num casaco acolchoado o que aquece é o recheio, e ele não aparece na etiqueta de composição. O sintético fino aqui é escolha de propósito: segura o vento, pesa quase nada e comprime bem na mala.${certNote}`
+          + (semFicha ? ' A etiqueta não conta o essencial desta peça; olhe o poder de aquecimento (fill power) e a temperatura que a loja indica.' : '');
     } else if (isCasaco && s?.hasTechSpec) {
       why = `${mainName} em ${mainPct}% é a escolha certa aqui: casaco técnico é feito de sintético porque fibra natural encharca e pesa — nenhuma faz impermeável e respirável ao mesmo tempo.${certNote} Aguenta uso duro e seca rápido.`;
     } else if (isVirgin && isKnitwear) {
@@ -703,7 +852,19 @@ function conclusionText(scores, fibers, garmentType) {
   if (s?.brandTech) {
     why = en
       ? `${why} "${s.brandTech}" is real engineering (already counted above) — but it doesn't fix durability or pilling, that's still down to the fibre.`
-      : `${why} "${s.brandTech}" é engenharia real (já contada no conforto acima) — mas não resolve durabilidade nem bolinha, isso continua sendo a fibra mesmo.`;
+      : (function () {
+          // Citar a marca sem dizer o que ela faz é repetir o marketing da
+          // loja. O valor está no mecanismo: "PrimaLoft" não informa ninguém,
+          // "continua a aquecer mesmo molhado" informa. E o aviso final muda
+          // conforme a tecnologia mexa ou não no conforto — dizer "já contada
+          // no conforto" sobre um RECCO seria falso.
+          const info = s.brandTechInfo;
+          const oQue = info && info.o_que ? ` — ${info.o_que}` : '';
+          const contada = info && info.conforto > 0
+            ? ' Isso já está contado na nota de conforto.'
+            : '';
+          return `${why} Tem ${s.brandTech}${oQue}.${contada} Não muda durabilidade nem bolinha — isso continua sendo a fibra.`;
+        })();
   }
   // Temperatura suportada, quando a própria loja anuncia (Oysho/Decathlon) —
   // informativo, não muda a nota. Serve pra responder "até quantos graus"
@@ -712,6 +873,15 @@ function conclusionText(scores, fibers, garmentType) {
     why = en
       ? `${why} Rated by the store to hold up to ${s.temperaturaMin}°C.`
       : `${why} A própria loja certifica esta peça até ${s.temperaturaMin}°C.`;
+  }
+  // Ficha técnica: o número cru não decide nada — "10 000 mm" não diz nada a
+  // quem não é do meio. O que decide é a leitura dele. Numa peça técnica é
+  // aqui que está a informação de compra: quem procura um casaco de montanha
+  // não se pergunta se dura no uso diário (não é peça de uso diário), e sim
+  // quanta chuva aguenta, que pena tem dentro e quanto pesa carregar.
+  if (!en) {
+    const ficha = fichaTecnicaTexto(s);
+    if (ficha) why = `${why} ${ficha}`;
   }
 
   } // end PT branch

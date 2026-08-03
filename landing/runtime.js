@@ -100,6 +100,11 @@
   // nenhuma fibra natural faz impermeável-respirável. Sem este sinal a
   // página cobrava sustentabilidade de um casaco de montanha.
   var ehTecnico = Q.get('tecnico') === '1';
+  // Ficha técnica já traduzida pelo shared.js (a página não o carrega, por
+  // isso vem pronta) e a tecnologia da marca com o mecanismo explicado.
+  var fichaTexto = Q.get('ficha') || '';
+  var tecNome = Q.get('tecnome') || '';
+  var tecOQue = Q.get('tecoque') || '';
   // versatilidade no escopo de fora: tracosViagemBrutos() também usa (fica
   // fora de prosaCartoes(), que já tinha a sua própria cópia local)
   var ver = int('versatilidade', 50);
@@ -342,6 +347,15 @@
     } else {
       t1 = 'Mistura: ==' + comp + '==. Nem fibra nobre pura, nem sintético barato.';
     }
+
+    // Numa peça técnica, a etiqueta de composição é a parte MENOS informativa:
+    // descreve o casco. O que decide a compra é a tecnologia lá dentro e os
+    // números que a loja publica. Por isso entram aqui, no capítulo do
+    // material — é esta a história real do material desta peça.
+    if (tecNome) {
+      t1 += ' Tem ==' + tecNome + '==' + (tecOQue ? ' — ' + tecOQue : '') + '.';
+    }
+    if (fichaTexto) t1 += ' ' + fichaTexto;
 
     // 02 · O corpo — o que a pessoa SENTE vestindo, a partir das propriedades
     // do corpo (respira, aquece). Cada situação tem várias formas de ser

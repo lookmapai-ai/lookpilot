@@ -215,6 +215,9 @@
       if (historia.isHeavyWoven) params.set('encorpado', '1');
       if (historia.isPadded) params.set('acolchoado', '1');
       if (historia.hasTechSpec) params.set('tecnico', '1');
+      if (historia.fichaTexto) params.set('ficha', historia.fichaTexto.slice(0, 400));
+      if (historia.tecNome) params.set('tecnome', historia.tecNome.slice(0, 40));
+      if (historia.tecOQue) params.set('tecoque', historia.tecOQue.slice(0, 200));
       if (historia.cor) {
         if (historia.cor.note)  params.set('cornota', historia.cor.note.slice(0, 120));
         if (historia.cor.isPrint) params.set('estampado', '1');
@@ -868,6 +871,14 @@
       // capítulos sem saber, e cobrava sustentabilidade e respirabilidade de
       // um casaco de montanha como se fosse uma camiseta barata.
       hasTechSpec: !!scores.hasTechSpec,
+      // Ficha técnica já traduzida (shared.js). Vai pronta em vez de irem os
+      // números crus, para a leitura ("15 000 mm é nível montanha") existir
+      // num sítio só — a página não carrega o shared.js.
+      fichaTexto: (typeof fichaTecnicaTexto === 'function' ? fichaTecnicaTexto(scores) : ''),
+      // Tecnologia da marca + o que ela faz. Só o nome seria repetir o
+      // marketing da loja; o que informa é o mecanismo.
+      tecNome: scores.brandTech || '',
+      tecOQue: (scores.brandTechInfo && scores.brandTechInfo.o_que) || '',
       // Cor/padrão: o maior fator de combinação, e o que falta ao capítulo
       // "vai sair do armário?". detectColorPattern já devolve nota em
       // linguagem natural ("estampado pede combinações pensadas").

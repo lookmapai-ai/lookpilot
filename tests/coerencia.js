@@ -205,6 +205,25 @@ const REGRAS = [
     porque: 'sem o aviso, "100% Poliamida" parece descrever a peça inteira — e é só o casco'
   },
   {
+    // Numa peça técnica a etiqueta de composição é a parte MENOS informativa.
+    // Quem procura casaco de montanha não pergunta se dura no uso diário —
+    // não é peça de uso diário. Pergunta quanta chuva aguenta, que pena tem
+    // dentro, quanto pesa. A loja publica isso com número; ignorar era
+    // analisar a peça pelo critério de uma camiseta.
+    id: 'ficha-tecnica-publicada-chega-ao-texto',
+    exige: /coluna de água|cuin|penugem|\bg\b\s*—|ficha da loja/i,
+    quando: (c) => c.temFicha,
+    porque: 'o número que a loja publica é o que decide a compra neste tipo de peça'
+  },
+  {
+    // Número cru não informa quem não é do meio: "10 000 mm" não quer dizer
+    // nada sozinho. O valor está na leitura.
+    id: 'ficha-tecnica-vem-com-leitura-nao-so-numero',
+    exige: /aguenta|resist|segura|qualidade|ultraleve|calor por grama|n[íi]vel/i,
+    quando: (c) => c.temFicha,
+    porque: 'sem tradução, o número é ruído — a pessoa não sabe se 10 000 mm é muito ou pouco'
+  },
+  {
     id: 'tecnico-nao-trata-sintetico-como-defeito',
     frase: /menos sustent[aá]vel|dois por[ée]ns|n[aã]o respira bem/i,
     quando: (c) => c.tecnico,
@@ -290,6 +309,10 @@ function paramsDaPeca(p, s, tipo) {
   if (s.isHeavyWoven) q.encorpado = '1';
   if (s.isPadded) q.acolchoado = '1';
   if (s.hasTechSpec) q.tecnico = '1';
+  const ficha = typeof fichaTecnicaTexto === 'function' ? fichaTecnicaTexto(s) : '';
+  if (ficha) q.ficha = ficha;
+  if (s.brandTech) q.tecnome = s.brandTech;
+  if (s.brandTechInfo && s.brandTechInfo.o_que) q.tecoque = s.brandTechInfo.o_que;
   if (s.fibers && s.fibers[0] && s.fibers[0].data && s.fibers[0].data.type === 'synthetic') q.sintetico = '1';
   return q;
 }
@@ -303,7 +326,8 @@ PECAS.forEach((p) => {
   const tipo = detectGarmentType(s, null, 'clothing');
   const texto = conclusionText(s, s.fibers || p.fibras, tipo);
   const ctx = { agasalho: p.agasalho, parteDeBaixo: p.parteDeBaixo, tecnico: p.tecnico,
-                acolchoado: p.acolchoado, tipo: tipo, scores: s };
+                acolchoado: p.acolchoado, temFicha: !!s.fichaTecnica,
+                tipo: tipo, scores: s };
 
   // 1. o tipo detectado é o esperado — errar aqui troca a família de frases
   //    inteira, que é a raiz de quase todo texto absurdo
