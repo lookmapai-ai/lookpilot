@@ -272,7 +272,36 @@ function calcScores(fibers, pageText, certText, titleText) {
   // A coluna de água em mm é a medida padrão do sector (10 000 mm resiste a
   // chuva forte; 15 000 mm é montanha) e é o dado mais concreto que uma peça
   // técnica publica — deixá-la de fora era ignorar a prova principal.
-  const hasTechSpec = /imperme[aá](?:vel|bilidade)|waterproof|corta-?vento|windproof|\bwind[- ]?resistant\b|à prova de vento|membrana|\bdwr\b|water[- ]?repellent|repelente\s+(?:de\s+)?[aá]gua|à prova de (água|chuva)|respirabilidade|\b\d{1,2}(?:[.,]?\s?000)\s?mm\b|\b\d{1,2}(?:[.,]?000)?\s?k\/\d{1,2}(?:[.,]?000)?\s?k\b|\b\d{1,2}(?:[.,]?000)?\s?k\b(?=.{0,40}(imperme|water|chuva))/i.test(textoAmplo);
+  // Cada padrão é testado à parte, e cada um respeita a negação. A ficha das
+  // lojas lista o que a peça TEM e o que NÃO tem com as mesmas palavras:
+  // uma t-shirt de algodão traz "Impermeabilidade: Não impermeável" e
+  // "Anti-uv: Não anti-uv", e era lida como peça técnica por causa disso.
+  // Por padrão e não em bloco porque "não é impermeável mas é corta-vento"
+  // continua a ser uma peça técnica — só não pela impermeabilidade.
+  // Verifica TODAS as ocorrências, não a primeira: estas fichas repetem o
+  // nome no rótulo e só depois o negam ("Sistema recco" / "Sem sistema recco
+  // integrado"), então a primeira aparição nunca traz a negação junto.
+  // Na dúvida, omite: dizer que uma peça tem uma tecnologia que ela não tem
+  // é muito pior do que ficar calado sobre uma que ela tem.
+  const negado = (re) => {
+    const g = new RegExp(re.source, 'gi');
+    let m;
+    while ((m = g.exec(textoAmplo)) !== null) {
+      const antes = textoAmplo.slice(Math.max(0, m.index - 40), m.index).toLowerCase();
+      if (/\b(sem|n[aã]o|sin|without|no)\s+[\w\s.]{0,25}$/.test(antes)) return true;
+    }
+    return false;
+  };
+  const TECH_SPEC = [
+    /imperme[aá](?:vel|bilidade)/i, /waterproof/i, /corta-?vento/i, /windproof/i,
+    /\bwind[- ]?resistant\b/i, /à prova de vento/i, /membrana/i, /\bdwr\b/i,
+    /water[- ]?repellent/i, /repelente\s+(?:de\s+)?[aá]gua/i, /à prova de (?:água|chuva)/i,
+    /respirabilidade/i,
+    /\b\d{1,2}(?:[.,]?\s?000)\s?mm\b/i,
+    /\b\d{1,2}(?:[.,]?000)?\s?k\/\d{1,2}(?:[.,]?000)?\s?k\b/i,
+    /\b\d{1,2}(?:[.,]?000)?\s?k\b(?=.{0,40}(?:imperme|water|chuva))/i
+  ];
+  const hasTechSpec = TECH_SPEC.some((re) => re.test(textoAmplo) && !negado(re));
   const techBonus = hasTechSpec ? 6 : 0;
 
   // Casaco acolchoado/de pena: a composição da etiqueta ("100% Poliéster")
@@ -314,8 +343,12 @@ function calcScores(fibers, pageText, certText, titleText) {
     if (CUIN) ficha.fillPower = parseInt(CUIN[1], 10);
 
     // Peso da peça: num casaco de montanha, decide tanto quanto o calor.
-    const PESO = /\b(\d{3,4})\s?g\b(?=[^.]{0,40}(?:tamanho|peso|size|weight)|)/i.exec(t)
-              || /peso\D{0,40}?(\d{3,4})\s?g\b/i.exec(t);
+    // Só conta quando a página DIZ que é peso. "Corpo 100 g/m2" é a
+    // gramatura do enchimento por metro quadrado — um número que aparece em
+    // quase todo casaco acolchoado e que, lido como peso da peça, dava
+    // "100 g: ultraleve, dobra dentro do próprio bolso" num casaco de ski.
+    const PESO = /\bpeso\b[^.\n]{0,60}?(\d{3,4})\s?g\b(?!\s*\/\s*m)/i.exec(t)
+              || /\b(\d{3,4})\s?g\b(?!\s*\/\s*m)(?=[^.\n]{0,30}(?:no tamanho|tamanho m|size m))/i.exec(t);
     if (PESO) ficha.pesoG = parseInt(PESO[1], 10);
 
     // Proporção de PENUGEM no recheio (80% down / 20% feather): a penugem é
@@ -424,8 +457,12 @@ function calcScores(fibers, pageText, certText, titleText) {
   // Quando a peça anuncia várias, ganha a que mais mexe no que se sente
   // vestindo. Sem isto, um casaco com PrimaLoft E RECCO podia ser resumido
   // pelo refletor de resgate — verdadeiro, mas não é o que decide a compra.
+  // A ficha técnica das lojas lista o que a peça TEM e o que NÃO tem, na
+  // mesma tabela e com as mesmas palavras: "Sistema recco: Sem sistema recco
+  // integrado", "Impermeabilidade: Não impermeável". Procurar só o nome dava
+  // a peça como tendo exatamente aquilo que ela declara não ter.
   const brandTechInfo = BRAND_TECH
-    .filter((b) => b.re.test(textoAmplo))
+    .filter((b) => b.re.test(textoAmplo) && !negado(b.re))
     .sort((a, b) => (b.conforto || 0) - (a.conforto || 0))[0] || null;
   const brandTech = brandTechInfo ? brandTechInfo.nome : null;
 

@@ -621,7 +621,7 @@
   // embaixo da página) continha a palavra "puffer". noiseSelectors filtra
   // por CSS e não pegou; isto pega pelo texto do próprio título da secção,
   // que varia menos entre sites do que o nome da classe.
-  const RECOMENDADOS_RE = /people also (viewed|bought|liked)|you may also like|customers? also (bought|viewed)|também compraram|também viu|também gostou|produtos relacionados|related products|complete o look|complete the look/i;
+  const RECOMENDADOS_RE = /people also (viewed|bought|liked)|you may also like|customers? also (bought|viewed)|também compraram|também viu|também gostou|produtos relacionados|related products|complete o look|complete the look|produtos recomendados|produtos semelhantes|produtos similares|artigos relacionados|quem viu isto|outros clientes|recomendado para si|pode(?:rá)? também gostar|comprar conjunto/i;
   function cortaRecomendados(txt) {
     const m = RECOMENDADOS_RE.exec(txt || '');
     return m ? txt.slice(0, m.index) : txt;

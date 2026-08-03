@@ -49,11 +49,12 @@ global.chrome = {
   const src = fs.readFileSync(path.join(root, 'content.js'), 'utf8');
   const testable = src
     .replace('(function() {', 'var _contentAPI = (function() {')
-    .replace(/\}\)\(\);\s*$/, '  return { parseComposition, splitIntoSections, findPrimarySection };\n})();');
+    .replace(/\}\)\(\);\s*$/, '  return { parseComposition, splitIntoSections, findPrimarySection, cortaRecomendados };\n})();');
   vm.runInThisContext(testable, { filename: 'content.js' });
 }
 // vm.runInThisContext com var → global._contentAPI
 const parseComposition   = global._contentAPI.parseComposition;
+const cortaRecomendados  = global._contentAPI.cortaRecomendados;
 const splitIntoSections  = global._contentAPI.splitIntoSections;
 const findPrimarySection = global._contentAPI.findPrimarySection;
 
@@ -1204,6 +1205,74 @@ test('[ES] qualificador espanhol vai para a variante certa', () => {
   return true;
 });
 
+// ─── Ficha técnica: ler o que a página diz, não o que parece ────────
+// Estes dois vieram do acervo (tests/acervo.js), na primeira peça real que
+// ele analisou. Nenhum teste anterior os apanhava, porque ambos produziam
+// um resultado com ar de resultado.
+test('[Ficha] gramatura do enchimento não é peso da peça', () => {
+  const s = calcScores([fiber('poliamida', 100)],
+    'Calor: Chumaço penas sintéticas: Corpo 100g/m2, mangas e capuz 80g/m2.', '', 'Casaco de ski');
+  const peso = s.fichaTecnica && s.fichaTecnica.pesoG;
+  if (peso) return fail(`leu ${peso} g como peso do casaco — é g/m2 de enchimento`);
+  return true;
+});
+
+test('[Ficha] peso a sério continua a ser lido', () => {
+  const s = calcScores([fiber('poliamida', 100)],
+    'Peso do casaco no tamanho M: 463 g.', '', 'Casaco de penas');
+  const peso = s.fichaTecnica && s.fichaTecnica.pesoG;
+  if (peso !== 463) return fail(`esperava 463 g, veio ${peso}`);
+  return true;
+});
+
+test('[Tecnologias] o que a ficha NEGA não conta como presente', () => {
+  const casos = [
+    'Sistema recco\nSem sistema recco integrado',
+    'Membrana\nSem GORE-TEX',
+    'Isolamento\nNão tem PrimaLoft'
+  ];
+  for (const txt of casos) {
+    const s = calcScores([fiber('poliéster', 100)], txt, '', 'Casaco');
+    if (s.brandTech) return fail(`"${txt.replace(/\n/g, ' / ')}" → deu ${s.brandTech} como presente`);
+  }
+  return true;
+});
+
+test('[Ficha] "Não impermeável" não faz da peça uma peça técnica', () => {
+  // Ficha real de uma t-shirt de algodão da Decathlon: a tabela lista o que
+  // a peça NÃO tem com as mesmas palavras do que tem.
+  const s = calcScores([fiber('algodão', 100)],
+    'Impermeabilidade\nNão impermeável\nAnti-uv\nNão anti-uv\nMaterial principal\nAlgodão', '', 'T-shirt de fitness');
+  if (s.hasTechSpec) return fail('t-shirt de algodão passou por peça técnica');
+  return true;
+});
+
+test('[Ficha] negar uma spec não apaga as outras', () => {
+  // "Não impermeável, mas à prova de vento" continua a ser peça técnica —
+  // só não pela impermeabilidade. Por isso a negação é por padrão, não em bloco.
+  const s = calcScores([fiber('poliéster', 100)],
+    'Impermeabilidade: Não impermeável. À prova de vento e tempestades: À prova de vento.', '', 'Casaco');
+  if (!s.hasTechSpec) return fail('perdeu o corta-vento por causa da negação da impermeabilidade');
+  return true;
+});
+
+test('[Recomendados] carrossel da loja não empresta tecnologia à peça', () => {
+  // Página real: t-shirt 100% algodão cuja lista "Os nossos produtos
+  // recomendados" cita uma T-SHIRT COOLMAX — de outro produto.
+  const texto = 'Composição\nTecido principal: 100.0% Algodão\n'
+    + 'Os nossos produtos recomendados\nT-SHIRT DE FITNESS DECOTE EM V MULHER COOLMAX BRANCO';
+  const cortado = cortaRecomendados(texto);
+  const s = calcScores([fiber('algodão', 100)], cortado, '', 'T-shirt de Fitness em Algodão');
+  if (s.brandTech) return fail(`t-shirt de algodão ficou com ${s.brandTech}, que é do produto recomendado ao lado`);
+  return true;
+});
+
+test('[Tecnologias] afirmação normal continua a contar', () => {
+  const s = calcScores([fiber('poliéster', 100)], 'Sistema recco integrado', '', 'Casaco');
+  if (s.brandTech !== 'RECCO') return fail(`esperava RECCO, veio ${s.brandTech}`);
+  return true;
+});
+
 // ─── Tecnologias de marca ───────────────────────────────────────────
 // Numa peça técnica ou desportiva a tecnologia decide o conforto térmico
 // mais do que a fibra — que vai ser poliéster em quase todas. Cada entrada
@@ -1291,8 +1360,9 @@ console.log('══════════════════════�
 //   pagina.js — a página de análise (um erro de JS derruba a tela inteira)
 //   entrega.js — o zip que o botão "Baixar extensão" entrega
 //   coerencia.js — o texto bate com a peça? (nota certa, frase absurda)
+//   acervo.js — o motor contra páginas reais guardadas de cada loja
 let extras = 0;
-for (const t of ['coerencia.js', 'pagina.js', 'entrega.js']) {
+for (const t of ['coerencia.js', 'acervo.js', 'pagina.js', 'entrega.js']) {
   try {
     require('child_process').execSync('node ' + require('path').join(__dirname, t),
       { stdio: 'inherit' });
