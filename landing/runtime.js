@@ -810,7 +810,13 @@
                'Retém calor e seca devagar — os dois pesam em viagem.'],
           S: ['==Seca devagar.== Lavar no meio da viagem custa um dia de espera.',
               '==Demora a secar.== Lavar à noite e vestir de manhã não vai dar.'],
-          '': ['Pede um pouco de atenção na mala, mas nada que atrapalhe a viagem.']
+          // Quatro variantes porque este é o caso mais COMUM — a peça sem
+          // defeito de viagem. Com uma frase só, ela aparecia em mais de
+          // metade das peças mapeadas e virava assinatura de template.
+          '': ['Pede um pouco de atenção na mala, mas nada que atrapalhe a viagem.',
+               'Nada aqui atrapalha a mala. É pôr e ir.',
+               'Sem armadilha nenhuma pra viagem: dobra, leva, veste.',
+               'Não cobra cuidado especial na mala.']
         };
         var chave = (A ? 'A' : '') + (B ? 'B' : '') + (S ? 'S' : '');
         return variante(FRASES[chave] || FRASES[''], 11);
@@ -836,9 +842,14 @@
           if (respira) return '==Respira mesmo isolando do frio==: dá pra entrar num lugar aquecido sem tirar.';
         }
 
+        // Mesma razão: não amassar + secar rápido é a combinação mais
+        // frequente em peça boa de viagem, então precisa de mais variantes
+        // que as outras, ou repete-se por todo o armário mapeado.
         if (naoAmarrota && secaRapido) return variante([
           '==Sai da mala pronta pra vestir==, e lavada à noite já está seca de manhã.',
-          'Sem ferro, e ==seca da noite pro dia==. Uma peça dessas rende como três.'
+          'Sem ferro, e ==seca da noite pro dia==. Uma peça dessas rende como três.',
+          '==Dobra sem vinco e seca rápido==: lava numa noite e usa outra vez.',
+          'Aguenta a mala amassada e ==seca sozinha até de manhã==.'
         ], 13);
         if (naoAmarrota) return variante([
           '==Sai da mala e vai direto pro corpo==, sem ferro nenhum.',
@@ -852,10 +863,31 @@
       // lookmap
       // o design tinha uma frase por faixa de nota (86 celebra, 58 pondera);
       // trocar só o número faria "Um 42 não aparece todo dia" — sem sentido.
+      // Três faixas de nota, três variantes cada. Com uma frase por faixa,
+      // metade do armário mapeado lia exatamente o mesmo convite — e frase
+      // que se repete em tudo deixa de convidar e passa a soar a formulário.
       lookmapLeadEl: mark(
-        score >= 75 ? 'Um ==' + score + '== não aparece todo dia. Salve a peça pra não esquecer o que a faz valer — e comparar com a próxima.'
-      : score >= 50 ? 'Um ==' + score + '== pede cabeça fria. Salve a peça pra lembrar por que hesitou — e comparar antes de decidir.'
-                    : 'Um ==' + score + '== acende o alerta. Salve a peça pra lembrar por que não valeu — e reconhecer a próxima parecida.'),
+        score >= 75 ? variante([
+            'Um ==' + score + '== não aparece todo dia. Salve a peça pra não esquecer o que a faz valer — e comparar com a próxima.',
+            'Nota ==' + score + '==: guarde esta, que serve de régua pras próximas.',
+            'Com ==' + score + '==, esta entra no armário como referência do que vale a pena.'
+          ], 17)
+      : score >= 50 ? variante([
+            // A faixa do meio (50-74) apanha a maior parte das peças reais,
+            // por isso precisa de mais variantes que as pontas — senão é ela
+            // que vira a frase repetida do armário todo.
+            'Um ==' + score + '== pede cabeça fria. Salve a peça pra lembrar por que hesitou — e comparar antes de decidir.',
+            'Nota ==' + score + '== é caso de dormir sobre o assunto. Guarde e volte depois.',
+            'Com ==' + score + '==, guarde antes de decidir: daqui a uma semana você relê com outros olhos.',
+            'Um ==' + score + '== não decide sozinho. Guarde, e deixe a próxima peça servir de comparação.',
+            'Nota ==' + score + '==: nem descarte, nem certeza. Guardar é o que transforma isso em critério.',
+            'Com ==' + score + '==, o que falta é comparação. Salve e veja como ela se sai contra a próxima.'
+          ], 17)
+                    : variante([
+            'Um ==' + score + '== acende o alerta. Salve a peça pra lembrar por que não valeu — e reconhecer a próxima parecida.',
+            'Nota ==' + score + '==: guarde como aviso, pra reconhecer a próxima igual a esta.',
+            'Com ==' + score + '==, o valor de guardar é não repetir o erro.'
+          ], 17)),
       lookmapAtualEl: mediaEl(imagem, nome, 'width:100%;height:100%;object-fit:cover;object-position:50% 30%;filter:saturate(1.06) sepia(.06)'),
       lookmapAtualNota: score,
       lookmapAtualTipo: nome,

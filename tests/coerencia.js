@@ -317,6 +317,8 @@ function paramsDaPeca(p, s, tipo) {
   return q;
 }
 
+const textosPorPeca = [];
+
 console.log('\n── Coerência: o texto faz sentido para a peça? ──────\n');
 
 PECAS.forEach((p) => {
@@ -361,8 +363,47 @@ PECAS.forEach((p) => {
       'a página diz uma temperatura mínima, o texto não repassa.\n      texto: ' + texto);
   }
 
+  textosPorPeca.push({ nome: p.nome, card: texto, pagina: textoPagina });
+
   console.log('');
 });
+
+// ─── Repetição: a mesma frase em peça atrás de peça ──────────────────
+// Um texto correto ainda pode destruir confiança. Quem mapeia cinco peças e
+// lê a mesma frase nas cinco percebe o template por trás — e a partir daí
+// desconta tudo o que o produto diz, inclusive a nota. Este bloco não sabe
+// quais frases são repetitivas: descobre sozinho, comparando as peças.
+//
+// O limite é proporção, não contagem: uma frase de casaco pode e deve
+// repetir-se entre casacos. O que não pode é uma frase aparecer na maioria
+// das peças do acervo, sejam elas quais forem.
+console.log('  Repetição entre peças');
+(function () {
+  const LIMITE = 0.34;                      // acima de 1 em 3 já se nota ao mapear o armário
+  const MIN_CHARS = 45;                     // frases curtas repetem sem incomodar
+  const contagem = new Map();
+
+  textosPorPeca.forEach((t) => {
+    const frases = new Set(
+      (t.card + ' ' + t.pagina)
+        .split(/(?<=[.!?])\s+|\s·\s/)
+        .map((f) => f.trim().replace(/\s+/g, ' '))
+        .filter((f) => f.length >= MIN_CHARS)
+    );
+    frases.forEach((f) => contagem.set(f, (contagem.get(f) || 0) + 1));
+  });
+
+  const total = textosPorPeca.length;
+  const repetidas = [...contagem.entries()]
+    .filter(([, n]) => n / total > LIMITE)
+    .sort((a, b) => b[1] - a[1]);
+
+  checa('    nenhuma frase aparece em mais de 1 a cada 3 peças',
+    repetidas.length === 0,
+    'frases coladas em quase tudo (vira assinatura de template):\n      '
+      + repetidas.map(([f, n]) => `[${n}/${total}] ${f.slice(0, 110)}`).join('\n      '));
+})();
+console.log('');
 
 console.log('──────────────────────────────────────');
 console.log(ok + ' ok · ' + falhas + ' falha(s)');

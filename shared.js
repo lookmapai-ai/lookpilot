@@ -629,7 +629,11 @@ function fichaTecnicaTexto(s) {
     partes.push(`${ft.pesoG} g: ${leitura}`);
   }
   if (!partes.length) return '';
-  return `A ficha da loja: ${partes.join('; ')}. Numa peça técnica é isto que decide a compra, mais do que a fibra da etiqueta.`;
+  // Sem cauda fixa. "Numa peça técnica é isto que decide a compra" estava
+  // colado em toda peça técnica — e frase que se repete em tudo o que a
+  // pessoa mapeia deixa de ser informação e vira ruído de template. Quem lê
+  // a mesma frase na quinta peça confia menos, não mais.
+  return `A ficha da loja: ${partes.join('; ')}.`;
 }
 
 function conclusionText(scores, fibers, garmentType) {
@@ -840,10 +844,14 @@ function conclusionText(scores, fibers, garmentType) {
   // Especificação técnica (impermeável, corta-vento, membrana...) some no
   // texto onde ela decide comprar ou não — sem isto a nota sobe sozinha, sem
   // explicação, e vira número mágico.
-  if (s?.hasTechSpec) {
+  // Só quando não temos nada de concreto para mostrar. Se a ficha traz
+  // "20 000 mm de coluna de água" ou a peça anuncia GORE-TEX, dizer também
+  // "tem especificação técnica de verdade" é dizer duas vezes a mesma coisa,
+  // uma delas vaga — e era esta a frase que mais se repetia entre peças.
+  if (s?.hasTechSpec && !s?.fichaTecnica && !s?.brandTech) {
     why = en
       ? `${why} Has real technical specs listed (waterproof/windproof) — that's engineering, not just fibre.`
-      : `${why} Tem especificação técnica de verdade na etiqueta (impermeável/corta-vento) — isso é engenharia da peça, não só a fibra.`;
+      : `${why} A etiqueta traz especificação técnica de verdade (impermeável/corta-vento): isso é engenharia da peça, não só a fibra.`;
   }
   // Nome comercial de tecnologia (HEATTECH, AIRism...) — mecanismo real
   // (viscose absorve umidade, acrílico ultrafino prende o calor), já contado
@@ -863,7 +871,12 @@ function conclusionText(scores, fibers, garmentType) {
           const contada = info && info.conforto > 0
             ? ' Isso já está contado na nota de conforto.'
             : '';
-          return `${why} Tem ${s.brandTech}${oQue}.${contada} Não muda durabilidade nem bolinha — isso continua sendo a fibra.`;
+          // A ressalva "não muda durabilidade nem bolinha" só interessa
+          // quando a peça TEM problema de bolinha. Colada em todas, virava
+          // assinatura de template.
+          const bolaFacil = (s.fibers || []).some((f) => f && f.data && f.data.p && f.data.p.bol <= 4);
+          const ressalva = bolaFacil ? ' Não muda a bolinha, isso continua sendo a fibra.' : '';
+          return `${why} Tem ${s.brandTech}${oQue}.${contada}${ressalva}`;
         })();
   }
   // Temperatura suportada, quando a própria loja anuncia (Oysho/Decathlon) —
