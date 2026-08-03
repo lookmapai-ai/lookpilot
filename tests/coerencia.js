@@ -61,7 +61,11 @@ const PECAS = [
          + 'À prova de vento e tempestades: À prova de vento. Impermeabilidade: Não impermeável.',
     fibras: [fibra('Poliéster', 100)],
     esperaTipo: 'casaco',
-    agasalho: true
+    agasalho: true,
+    // Casco de poliéster é o que tem nota de bolinha baixa na tabela de
+    // fibras — por isso é esta peça, e não a de poliamida, que exercita o
+    // ramo "vai criar bolinhas". Sem ela marcada, a regra passava a seco.
+    acolchoado: true
   },
   {
     nome: 'Camiseta de malha de algodão (Zara)',
@@ -179,6 +183,18 @@ const REGRAS = [
     frase: /abafa|n[aã]o deixa a pele respirar|o calor do corpo n[aã]o sai/i,
     quando: (c) => c.agasalho,
     porque: 'casaco se abre e se tira — julgar como se fosse vestido colado ao corpo o dia todo inverte o que é qualidade'
+  },
+  {
+    // O casco de um acolchoado é nylon fino esticado, não malha: não
+    // encaroça. E "cintura, axila, alça da bolsa" são pontos de atrito de
+    // roupa vestida junto ao corpo — não da camada de fora. A nota de
+    // bolinha vem da fibra da etiqueta, que aqui descreve a parte errada.
+    // Mira a AFIRMAÇÃO, não a palavra: o texto certo pode (e deve) dizer
+    // "não é bolinha, é o recheio murchar" — negar é justamente o objetivo.
+    id: 'acolchoado-nao-faz-bolinha-na-axila',
+    frase: /(?:vai criar|forma|cria|enche de|faz)\s+bolinhas|encaroç|axila/i,
+    quando: (c) => c.acolchoado,
+    porque: 'o que gasta um acolchoado é o recheio murchar, não bolinha no casco'
   },
   {
     // Peça acolchoada: a composição da etiqueta é só o casco. Se o texto

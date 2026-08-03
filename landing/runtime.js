@@ -425,7 +425,17 @@
     // 03 · O tempo — quando a extensão manda a propriedade crua, a história
     // é o defeito concreto (bolinhas) em vez da faixa da nota.
     var t3;
-    if (props.bol !== undefined && props.bol <= 4) {
+    // Casaco acolchoado: a nota de bolinha vem da fibra da etiqueta, que aqui
+    // é só o casco — e o casco de um casaco de pena é nylon fino esticado,
+    // que não encaroça como uma malha. Pior: "cintura, axila, alça da bolsa"
+    // descreve uma peça vestida colada ao corpo o dia todo, não a camada de
+    // fora. O que de facto decide a vida de um acolchoado é outra coisa —
+    // o recheio perder poder de aquecimento e as costuras deixarem sair pena.
+    if (ehAcolchoado) {
+      t3 = 'O que gasta um acolchoado ==não é bolinha, é o recheio murchar== com o tempo e a lavagem. '
+         + (dur >= 60 ? 'O tecido de fora aguenta; guarde solto, não comprimido, e ele dura anos.'
+                      : 'Lave pouco e guarde solto, nunca comprimido — é o que mais encurta a vida da peça.');
+    } else if (props.bol !== undefined && props.bol <= 4) {
       t3 = '==Vai criar bolinhas== nos pontos de atrito — cintura, axila, alça da bolsa.' +
         (props.ama !== undefined && props.ama <= 4 ? ' E sai amassada da gaveta.' : '') +
         (dur >= 60 ? ' O tecido aguenta; a aparência é que cansa antes.' : '');
