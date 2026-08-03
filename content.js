@@ -257,7 +257,11 @@
     if (iMain > 0 && /\d\s*%/.test(norm.slice(iMain))) norm = norm.slice(iMain);
 
     // 2) Corta na primeira secção secundária.
-    const SECUNDARIAS = /\b(tecido\s+secund[aá]rio|secondary\s+fabric|forro|lining|bordad\w*|embroider\w*|acabamento\w*|entretela|interlining|enchimento|padding|wadding|punho\w*|cuff\w*|gola\b|collar|canelado|ribbing|capuz|hood|aplica[cç][aã]\w*|appliqu\w*)\b/i;
+    // "trim" (acabamento/debrum) entrou aqui depois de uma etiqueta da Uniqlo
+    // no formato "Body: 62% Polyamide.../ Trim: 100% Polyester" — sem isto, o
+    // acabamento (peça pequena, tipo cordão) contava como se fosse 100% da
+    // roupa inteira, e ainda apagava a fibra principal do card.
+    const SECUNDARIAS = /\b(tecido\s+secund[aá]rio|secondary\s+fabric|forro|lining|bordad\w*|embroider\w*|acabamento\w*|entretela|interlining|enchimento|padding|wadding|punho\w*|cuff\w*|gola\b|collar|canelado|ribbing|capuz|hood|aplica[cç][aã]\w*|appliqu\w*|\btrim\b)\b/i;
     const iSec = norm.search(SECUNDARIAS);
     // só corta se a composição principal já apareceu antes do marcador
     if (iSec > 0 && /\d\s*%/.test(norm.slice(0, iSec))) norm = norm.slice(0, iSec);
@@ -296,7 +300,11 @@
 
     // Pass 1a: "XX% fibra" (número antes) — ex: Zara, Mango
     // Limite alargado para 50 chars para cobrir descrições longas como "algodão de cultivo orgânico certificado OCS"
-    const pairRe = /(\d+(?:[.,]\d+)?)\s*%\s*(?:de\s+)?([a-zà-öø-ÿ][a-zà-öø-ÿ\s]{1,50}?)(?=[,;.\n]|\d|$)/gi;
+    // "/" entra como fim de palavra válido — etiquetas com duas zonas na
+    // mesma linha ("...8% Elastane/ Trim: 100% Polyester") tinham a última
+    // fibra antes da barra silenciosamente ignorada: o regex não aceitava
+    // "/" como parada válida, então "elastane" nunca terminava de casar.
+    const pairRe = /(\d+(?:[.,]\d+)?)\s*%\s*(?:de\s+)?([a-zà-öø-ÿ][a-zà-öø-ÿ\s]{1,50}?)(?=[,;.\n/]|\d|$)/gi;
     let m;
     while ((m = pairRe.exec(norm)) !== null) {
       addFiber(parseFloat(m[1].replace(',', '.')), m[2]);
@@ -505,6 +513,19 @@
     } catch(e) {}
   }
 
+  // Corte defensivo por TEXTO, não por classe CSS — pega "produtos
+  // relacionados" mesmo quando o site não usa nenhuma das classes da lista
+  // de ruído (ex.: Uniqlo). Achado assim: uma calça foi classificada como
+  // casaco porque "PUFFERTECH Vest" (item de "People Also Viewed" lá
+  // embaixo da página) continha a palavra "puffer". noiseSelectors filtra
+  // por CSS e não pegou; isto pega pelo texto do próprio título da secção,
+  // que varia menos entre sites do que o nome da classe.
+  const RECOMENDADOS_RE = /people also (viewed|bought|liked)|you may also like|customers? also (bought|viewed)|também compraram|também viu|também gostou|produtos relacionados|related products|complete o look|complete the look/i;
+  function cortaRecomendados(txt) {
+    const m = RECOMENDADOS_RE.exec(txt || '');
+    return m ? txt.slice(0, m.index) : txt;
+  }
+
   function extractAllText() {
     // Alvo prioritário: lista de composição explícita (ex: Reserved usa
     // classes "compositionstyled__CompositionList"). Se existir e tiver %,
@@ -523,7 +544,7 @@
         const t = (el.textContent || '').trim();
         if (t) compText += '\n' + t;
       });
-      compText = (compText || root.textContent || '').trim();
+      compText = cortaRecomendados((compText || root.textContent || '').trim());
       if (/\d{1,3}\s*%\s*[a-zà-öø-ÿ]/i.test(compText)) return compText;
     }
 
@@ -555,7 +576,7 @@
 
     // Tenta primeiro extrair só a zona de composição (perto do marcador)
     const compZone = findCompositionZone();
-    if (compZone) return compZone;
+    if (compZone) return cortaRecomendados(compZone);
 
     // Fallback: texto da página mas sem as zonas de ruído, e sem duplicar aninhados
     let text = '';
@@ -582,10 +603,10 @@
 
     // Último recurso: se o leaf-scan não apanhou composição, usa innerText completo
     if (!hasComposition(text)) {
-      const bodyText = (document.body.innerText || '').trim();
+      const bodyText = cortaRecomendados((document.body.innerText || '').trim());
       if (hasComposition(bodyText)) return bodyText;
     }
-    return text;
+    return cortaRecomendados(text);
   }
 
   // Procura a zona de composição: o bloco de texto à volta de um marcador
