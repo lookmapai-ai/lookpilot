@@ -122,6 +122,18 @@ const PECAS = [
     tecnico: true
   },
   {
+    // Casaco de ski SNB 500. A ficha técnica vem em milímetros de coluna de
+    // água, não com a palavra "impermeável" — e a peça tem 8 zonas.
+    nome: 'Dreamscape SNB 500 — casaco de ski (Decathlon)',
+    titulo: 'Casaco de Ski e Snowboard Quente e Resistente SNB 500 Mulher Cinzento Escuro',
+    texto: 'Composição: Tecido principal: 100.0% Poliamida. O trio vencedor? Impermeabilidade (15 000 mm), '
+         + 'respirabilidade e liberdade de movimento. Encadeia as sessões sem problemas! O corte comprido dá-te conforto.',
+    fibras: [fibra('Poliamida', 100)],
+    esperaTipo: 'casaco',
+    agasalho: true,
+    tecnico: true
+  },
+  {
     nome: 'Parka corta-vento (Zara)',
     titulo: 'Parka técnica com capuz',
     texto: 'Composição: 100% Poliéster. Parka corta-vento com capuz, acabamento repelente de água.',

@@ -371,11 +371,18 @@
 
     // Pass 1a: "XX% fibra" (número antes) — ex: Zara, Mango
     // Limite alargado para 50 chars para cobrir descrições longas como "algodão de cultivo orgânico certificado OCS"
-    // "/" entra como fim de palavra válido — etiquetas com duas zonas na
-    // mesma linha ("...8% Elastane/ Trim: 100% Polyester") tinham a última
-    // fibra antes da barra silenciosamente ignorada: o regex não aceitava
-    // "/" como parada válida, então "elastane" nunca terminava de casar.
-    const pairRe = /(\d+(?:[.,]\d+)?)\s*%\s*(?:de\s+)?([a-zà-öø-ÿ][a-zà-öø-ÿ\s]{1,50}?)(?=[,;.\n/]|\d|$)/gi;
+    // O que fecha o nome de uma fibra. Cada símbolo que falta aqui apaga uma
+    // zona inteira EM SILÊNCIO: o nome da fibra tenta esticar-se por cima do
+    // símbolo, bate num carácter que não é letra, e a correspondência falha —
+    // sem erro, sem aviso, a fibra simplesmente não existe.
+    //
+    // ":" custou caro. Num casaco de ski da Decathlon com 8 zonas numa linha
+    // ("Tecido principal: 100% Poliamida Revestimento: 100% Poliuretano ...
+    // Pele sintética: 90% Acrílico"), TODAS as zonas falhavam menos a última,
+    // porque só ela não era seguida de outro rótulo com dois-pontos. Resultado:
+    // a gola de pelo falso passava por peça inteira e o casaco tirava 14/100.
+    // "/" tinha entrado antes pelo mesmo motivo (Uniqlo, "8% Elastane/ Trim:").
+    const pairRe = /(\d+(?:[.,]\d+)?)\s*%\s*(?:de\s+)?([a-zà-öø-ÿ][a-zà-öø-ÿ\s]{1,50}?)(?=[,;.:\n/|·]|\d|$)/gi;
     let m;
     // Recolhe primeiro, corta a zona extra, só depois acumula: o corte tem de
     // acontecer ANTES da deduplicação por nome, senão uma fibra que aparece

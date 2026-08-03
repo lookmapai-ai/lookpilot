@@ -249,7 +249,12 @@ function calcScores(fibers, pageText, certText, titleText) {
   // versões em inglês. Achado com uma etiqueta real da Decathlon: "jaqueta
   // repelente de água" + especificação "À prova de vento: Sim" não batiam
   // em nada do regex antigo.
-  const hasTechSpec = /imperme[aá]vel|waterproof|corta-?vento|windproof|\bwind[- ]?resistant\b|à prova de vento|membrana|\bdwr\b|water[- ]?repellent|repelente\s+(?:de\s+)?[aá]gua|à prova de (água|chuva)|\b\d{1,2}(?:[.,]?000)?\s?k\/\d{1,2}(?:[.,]?000)?\s?k\b|\b\d{1,2}(?:[.,]?000)?\s?k\b(?=.{0,40}(imperme|water|chuva))/i.test(textoAmplo);
+  // "imperme[aá]vel" sozinho não apanhava "Impermeabilidade (15 000 mm)" —
+  // e é assim que a Decathlon anuncia a ficha técnica de um casaco de ski.
+  // A coluna de água em mm é a medida padrão do sector (10 000 mm resiste a
+  // chuva forte; 15 000 mm é montanha) e é o dado mais concreto que uma peça
+  // técnica publica — deixá-la de fora era ignorar a prova principal.
+  const hasTechSpec = /imperme[aá](?:vel|bilidade)|waterproof|corta-?vento|windproof|\bwind[- ]?resistant\b|à prova de vento|membrana|\bdwr\b|water[- ]?repellent|repelente\s+(?:de\s+)?[aá]gua|à prova de (água|chuva)|respirabilidade|\b\d{1,2}(?:[.,]?\s?000)\s?mm\b|\b\d{1,2}(?:[.,]?000)?\s?k\/\d{1,2}(?:[.,]?000)?\s?k\b|\b\d{1,2}(?:[.,]?000)?\s?k\b(?=.{0,40}(imperme|water|chuva))/i.test(textoAmplo);
   const techBonus = hasTechSpec ? 6 : 0;
 
   // Casaco acolchoado/de pena: a composição da etiqueta ("100% Poliéster")

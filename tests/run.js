@@ -1119,6 +1119,47 @@ test('[Gatilhos] rótulos que abrem o painel da composição continuam na lista'
   return true;
 });
 
+// Casaco de ski SNB 500 (Decathlon, ID 8758695): 8 zonas, e o extractor
+// entrega-as numa linha só. Sem ":" a fechar o nome da fibra, todas as zonas
+// falhavam menos a ÚLTIMA — a gola de pelo falso — e o casaco tirava 14/100.
+const DECATHLON_SKI = 'Composição\nTecido principal: 100.0% Poliamida\nRevestimento: 100.0% Poliuretano\n'
+  + 'Tecido para o ombro: 100.0% Poliéster\nTecido lateral: 100.0% Poliéster\nAcolchoamento: 100.0% Poliéster\n'
+  + 'Revestimento: 100.0% Poliéster\nRevestimento secundário: 100.0% Poliéster\n'
+  + 'Pele sintética: 90.0% Acrílico, 10.0% Poliéster';
+
+test('[Decathlon] casaco de ski: a gola de pelo falso não vira a peça', () => {
+  const f = pipeline(DECATHLON_SKI);
+  if (f.some(x => /acr[íi]lico/i.test(x.name))) {
+    return fail(`leu a pele sintética como peça inteira: ${JSON.stringify(f.map(x=>x.name+' '+x.pct))}`);
+  }
+  if (!f.length || !/poliamida|nylon/i.test(f[0].name)) {
+    return fail(`esperava o tecido principal (poliamida), veio ${JSON.stringify(f.map(x=>x.name+' '+x.pct))}`);
+  }
+  return true;
+});
+
+// O bug de fundo: cada símbolo que falta na lista de "fim de nome de fibra"
+// apaga uma zona inteira sem erro nenhum. ":" e "/" já custaram um caso real
+// cada um. Este teste cobre a família toda de uma vez.
+test('[Separadores] zonas coladas numa linha não se apagam entre si', () => {
+  const casos = [
+    ['dois-pontos', 'Tecido principal: 100% Poliamida Forro: 100% Poliéster'],
+    ['barra',       'Corpo: 92% Algodão, 8% Elastano/ Trim: 100% Poliéster'],
+    ['ponto e virgula', 'Principal: 100% Linho; Forro: 100% Viscose'],
+    ['barra vertical',  'Principal: 100% Lã | Forro: 100% Seda']
+  ];
+  for (const [nome, txt] of casos) {
+    const f = parse(txt);
+    if (!f.length) return fail(`"${nome}": não leu fibra nenhuma em "${txt}"`);
+    const soma = f.reduce((a, x) => a + x.pct, 0);
+    if (soma > 105) return fail(`"${nome}": soma ${soma}% — juntou as zonas`);
+    // a primeira zona é a que manda: se ela sumiu, o separador apagou-a
+    const esperado = /poliamida|algod|linho|lã|la\b/i;
+    if (!esperado.test(f[0].name)) return fail(`"${nome}": a primeira zona sumiu, veio ${f[0].name} (${JSON.stringify(f.map(x=>x.name))})`);
+  }
+  return true;
+});
+
 test('[Soma] fibra única a 100% continua intacta', () => {
   const f = parse('Composição: 100% Algodão');
   if (f.length !== 1 || f[0].pct !== 100) return fail(JSON.stringify(f.map(x=>x.name+' '+x.pct)));
