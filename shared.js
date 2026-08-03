@@ -206,6 +206,16 @@ function calcScores(fibers, pageText, certText, titleText) {
   // certText permite detetar certificações que estão fora da zona de composição
   const certs = typeof certificationBonus === 'function' ? certificationBonus(certText || pageText) : [];
 
+  // pageText é a zona de COMPOSIÇÃO — específica de propósito (Materiais e
+  // Cuidados, geralmente), mas por isso mesmo não inclui o título do
+  // produto. Achado com uma peça chamada "Casaco acolchoado de trekking...":
+  // a palavra "casaco" só existia no título, nunca chegava perto da
+  // etiqueta de composição, e por isso isBulkyGarment nunca disparava — a
+  // peça nunca era reconhecida como casaco. Todo sinal de TIPO/CONSTRUÇÃO
+  // da peça (casaco, malha, tecido grosso, especificação técnica, marca)
+  // precisa olhar os dois, não só a zona estreita de composição.
+  const textoAmplo = (pageText || '') + ' ' + (titleText || '');
+
   // Se a página indica orgânico/reciclado certificado, promove a fibra base à variante sustentável
   // Usa certText (texto completo) se disponível — certificações podem estar fora da zona de composição
   const certScope = ((certText || pageText) || '').toLowerCase();
@@ -235,7 +245,7 @@ function calcScores(fibers, pageText, certText, titleText) {
   // sistema baseado só em fibra não enxergava essa diferença. Bônus modesto
   // (mesma ordem de grandeza do de certificação) — a especificação já se
   // prova sozinha no card via techSpecNota, isto só ajusta a nota.
-  const hasTechSpec = /imperme[aá]vel|waterproof|corta-?vento|windproof|\bwind[- ]?resistant\b|membrana|\bdwr\b|water[- ]?repellent|à prova de (água|chuva)|\b\d{1,2}(?:[.,]?000)?\s?k\/\d{1,2}(?:[.,]?000)?\s?k\b|\b\d{1,2}(?:[.,]?000)?\s?k\b(?=.{0,40}(imperme|water|chuva))/i.test(pageText || '');
+  const hasTechSpec = /imperme[aá]vel|waterproof|corta-?vento|windproof|\bwind[- ]?resistant\b|membrana|\bdwr\b|water[- ]?repellent|à prova de (água|chuva)|\b\d{1,2}(?:[.,]?000)?\s?k\/\d{1,2}(?:[.,]?000)?\s?k\b|\b\d{1,2}(?:[.,]?000)?\s?k\b(?=.{0,40}(imperme|water|chuva))/i.test(textoAmplo);
   const techBonus = hasTechSpec ? 6 : 0;
 
   // Nome comercial de tecnologia da marca (HEATTECH, AIRism...). Primeira
@@ -253,7 +263,7 @@ function calcScores(fibers, pageText, certText, titleText) {
     { re: /heattech/i, nome: 'HEATTECH' },
     { re: /\bairism\b/i, nome: 'AIRism' },
   ];
-  const brandTech = (BRAND_TECH.find((b) => b.re.test(pageText || '')) || {}).nome || null;
+  const brandTech = (BRAND_TECH.find((b) => b.re.test(textoAmplo)) || {}).nome || null;
 
   // Temperatura mínima suportada (peças técnicas de inverno) — verificado
   // com peças reais: Oysho ("certificado para resistir a temperaturas de
@@ -299,9 +309,9 @@ function calcScores(fibers, pageText, certText, titleText) {
   const elastano    = fibers.find(f => ['elastano','spandex','lycra'].includes(f.name?.toLowerCase?.()));
   const travelMaterial = Math.min(100, Math.round(travelRaw + (elastano ? Math.min(8, (elastano.pct || 0) * 0.4) : 0)));
   // Packability precisa de saber se é malha — calcula isKnit antes do travel
-  const isKnitEarly = /tricot|tric[ôo]|knit|malha|jersey|jacquard|knitwear|croch[eê]|crochet|sweater|camisola|pullover|pul[oô]ver|cardigan|cardig[aã]|gola alta|tur(t|l)eneck|jumper|camisaco/i.test(pageText || '');
+  const isKnitEarly = /tricot|tric[ôo]|knit|malha|jersey|jacquard|knitwear|croch[eê]|crochet|sweater|camisola|pullover|pul[oô]ver|cardigan|cardig[aã]|gola alta|tur(t|l)eneck|jumper|camisaco/i.test(textoAmplo);
   // Peças estruturadas/volumosas ocupam muito espaço na mala, seja qual for a fibra
-  const isBulkyGarment = /casaco|sobretudo|parka|trench|blaz[eê]r|jaqueta|jacket|coat|overcoat|puffer|acolchoad|quilted|gabardine|trincheira/i.test(pageText || '');
+  const isBulkyGarment = /casaco|sobretudo|parka|trench|blaz[eê]r|jaqueta|jacket|coat|overcoat|puffer|acolchoad|quilted|gabardine|trincheira/i.test(textoAmplo);
   const packability = typeof packabilityScore === 'function' ? packabilityScore(fibers, isKnitEarly, isBulkyGarment) : 65;
   const warmth = typeof warmthScore === 'function' ? warmthScore(fibers) : null;
   // Travel Score: para peças de inverno (calor alto), o calor é um trunfo —
@@ -320,14 +330,14 @@ function calcScores(fibers, pageText, certText, titleText) {
   const durabilityFinal = Math.min(100, durability + (hasTechSpec ? 4 : 0));
   const overall     = Math.min(100, Math.round(qualityFinal * 0.25 + comfort * 0.15 + durabilityFinal * 0.20 + versatility * 0.15 + costBenefit * 0.15 + maintenance * 0.10) + (certBonus > 0 ? 2 : 0));
 
-  const isKnit = /tricot|tric[ôo]|knit|malha|jersey|jacquard|knitwear|croch[eê]|crochet|sweater|camisola|pullover|pul[oô]ver|cardigan|cardig[aã]|gola alta|tur(t|l)eneck|jumper|camisaco/i.test(pageText || '');
+  const isKnit = /tricot|tric[ôo]|knit|malha|jersey|jacquard|knitwear|croch[eê]|crochet|sweater|camisola|pullover|pul[oô]ver|cardigan|cardig[aã]|gola alta|tur(t|l)eneck|jumper|camisaco/i.test(textoAmplo);
   // Tecido grosso e estruturado (sarja, gabardine, ganga/denim, canvas, brim,
   // corte "carpinteiro"/workwear) amarrota muito menos que o algodão fino
   // médio do banco — o mesmo raciocínio do isKnit, só que pro lado oposto do
   // espectro (tecido plano mas GROSSO, em vez de malha). Sem isto, uma
   // bermuda "carpinteiro" (na prática quase jeans) herdava o amassa:3 médio
   // do algodão fino, quando quem já viu a peça sabe que ela não amarrota.
-  const isHeavyWoven = /sarja|gabardine|ganga\b|denim|canvas|\bbrim\b|carpinteiro|workwear|twill|cargo|caqui pesad[oa]|drill/i.test(pageText || '');
+  const isHeavyWoven = /sarja|gabardine|ganga\b|denim|canvas|\bbrim\b|carpinteiro|workwear|twill|cargo|caqui pesad[oa]|drill/i.test(textoAmplo);
   // Semente de variação: primeiro tipo de peça encontrado no texto → frases variam entre tipos de peça
   const garmentWords = (pageText || '').toLowerCase().match(/camisa|t-?shirt|camiseta|vestido|cal[çc]a|saia|blusa|top|casaco|blaz[eê]r|jaqueta|short|macac[ãa]o|sobretudo|cardigan|camisola|sweater|polo/);
   const productSeed = garmentWords ? garmentWords[0] : '';
