@@ -214,6 +214,7 @@
       if (historia.isKnit) params.set('malha', '1');
       if (historia.isHeavyWoven) params.set('encorpado', '1');
       if (historia.isPadded) params.set('acolchoado', '1');
+      if (historia.hasTechSpec) params.set('tecnico', '1');
       if (historia.cor) {
         if (historia.cor.note)  params.set('cornota', historia.cor.note.slice(0, 120));
         if (historia.cor.isPrint) params.set('estampado', '1');
@@ -855,6 +856,11 @@
       // aparece nela. Sem isto, peso/bolinha do tecido externo eram lidos
       // como se descrevessem a peça inteira.
       isPadded: !!scores.isPadded,
+      // Especificação técnica de verdade na etiqueta (impermeável, corta-vento,
+      // membrana, "10k"). O card já usava isto; a página reconstruía os
+      // capítulos sem saber, e cobrava sustentabilidade e respirabilidade de
+      // um casaco de montanha como se fosse uma camiseta barata.
+      hasTechSpec: !!scores.hasTechSpec,
       // Cor/padrão: o maior fator de combinação, e o que falta ao capítulo
       // "vai sair do armário?". detectColorPattern já devolve nota em
       // linguagem natural ("estampado pede combinações pensadas").

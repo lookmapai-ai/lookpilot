@@ -30,6 +30,10 @@ const raiz = path.join(__dirname, '..');
   vm.runInThisContext(fs.readFileSync(path.join(raiz, f), 'utf8'), { filename: f });
 });
 
+// A página de análise tem motor próprio (landing/runtime.js) e é a outra
+// metade do que a pessoa lê. Mesmo simulador do tests/pagina.js.
+const { montar, query } = require('./dom-analise.js');
+
 // A extensão entrega a fibra com a ficha do fibers.json já anexada. Sem
 // isto o motor devolve nota ~10 e nunca chega aos ramos de texto que
 // interessam — o teste passaria verde sem testar nada.
@@ -155,6 +159,16 @@ const REGRAS = [
     porque: 'num casaco, respirar não é o critério de compra — aquecer e aguentar é'
   },
   {
+    // Casaco é camada de fora: abre-se e tira-se. Frases que pressupõem a
+    // peça colada ao corpo o dia inteiro ("abafa num dia inteiro fora",
+    // "não deixa a pele respirar") descrevem uma camiseta, não um casaco —
+    // e fazem parecer defeito o que é a função da peça.
+    id: 'agasalho-nao-e-julgado-como-peca-colada-ao-corpo',
+    frase: /abafa|n[aã]o deixa a pele respirar|o calor do corpo n[aã]o sai/i,
+    quando: (c) => c.agasalho,
+    porque: 'casaco se abre e se tira — julgar como se fosse vestido colado ao corpo o dia todo inverte o que é qualidade'
+  },
+  {
     // Peça acolchoada: a composição da etiqueta é só o casco. Se o texto
     // não disser isso, a pessoa julga um edredão pela fronha.
     id: 'acolchoado-avisa-que-a-etiqueta-e-so-o-casco',
@@ -203,6 +217,55 @@ function checa(nome, condicao, detalhe) {
   else { falhas++; console.log('  ✗ ' + nome); console.log('      ' + detalhe); detalhes.push(nome); }
 }
 
+function aplicaRegras(onde, texto, ctx) {
+  REGRAS.forEach((r) => {
+    if (!r.quando(ctx)) return;
+    if (r.frase) {
+      const achou = r.frase.exec(texto);
+      checa('    [' + onde + '] não diz: ' + r.id,
+        !achou,
+        'achou "' + (achou ? achou[0] : '') + '" — ' + r.porque + '\n      texto: ' + texto);
+    }
+    if (r.exige) {
+      checa('    [' + onde + '] diz: ' + r.id,
+        r.exige.test(texto),
+        'faltou o aviso — ' + r.porque + '\n      texto: ' + texto);
+    }
+  });
+}
+
+// Traduz a peça para os parâmetros de URL que a extensão manda à página —
+// mesmo formato que content.js monta em buildAnaliseURL().
+function paramsDaPeca(p, s, tipo) {
+  const q = {
+    score: Math.round(buyScore(s, tipo) || s.overall || 0),
+    verdict: (verdict(s) || {}).label || 'Vale a pena.',
+    nome: p.nome, loja: 'Decathlon', tipo: tipo,
+    fibra: (s.fibers && s.fibers[0] && (s.fibers[0].data && s.fibers[0].data.label || s.fibers[0].name)) || '',
+    fibras: (s.fibers || []).map((f) => (f.data && f.data.label || f.name) + ':' + f.pct).join(','),
+    qualidade: Math.round(s.quality), durabilidade: Math.round(s.durability),
+    conforto: Math.round(s.comfort), versatilidade: Math.round(s.versatility),
+    manutencao: Math.round(s.maintenance), custo: Math.round(s.costBenefit),
+    viagem: Math.round(s.travel)
+  };
+  // props: a mistura ponderada, como content.js calcula
+  const chaves = ['bol','ama','sec','cal','res','pes','sus'];
+  const soma = {}; let peso = 0;
+  chaves.forEach((k) => { soma[k] = 0; });
+  (s.fibers || []).forEach((f) => {
+    const pr = f.data && f.data.p; if (!pr || !f.pct) return;
+    peso += f.pct;
+    chaves.forEach((k) => { if (pr[k] !== undefined) soma[k] += pr[k] * f.pct; });
+  });
+  if (peso) q.props = chaves.map((k) => k + ':' + Math.round(soma[k] / peso)).join(',');
+  if (s.isKnit) q.malha = '1';
+  if (s.isHeavyWoven) q.encorpado = '1';
+  if (s.isPadded) q.acolchoado = '1';
+  if (s.hasTechSpec) q.tecnico = '1';
+  if (s.fibers && s.fibers[0] && s.fibers[0].data && s.fibers[0].data.type === 'synthetic') q.sintetico = '1';
+  return q;
+}
+
 console.log('\n── Coerência: o texto faz sentido para a peça? ──────\n');
 
 PECAS.forEach((p) => {
@@ -223,20 +286,16 @@ PECAS.forEach((p) => {
   // 2. as regras: `frase` é o que NÃO pode aparecer, `exige` é o que TEM de
   //    aparecer. Frase proibida sozinha não basta — há erros que são a
   //    ausência de um aviso, não a presença de uma frase errada.
-  REGRAS.forEach((r) => {
-    if (!r.quando(ctx)) return;
-    if (r.frase) {
-      const achou = r.frase.exec(texto);
-      checa('    não diz: ' + r.id,
-        !achou,
-        'achou "' + (achou ? achou[0] : '') + '" — ' + r.porque + '\n      texto: ' + texto);
-    }
-    if (r.exige) {
-      checa('    diz: ' + r.id,
-        r.exige.test(texto),
-        'faltou o aviso — ' + r.porque + '\n      texto: ' + texto);
-    }
-  });
+  aplicaRegras('card', texto, ctx);
+
+  // 2b. As MESMAS regras na página de análise. A pessoa lê duas superfícies
+  //     — o card na loja e a página completa — e elas têm motores de texto
+  //     diferentes (shared.js e landing/runtime.js). Testar só o card deixava
+  //     metade do produto fora: um casaco corrigido no card ainda dizia
+  //     "Abafa: o calor do corpo não sai" no capítulo 02 da página.
+  const tela = montar(query(paramsDaPeca(p, s, tipo)));
+  const textoPagina = tela.todos.join(' · ');
+  aplicaRegras('página', textoPagina, ctx);
 
   // 3. texto nunca vazio
   checa('    texto não vazio', !!(texto && texto.trim().length > 20),

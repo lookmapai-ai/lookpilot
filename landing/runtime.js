@@ -95,6 +95,11 @@
   // Sem isto, "pesa na mala" e "cria bolinhas" eram lidos do tecido externo
   // como se descrevessem a peça inteira.
   var ehAcolchoado = Q.get('acolchoado') === '1';
+  // Especificação técnica na etiqueta (impermeável, corta-vento, membrana).
+  // Num casaco técnico o sintético é o material certo, não atalho de custo:
+  // nenhuma fibra natural faz impermeável-respirável. Sem este sinal a
+  // página cobrava sustentabilidade de um casaco de montanha.
+  var ehTecnico = Q.get('tecnico') === '1';
   // versatilidade no escopo de fora: tracosViagemBrutos() também usa (fica
   // fora de prosaCartoes(), que já tinha a sua própria cópia local)
   var ver = int('versatilidade', 50);
@@ -312,15 +317,27 @@
       var traco = lista.find(function (f) {
         return NATURAIS.some(function (x) { return f.nome.toLowerCase().indexOf(x) === 0; });
       });
-      t1 = traco
-        ? 'Tem ' + traco.nome.toLowerCase() + ' na etiqueta — ==' + traco.pct + '%==. Suficiente pra escrever no rótulo, não pra mudar nada.'
-        : 'Quase toda de sintético: ==' + comp + '==. O toque engana; a composição, não.';
-      // certificação: o card já cruza isso com o domínio sintético pra
-      // explicar a sustentabilidade
-      if (mainIsSynthetic) {
-        t1 += certs.length
-          ? ' Tem certificação ==' + certs.join(', ') + '==, então a origem é verificada.'
-          : ' Sem certificação de reciclado, é a fibra menos sustentável.';
+      // Casaco acolchoado ou técnico: o sintético aqui não é atalho de custo.
+      // Num acolchoado a etiqueta descreve só o casco (o recheio, que é o que
+      // aquece, não aparece); num técnico, nenhuma fibra natural faz
+      // impermeável-respirável. "O toque engana" e "a fibra menos sustentável"
+      // são leituras de peça barata coladas numa peça de engenharia.
+      if (ehAcolchoado) {
+        t1 = '==' + comp + '== é só o tecido de fora. Num acolchoado o que aquece é o recheio — e ele não entra na etiqueta de composição.';
+      } else if (ehTecnico) {
+        t1 = '==' + comp + '==, e aqui é o material certo: casaco técnico é sintético porque fibra natural encharca e pesa. Nenhuma faz impermeável e respirável ao mesmo tempo.';
+        if (certs.length) t1 += ' Tem certificação ==' + certs.join(', ') + '==.';
+      } else {
+        t1 = traco
+          ? 'Tem ' + traco.nome.toLowerCase() + ' na etiqueta — ==' + traco.pct + '%==. Suficiente pra escrever no rótulo, não pra mudar nada.'
+          : 'Quase toda de sintético: ==' + comp + '==. O toque engana; a composição, não.';
+        // certificação: o card já cruza isso com o domínio sintético pra
+        // explicar a sustentabilidade
+        if (mainIsSynthetic) {
+          t1 += certs.length
+            ? ' Tem certificação ==' + certs.join(', ') + '==, então a origem é verificada.'
+            : ' Sem certificação de reciclado, é a fibra menos sustentável.';
+        }
       }
     } else {
       t1 = 'Mistura: ==' + comp + '==. Nem fibra nobre pura, nem sintético barato.';
@@ -343,7 +360,30 @@
     var t2;
     if (props.res !== undefined || props.cal !== undefined) {
       var respira = props.res, aquece = props.cal;
-      if (respira >= 8 && aquece >= 7) {
+      // Num casaco a pergunta muda. "Abafa num dia inteiro fora" descreve
+      // quem veste a peça o dia todo colada ao corpo — mas casaco é camada
+      // de fora, que se abre e se tira. O que interessa é se segura o frio
+      // lá fora e o que acontece ao entrar num lugar aquecido.
+      // E se for acolchoado, o calor vem do RECHEIO: julgar pelo 'cal' da
+      // fibra do casco (a única que a etiqueta declara) é ler a parte errada.
+      if (tipoKey === 'casaco') {
+        if (ehAcolchoado) {
+          t2 = variante([
+            '==Aquece pelo recheio==, não pelo tecido de fora. Em lugar aquecido, você abre o fecho.',
+            'O ==recheio é que segura o frio== — o tecido de fora corta o vento. Dentro, abre e resolve.'
+          ]);
+        } else if (respira <= 4) {
+          t2 = variante([
+            '==Corta o vento e segura o frio.== Em lugar aquecido, você vai querer abrir.',
+            'Feito pra rua: ==barra o frio de fora==. Dentro, abre o fecho e resolve.'
+          ]);
+        } else {
+          t2 = variante([
+            '==Segura o frio sem virar estufa== — dá pra entrar num lugar aquecido sem sufocar.',
+            '==Aquece e ainda respira==: não precisa tirar assim que você entra.'
+          ]);
+        }
+      } else if (respira >= 8 && aquece >= 7) {
         t2 = variante([
           '==Aquece sem abafar.== Dá pra passar o dia inteiro com ela.',
           '==Não vira estufa==: segura o frio e ainda deixa o corpo respirar.'
@@ -726,6 +766,11 @@
         var A = props.ama !== undefined && props.ama <= 5;   // amarrota
         var B = props.res !== undefined && props.res <= 5;   // abafa
         var S = props.sec !== undefined && props.sec <= 4;   // seca devagar
+        // Num casaco, reter calor é a FUNÇÃO da peça, não um defeito a
+        // avisar. "Abafa quando o dia estica" descreve quem não pode tirar a
+        // roupa — e casaco tira-se. Só as cautelas que continuam a valer
+        // (amassar na mala, secar devagar) ficam de pé.
+        if (tipoKey === 'casaco') B = false;
         var FRASES = {
           A: ['==Sai amassad' + o + ' da mala==, por melhor que você dobre. Conte com um ferro do outro lado.',
               '==Amassa na mala.== No destino é ferro ou vapor antes de vestir.'],
