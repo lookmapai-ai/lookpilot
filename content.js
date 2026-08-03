@@ -288,7 +288,7 @@
     // Antes só se cortava em "Tecido Secundário".
     // 1) Se a etiqueta nomeia o tecido principal, começa aí. Há rótulos que
     //    abrem pelo forro ("FORRO 100% viscose / TECIDO PRINCIPAL 100% algodão").
-    const PRINCIPAL = /\b(tecido\s+principal|tecido\s+exterior|main\s+fabric|exterior|outer|shell)\b/i;
+    const PRINCIPAL = /\b(tecido\s+principal|tecido\s+exterior|tejido\s+principal|tejido\s+exterior|main\s+fabric|exterior|outer|shell)\b/i;
     const iMain = norm.search(PRINCIPAL);
     if (iMain > 0 && /\d\s*%/.test(norm.slice(iMain))) norm = norm.slice(iMain);
 
@@ -297,7 +297,7 @@
     // no formato "Body: 62% Polyamide.../ Trim: 100% Polyester" — sem isto, o
     // acabamento (peça pequena, tipo cordão) contava como se fosse 100% da
     // roupa inteira, e ainda apagava a fibra principal do card.
-    const SECUNDARIAS = /\b(tecido\s+secund[aá]rio|secondary\s+fabric|forro|lining|bordad\w*|embroider\w*|acabamento\w*|entretela|interlining|enchimento|padding|wadding|punho\w*|cuff\w*|gola\b|collar|canelado|ribbing|capuz|hood|aplica[cç][aã]\w*|appliqu\w*|\btrim\b)\b/i;
+    const SECUNDARIAS = /\b(tecido\s+secund[aá]rio|secondary\s+fabric|forro|lining|bordad\w*|embroider\w*|acabamento\w*|entretela|interlining|enchimento|padding|wadding|punho\w*|cuff\w*|gola\b|collar|canelado|ribbing|capuz|hood|aplica[cç][aã]\w*|appliqu\w*|\btrim\b|relleno|pu[nñ]o\w*|capucha|ribete|revestimento|acolchoamento|pele\s+sint[eé]tica)\b/i;
     const iSec = norm.search(SECUNDARIAS);
     // só corta se a composição principal já apareceu antes do marcador
     if (iSec > 0 && /\d\s*%/.test(norm.slice(0, iSec))) norm = norm.slice(0, iSec);

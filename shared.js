@@ -57,6 +57,24 @@ function classifyUrl(href) {
 // FIBER_DB gerado da base técnica fibers.json — NÃO editar à mão
 // FIBER_DB gerado da base técnica fibers.json — NÃO editar à mão
 const FIBER_DB = {
+
+  // Espanhol. O El Corte Inglés é multimarca e etiqueta em espanhol; Zara,
+  // Mango e Oysho também, que é a língua de origem das três. Sem estes
+  // nomes a falha era silenciosa e parcial: "95% algodón, 5% elastano"
+  // lia só o elastano (que se escreve igual) e pontuava a peça como se
+  // fosse elastano puro. Não é erro que apareça — parece um resultado.
+  "algodón": { quality:66, comfort:90, durability:62, maintenance:80, travel:72, type:'natural', label:"Algodão", tip:"Confortável e versátil mas amassa e seca devagar. Leve peças que disfarçam vincos.", p:{ bol:7, ama:3, sec:3, cal:4, res:9, pes:5, sus:5 }, s:{ verao:9, inverno:3, cabine:0 } },
+  "algodon": { quality:66, comfort:90, durability:62, maintenance:80, travel:72, type:'natural', label:"Algodão", tip:"Confortável e versátil mas amassa e seca devagar. Leve peças que disfarçam vincos.", p:{ bol:7, ama:3, sec:3, cal:4, res:9, pes:5, sus:5 }, s:{ verao:9, inverno:3, cabine:0 } },
+  "algodón orgánico": { quality:70, comfort:90, durability:62, maintenance:80, travel:60, type:'natural', label:"Algodão Orgânico", tip:"Mesmo comportamento do algodão comum em viagem; vantagem é ambiental, não funcional.", p:{ bol:7, ama:3, sec:3, cal:4, res:9, pes:5, sus:7 }, s:{ verao:9, inverno:3, cabine:0 } },
+  "algodon organico": { quality:70, comfort:90, durability:62, maintenance:80, travel:60, type:'natural', label:"Algodão Orgânico", tip:"Mesmo comportamento do algodão comum em viagem; vantagem é ambiental, não funcional.", p:{ bol:7, ama:3, sec:3, cal:4, res:9, pes:5, sus:7 }, s:{ verao:9, inverno:3, cabine:0 } },
+  "lana": { quality:72, comfort:82, durability:66, maintenance:48, travel:72, type:'natural', label:"Lã", tip:"Não amassa e regula odor (pode usar várias vezes sem lavar), mas é volumosa e seca devagar. Merino é a melhor para viagem.", p:{ bol:5, ama:8, sec:3, cal:9, res:8, pes:5, sus:6 }, s:{ verao:2, inverno:9, cabine:0 } },
+  "lino": { quality:78, comfort:82, durability:80, maintenance:50, travel:75, type:'natural', label:"Linho", tip:"Fresco, leve, durável e seca rápido — mas amassa muito. Aceite os vincos como estética ou leve a vapor.", p:{ bol:8, ama:1, sec:7, cal:3, res:10, pes:4, sus:8 }, s:{ verao:10, inverno:2, cabine:1 } },
+  "viscosa": { quality:44, comfort:80, durability:36, maintenance:40, travel:50, type:'semi', label:"Viscose (Rayon)", tip:"Caimento bonito e leve, mas amassa, encolhe e é frágil húmida. Cuidado na lavagem em viagem.", p:{ bol:6, ama:4, sec:5, cal:3, res:8, pes:4, sus:4 }, s:{ verao:8, inverno:3, cabine:1 } },
+  "cachemir": { quality:82, comfort:94, durability:50, maintenance:35, travel:72, type:'natural', label:"Caxemira", tip:"Leve, quente e compacta — ótima para viagem fria. Delicada: evite atrito que cause pilling.", p:{ bol:4, ama:7, sec:3, cal:10, res:8, pes:2, sus:4 }, s:{ verao:1, inverno:10, cabine:1 } },
+  "cachemira": { quality:82, comfort:94, durability:50, maintenance:35, travel:72, type:'natural', label:"Caxemira", tip:"Leve, quente e compacta — ótima para viagem fria. Delicada: evite atrito que cause pilling.", p:{ bol:4, ama:7, sec:3, cal:10, res:8, pes:2, sus:4 }, s:{ verao:1, inverno:10, cabine:1 } },
+  "cáñamo": { quality:82, comfort:72, durability:88, maintenance:60, travel:70, type:'natural', label:"Cânhamo", tip:"Muito durável, fresco e antibacteriano, mas amassa. Similar ao linho em viagem.", p:{ bol:8, ama:2, sec:6, cal:3, res:9, pes:5, sus:9 }, s:{ verao:9, inverno:3, cabine:1 } },
+  "canamo": { quality:82, comfort:72, durability:88, maintenance:60, travel:70, type:'natural', label:"Cânhamo", tip:"Muito durável, fresco e antibacteriano, mas amassa. Similar ao linho em viagem.", p:{ bol:8, ama:2, sec:6, cal:3, res:9, pes:5, sus:9 }, s:{ verao:9, inverno:3, cabine:1 } },
+  "ramio": { quality:70, comfort:72, durability:75, maintenance:50, travel:68, type:'natural', label:"Rami", tip:"Fresco, leve e resistente a mofo — bom para clima quente. Amassa como linho.", p:{ bol:8, ama:2, sec:7, cal:2, res:9, pes:4, sus:7 }, s:{ verao:9, inverno:2, cabine:1 } },
   "algodão": { quality:66, comfort:90, durability:62, maintenance:80, travel:72, type:'natural', label:"Algodão", tip:"Confortável e versátil mas amassa e seca devagar. Leve peças que disfarçam vincos.", p:{ bol:7, ama:3, sec:3, cal:4, res:9, pes:5, sus:5 }, s:{ verao:9, inverno:3, cabine:0 } },
   "algodao": { quality:66, comfort:90, durability:62, maintenance:80, travel:72, type:'natural', label:"Algodão", tip:"Confortável e versátil mas amassa e seca devagar. Leve peças que disfarçam vincos.", p:{ bol:7, ama:3, sec:3, cal:4, res:9, pes:5, sus:5 }, s:{ verao:9, inverno:3, cabine:0 } },
   "cotton": { quality:66, comfort:90, durability:62, maintenance:80, travel:72, type:'natural', label:"Algodão", tip:"Confortável e versátil mas amassa e seca devagar. Leve peças que disfarçam vincos.", p:{ bol:7, ama:3, sec:3, cal:4, res:9, pes:5, sus:5 }, s:{ verao:9, inverno:3, cabine:0 } },
@@ -135,7 +153,7 @@ function getFiber(name) {
   // Match direto primeiro
   if (FIBER_DB[key]) {
     // Mas se for algodão e tiver "orgânico", usa a variante
-    if (hasOrganic && /algod[aã]o|cotton/.test(key) && FIBER_DB['algodão orgânico']) return FIBER_DB['algodão orgânico'];
+    if (hasOrganic && /algod[aã]o|algod[oó]n|cotton/.test(key) && FIBER_DB['algodão orgânico']) return FIBER_DB['algodão orgânico'];
     if (hasRecycled && /poli[eé]ster|polyester/.test(key) && FIBER_DB['poliéster reciclado']) return FIBER_DB['poliéster reciclado'];
     if (hasRecycled && /poliamida|nylon/.test(key) && FIBER_DB['poliamida reciclada']) return FIBER_DB['poliamida reciclada'];
     return FIBER_DB[key];
@@ -143,7 +161,7 @@ function getFiber(name) {
 
   // Match parcial: encontra a fibra base dentro da string da etiqueta
   // Ex: "algodão de cultivo orgânico certificado ocs" -> algodão orgânico
-  if (/algod[aã]o|cotton/.test(key)) return FIBER_DB[hasOrganic ? 'algodão orgânico' : 'algodão'] || null;
+  if (/algod[aã]o|algod[oó]n|cotton/.test(key)) return FIBER_DB[hasOrganic ? 'algodão orgânico' : 'algodão'] || null;
   if (/poli[eé]ster|polyester/.test(key)) return FIBER_DB[hasRecycled ? 'poliéster reciclado' : 'poliéster'] || null;
   if (/poliamida|nylon/.test(key)) return FIBER_DB[hasRecycled ? 'poliamida reciclada' : 'poliamida'] || null;
 

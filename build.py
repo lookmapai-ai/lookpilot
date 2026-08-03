@@ -25,26 +25,33 @@ SHARED = os.path.join(HERE, 'shared.js')
 CATEGORIES = os.path.join(HERE, 'categories.js')
 MANIFEST = os.path.join(HERE, 'manifest.json')
 
-# ─── Mapa de sinónimos: como cada fibra aparece nas etiquetas (PT/EN/FR) ───
+# ─── Mapa de sinónimos: como cada fibra aparece nas etiquetas ───
+# PT/EN/FR já estavam; ES entrou com o El Corte Inglés, e a falha era do
+# pior tipo: SILENCIOSA E PARCIAL. "95% algodón, 5% elastano" lia só o
+# elastano (que se escreve igual nas duas línguas) e pontuava a peça como
+# se fosse 5% de elastano puro. Não é um erro que apareça — é um erro que
+# parece um resultado.
+# Também vale para Zara/Mango/Oysho em espanhol, que é a língua de origem
+# das três.
 LABEL_KEYS = {
-    'algodao': ['algodão','algodao','cotton','coton'],
-    'algodao_organico': ['algodão orgânico','algodao organico','organic cotton'],
+    'algodao': ['algodão','algodao','cotton','coton','algodón','algodon'],
+    'algodao_organico': ['algodão orgânico','algodao organico','organic cotton','algodón orgánico','algodon organico'],
     'poliester': ['poliéster','poliester','polyester'],
     'poliester_reciclado': ['poliéster reciclado','poliester reciclado','recycled polyester','rpet'],
-    'la': ['lã','la ','lã ','wool','laine'],
+    'la': ['lã','la ','lã ','wool','laine','lana'],
     'merino': ['merino','lã merino','merino wool'],
     'lyocell': ['lyocell','liocel','tencel'],
-    'viscose': ['viscose','rayon','raiom'],
-    'linho': ['linho','linen','lin '],
+    'viscose': ['viscose','rayon','raiom','viscosa'],
+    'linho': ['linho','linen','lin ','lino'],
     'seda': ['seda','silk','soie'],
-    'caxemira': ['caxemira','cashmere','cachemire'],
+    'caxemira': ['caxemira','cashmere','cachemire','cachemir','cachemira'],
     'modal': ['modal'],
     'poliamida': ['poliamida','polyamide','nylon','nailon'],
     'poliamida_reciclada': ['poliamida reciclada','econyl','recycled nylon'],
     'elastano': ['elastano','elastane','spandex','lycra','elastam'],
     'acrilico': ['acrílico','acrilico','acrylic','acryl'],
-    'canhamo': ['cânhamo','canhamo','hemp','chanvre'],
-    'rami': ['rami','ramie'],
+    'canhamo': ['cânhamo','canhamo','hemp','chanvre','cáñamo','canamo'],
+    'rami': ['rami','ramie','ramio'],
 }
 
 MATERIAL_KEYS = {

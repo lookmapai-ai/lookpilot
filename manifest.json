@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LookPilot",
-  "version": "8.8",
+  "version": "8.9",
   "description": "Analisa a composição têxtil de qualquer peça e diz se vale a pena comprar.",
   "permissions": [
     "activeTab",

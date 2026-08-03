@@ -1160,6 +1160,50 @@ test('[Separadores] zonas coladas numa linha não se apagam entre si', () => {
   return true;
 });
 
+// ─── Espanhol ───────────────────────────────────────────────────────
+// El Corte Inglés é multimarca e etiqueta em espanhol; Zara, Mango e Oysho
+// também, que é a língua de origem das três. A falha era do pior tipo:
+// silenciosa e PARCIAL. "95% algodón, 5% elastano" lia só o elastano — que
+// se escreve igual nas duas línguas — e pontuava a peça como se fosse
+// elastano puro. Não é um erro que apareça; parece um resultado.
+test('[ES] fibra espanhola sozinha é reconhecida', () => {
+  const f = parse('Composición: 100% algodón');
+  if (f.length !== 1 || !/algod/i.test(f[0].name) || f[0].pct !== 100) {
+    return fail(JSON.stringify(f.map(x => x.name + ' ' + x.pct)));
+  }
+  return true;
+});
+
+test('[ES] a fibra principal não é comida pela que se escreve igual', () => {
+  const casos = [
+    ['Composición: 95% algodón, 5% elastano', /algod/i, 95],
+    ['Composición: 80% lana, 20% poliamida',  /l[ãa]/i,  80],
+    ['Composición: 55% lino, 45% seda',       /linho|lino/i, 55],
+    ['Composición: 70% viscosa, 30% poliéster', /viscose|viscosa/i, 70]
+  ];
+  for (const [txt, re, pct] of casos) {
+    const f = parse(txt);
+    const principal = f.find(x => re.test(x.name));
+    if (!principal) return fail(`"${txt}" perdeu a fibra principal: ${JSON.stringify(f.map(x=>x.name+' '+x.pct))}`);
+    if (principal.pct !== pct) return fail(`"${txt}" leu ${principal.pct}% em vez de ${pct}%`);
+  }
+  return true;
+});
+
+test('[ES] zonas em espanhol são cortadas como as portuguesas', () => {
+  const f = parse('Tejido principal: 100% algodón. Forro: 100% poliéster. Relleno: 90% plumón.');
+  if (f.length !== 1 || !/algod/i.test(f[0].name)) {
+    return fail(`esperava só o tecido principal, veio ${JSON.stringify(f.map(x=>x.name+' '+x.pct))}`);
+  }
+  return true;
+});
+
+test('[ES] qualificador espanhol vai para a variante certa', () => {
+  const d = getFiber('algodón orgánico');
+  if (!d || !/org/i.test(d.label)) return fail(`"algodón orgánico" → ${d && d.label}`);
+  return true;
+});
+
 // ─── Tecnologias de marca ───────────────────────────────────────────
 // Numa peça técnica ou desportiva a tecnologia decide o conforto térmico
 // mais do que a fibra — que vai ser poliéster em quase todas. Cada entrada
