@@ -213,6 +213,7 @@
       if (historia.mainIsSynthetic) params.set('sintetico', '1');
       if (historia.isKnit) params.set('malha', '1');
       if (historia.isHeavyWoven) params.set('encorpado', '1');
+      if (historia.isPadded) params.set('acolchoado', '1');
       if (historia.cor) {
         if (historia.cor.note)  params.set('cornota', historia.cor.note.slice(0, 120));
         if (historia.cor.isPrint) params.set('estampado', '1');
@@ -791,6 +792,11 @@
       // algodão fino médio do banco — mesmo raciocínio da malha, do outro
       // lado do espectro de construção do tecido.
       isHeavyWoven: !!scores.isHeavyWoven,
+      // Casaco acolchoado/de pena: a etiqueta só descreve o tecido de FORA
+      // ("100% Poliéster"), o recheio que faz a peça ser quente e leve não
+      // aparece nela. Sem isto, peso/bolinha do tecido externo eram lidos
+      // como se descrevessem a peça inteira.
+      isPadded: !!scores.isPadded,
       // Cor/padrão: o maior fator de combinação, e o que falta ao capítulo
       // "vai sair do armário?". detectColorPattern já devolve nota em
       // linguagem natural ("estampado pede combinações pensadas").

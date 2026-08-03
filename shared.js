@@ -245,8 +245,22 @@ function calcScores(fibers, pageText, certText, titleText) {
   // sistema baseado só em fibra não enxergava essa diferença. Bônus modesto
   // (mesma ordem de grandeza do de certificação) — a especificação já se
   // prova sozinha no card via techSpecNota, isto só ajusta a nota.
-  const hasTechSpec = /imperme[aá]vel|waterproof|corta-?vento|windproof|\bwind[- ]?resistant\b|membrana|\bdwr\b|water[- ]?repellent|à prova de (água|chuva)|\b\d{1,2}(?:[.,]?000)?\s?k\/\d{1,2}(?:[.,]?000)?\s?k\b|\b\d{1,2}(?:[.,]?000)?\s?k\b(?=.{0,40}(imperme|water|chuva))/i.test(textoAmplo);
+  // "repelente (de água)" e "à prova de vento" faltavam — só tinha as
+  // versões em inglês. Achado com uma etiqueta real da Decathlon: "jaqueta
+  // repelente de água" + especificação "À prova de vento: Sim" não batiam
+  // em nada do regex antigo.
+  const hasTechSpec = /imperme[aá]vel|waterproof|corta-?vento|windproof|\bwind[- ]?resistant\b|à prova de vento|membrana|\bdwr\b|water[- ]?repellent|repelente\s+(?:de\s+)?[aá]gua|à prova de (água|chuva)|\b\d{1,2}(?:[.,]?000)?\s?k\/\d{1,2}(?:[.,]?000)?\s?k\b|\b\d{1,2}(?:[.,]?000)?\s?k\b(?=.{0,40}(imperme|water|chuva))/i.test(textoAmplo);
   const techBonus = hasTechSpec ? 6 : 0;
+
+  // Casaco acolchoado/de pena: a composição da etiqueta ("100% Poliéster")
+  // é só o TECIDO DE FORA — o recheio (pena de verdade ou enchimento
+  // sintético), que é o que faz a peça ser quente e leve, não aparece na
+  // etiqueta de lavagem. fibers.json nem tem entrada pra "pena". Sem isto,
+  // "peso" e "bolinha" do poliéster genérico (pensados pra camiseta) eram
+  // aplicados como se descrevessem a peça inteira — um casaco acolchoado
+  // levíssimo virava "pesa na mala" porque a fórmula não sabe que a maior
+  // parte da peça é enchimento, não tecido.
+  const isPadded = /acolchoad|quilted|puffer|puffect|\bpenas?\b|\bdown\b|duvet|plumas|recheio|enchimento/i.test(textoAmplo);
 
   // Nome comercial de tecnologia da marca (HEATTECH, AIRism...). Primeira
   // versão disto tratava como marketing puro e não somava nada — pesquisa
@@ -341,7 +355,7 @@ function calcScores(fibers, pageText, certText, titleText) {
   // Semente de variação: primeiro tipo de peça encontrado no texto → frases variam entre tipos de peça
   const garmentWords = (pageText || '').toLowerCase().match(/camisa|t-?shirt|camiseta|vestido|cal[çc]a|saia|blusa|top|casaco|blaz[eê]r|jaqueta|short|macac[ãa]o|sobretudo|cardigan|camisola|sweater|polo/);
   const productSeed = garmentWords ? garmentWords[0] : '';
-  return { quality: qualityFinal, comfort, durability: durabilityFinal, maintenance, versatility, costBenefit, travel, travelMaterial, packability, warmth, overall, natPct, synPct, certs, fibers, qualityModifier: qmod, isKnit, isHeavyWoven, isBulkyGarment, hasTechSpec, brandTech, temperaturaMin, productSeed, colorInfo };
+  return { quality: qualityFinal, comfort, durability: durabilityFinal, maintenance, versatility, costBenefit, travel, travelMaterial, packability, warmth, overall, natPct, synPct, certs, fibers, qualityModifier: qmod, isKnit, isHeavyWoven, isBulkyGarment, isPadded, hasTechSpec, brandTech, temperaturaMin, productSeed, colorInfo };
 }
 
 // ─── Buy Score: o score principal do copiloto ─────────────────────

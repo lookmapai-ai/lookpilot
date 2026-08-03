@@ -89,6 +89,12 @@
   // malha, do outro lado do espectro: tecido plano mas GROSSO amarrota bem
   // menos que o algodão fino médio do banco.
   var naoAmarrotaPelaEspessura = ehMalha || Q.get('encorpado') === '1';
+  // Casaco acolchoado/de pena: a composição na etiqueta só descreve o
+  // tecido de FORA — o recheio (pena ou enchimento sintético), que é o que
+  // determina peso e formação de bolinhas de verdade, não aparece nela.
+  // Sem isto, "pesa na mala" e "cria bolinhas" eram lidos do tecido externo
+  // como se descrevessem a peça inteira.
+  var ehAcolchoado = Q.get('acolchoado') === '1';
   // versatilidade no escopo de fora: tracosViagemBrutos() também usa (fica
   // fora de prosaCartoes(), que já tinha a sua própria cópia local)
   var ver = int('versatilidade', 50);
@@ -496,7 +502,9 @@
       // peso: baixo = leve (0-10, 10=mais pesado). Num casaco é onde mais
       // conta — é a peça que mais ocupa espaço e mais pesa no corpo o dia
       // inteiro. Merino é o exemplo: esquenta (cal 9) e ainda é leve (pes 4).
-      if (tem('pes') && p.pes >= 7) mau('Pesa na mala e no corpo', 'É a peça que mais ocupa espaço — e você sente o peso dela o dia inteiro.');
+      if (ehAcolchoado) {
+        bom('Leve pro tanto que esquenta', 'O recheio é que segura o calor, não o tecido de fora — por isso pesa pouco pro que entrega.');
+      } else if (tem('pes') && p.pes >= 7) mau('Pesa na mala e no corpo', 'É a peça que mais ocupa espaço — e você sente o peso dela o dia inteiro.');
       else if (tem('pes') && p.pes <= 4) bom('Esquenta sem pesar', 'Aquece de verdade sem virar a peça mais pesada da mala.');
       if (tem('res') && p.res <= 4) mau('Prende o suor por dentro', 'Vira estufa assim que você entra em algum lugar aquecido ou pega o metrô lotado.');
       else if (tem('res') && p.res >= 8) bom('Esquenta sem virar estufa', 'Segura o frio de fora sem sufocar quando você entra em algum lugar aquecido.');
@@ -513,7 +521,7 @@
     if (tem('sec') && p.sec <= 4) mau('Seca devagar', 'Lavar no meio da viagem custa um dia à espera de secar.');
     else if (tem('sec') && p.sec >= 7) bom('Seca da noite pro dia', 'Lava no lavatório à noite e de manhã está pronta.');
 
-    if (tem('bol') && p.bol <= 4) mau('Cria bolinhas', 'O atrito da mala e da alça encaroça o tecido.');
+    if (tem('bol') && p.bol <= 4 && !ehAcolchoado) mau('Cria bolinhas', 'O atrito da mala e da alça encaroça o tecido.');
 
     return out;
   }
