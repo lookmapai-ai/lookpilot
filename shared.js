@@ -358,6 +358,23 @@ function calcScores(fibers, pageText, certText, titleText) {
   return { quality: qualityFinal, comfort, durability: durabilityFinal, maintenance, versatility, costBenefit, travel, travelMaterial, packability, warmth, overall, natPct, synPct, certs, fibers, qualityModifier: qmod, isKnit, isHeavyWoven, isBulkyGarment, isPadded, hasTechSpec, brandTech, temperaturaMin, productSeed, colorInfo };
 }
 
+// ─── Que tipo de peça é essa? ─────────────────────────────────────
+// Fonte única da decisão. O tipo escolhido aqui manda em duas coisas que
+// o utilizador vê: os pesos da nota de compra (BUY_WEIGHTS) e qual família
+// de frases o conclusionText() usa. Errar o tipo não baixa a nota — troca
+// o texto por um que não faz sentido pra peça ("não para os dias quentes"
+// num casaco de pena de -20°C).
+//
+// Mora em shared.js, e não solto no content.js, porque assim tests/
+// coerencia.js decide o tipo exatamente como o navegador decide.
+function detectGarmentType(scores, tipoExplicito, categoria) {
+  if (tipoExplicito) return tipoExplicito;
+  if (scores?.isPadded) return 'casaco';      // acolchoado/pena é sempre agasalho
+  if (scores?.isBulkyGarment) return 'casaco';
+  if (scores?.isKnit) return 'malha';
+  return categoria || 'clothing';
+}
+
 // ─── Buy Score: o score principal do copiloto ─────────────────────
 // Pesos dinâmicos por tipo de peça. Cada tipo valoriza fatores diferentes.
 // A arquitetura aceita dados futuros (gramatura, acabamento, marca, preço)
@@ -467,7 +484,6 @@ function scoreColor(v) { return v >= 75 ? '#16a34a' : v >= 55 ? '#d97706' : '#dc
 
 function conclusionText(scores, fibers, garmentType) {
   const en = typeof LP_LANG !== 'undefined' && LP_LANG === 'en';
-  const isCasaco = garmentType === 'casaco';
   const sorted  = [...(fibers || [])].sort((a, b) => (b.pct || 0) - (a.pct || 0));
   const main    = sorted[0];
   const second  = sorted[1];
@@ -476,6 +492,10 @@ function conclusionText(scores, fibers, garmentType) {
   const mainPct   = main?.pct  || 0;
   const secPct    = second?.pct || 0;
   const s = scores;
+  // Segunda linha de defesa: mesmo que o tipo venha errado da loja, uma peça
+  // acolchoada ou volumosa é agasalho e nunca deve receber a ressalva "não
+  // para os dias quentes" — ninguém compra um casaco de pena pro verão.
+  const isCasaco = garmentType === 'casaco' || !!s?.isPadded || !!s?.isBulkyGarment;
   const certs = s?.certs || [];
   const certNote = certs.length
     ? (en ? ` Has ${certs.join(', ')} certification, so the origin is verified.` : ` Tem certificação ${certs.join(', ')}, então a origem é verificada.`)

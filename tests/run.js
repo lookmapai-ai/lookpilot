@@ -1064,8 +1064,9 @@ console.log('══════════════════════�
 // quebrou sem que nada aqui percebesse:
 //   pagina.js — a página de análise (um erro de JS derruba a tela inteira)
 //   entrega.js — o zip que o botão "Baixar extensão" entrega
+//   coerencia.js — o texto bate com a peça? (nota certa, frase absurda)
 let extras = 0;
-for (const t of ['pagina.js', 'entrega.js']) {
+for (const t of ['coerencia.js', 'pagina.js', 'entrega.js']) {
   try {
     require('child_process').execSync('node ' + require('path').join(__dirname, t),
       { stdio: 'inherit' });

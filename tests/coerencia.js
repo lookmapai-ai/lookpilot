@@ -1,0 +1,204 @@
+#!/usr/bin/env node
+/* Teste de COERÊNCIA do texto com a peça.
+ *
+ *   node tests/coerencia.js
+ *
+ * Responde a pergunta que nenhuma outra rede responde: o texto que a pessoa
+ * lê faz sentido PARA ESTA PEÇA?
+ *
+ * Os 120 testes do motor conferem números (a nota do poliéster mudou?). O
+ * tests/pagina.js confere que a tela não explode. Nenhum dos dois percebe um
+ * casaco de pena certificado até -20°C recebendo "Boa para uso prático, não
+ * para os dias quentes" — número certo, tela viva, frase absurda. Isso só
+ * aparecia num print, uma peça de cada vez, e é o que destrói a confiança:
+ * uma frase obviamente errada faz a pessoa duvidar da nota também.
+ *
+ * Como funciona: peças REAIS (título e descrição copiados das lojas) passam
+ * pelo caminho completo — calcScores → detectGarmentType → conclusionText —
+ * e um conjunto de REGRAS diz que frase não pode sair em que contexto.
+ *
+ * Para cobrir uma peça nova: acrescente uma entrada em PECAS. Para proibir
+ * uma frase nova: acrescente uma entrada em REGRAS. Nenhuma das duas listas
+ * exige mexer no motor.
+ */
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+
+const raiz = path.join(__dirname, '..');
+['shared.js', 'categories.js'].forEach((f) => {
+  vm.runInThisContext(fs.readFileSync(path.join(raiz, f), 'utf8'), { filename: f });
+});
+
+// A extensão entrega a fibra com a ficha do fibers.json já anexada. Sem
+// isto o motor devolve nota ~10 e nunca chega aos ramos de texto que
+// interessam — o teste passaria verde sem testar nada.
+function fibra(nome, pct) { return { name: nome, pct: pct, data: getFiber(nome) }; }
+
+// ─── Peças reais das lojas ───────────────────────────────────────────
+// `texto` é a descrição/etiqueta como aparece na página; `titulo` é o nome
+// do produto. Os dois juntos são exatamente o que a extensão lê.
+const PECAS = [
+  {
+    nome: 'Simond MT900 — casaco de penas -20°C (Decathlon)',
+    titulo: 'Casaco acolchoado penas com capuz mulher - MT900 Bordeaux -20°C',
+    texto: 'Composição: 100% Poliéster. Forro: 100% Poliéster. Enchimento: 90% Penas de pato, 10% Plumas. '
+         + 'Pronto para o trekking? Desfruta de uma proteção térmica ideal nos teus acampamentos com este '
+         + 'casaco acolchoado de penas que resiste a temperaturas até -20°C em atividade e -5°C em estático. '
+         + 'Impermeável e corta-vento.',
+    fibras: [fibra('Poliéster', 100)],
+    esperaTipo: 'casaco',
+    agasalho: true
+  },
+  {
+    nome: 'Columbia Puffect II — casaco acolchoado (Decathlon)',
+    titulo: 'Columbia Puffect II Hooded Jacket Black',
+    texto: 'Composição: 100% Poliéster. Jaqueta acolchoada repelente de água com isolamento quente. '
+         + 'À prova de vento e tempestades: À prova de vento. Impermeabilidade: Não impermeável.',
+    fibras: [fibra('Poliéster', 100)],
+    esperaTipo: 'casaco',
+    agasalho: true
+  },
+  {
+    nome: 'Camiseta de malha de algodão (Zara)',
+    titulo: 'T-shirt básica de algodão',
+    texto: 'Composição: 100% Algodão. T-shirt de malha, gola redonda, manga curta.',
+    fibras: [fibra('Algodão', 100)],
+    esperaTipo: 'malha',
+    agasalho: false
+  },
+  {
+    nome: 'Top de poliamida (Oysho)',
+    titulo: 'Top de alças poliamida reciclada',
+    texto: 'Composição: 92% Poliamida reciclada, 8% Elastano. Top de alças finas, tecido leve.',
+    fibras: [fibra('Poliamida', 92), fibra('Elastano', 8)],
+    esperaTipo: 'clothing',
+    agasalho: false
+  },
+  {
+    nome: 'Calça de sarja (Uniqlo)',
+    titulo: 'Calças de sarja de algodão corte reto',
+    texto: 'Composição: 98% Algodão, 2% Elastano. Calças de sarja, tecido encorpado, corte reto.',
+    fibras: [fibra('Algodão', 98), fibra('Elastano', 2)],
+    esperaTipo: 'clothing',
+    agasalho: false,
+    parteDeBaixo: true
+  },
+  {
+    nome: 'Camisola HEATTECH (Uniqlo)',
+    titulo: 'HEATTECH camisola de gola redonda manga comprida',
+    texto: 'Composição: 45% Acrílico, 33% Poliéster, 17% Raiom, 5% Elastano. '
+         + 'A tecnologia HEATTECH transforma a humidade do corpo em calor. Malha fina.',
+    fibras: [fibra('Acrílico', 45), fibra('Poliéster', 33),
+             fibra('Viscose', 17), fibra('Elastano', 5)],
+    esperaTipo: 'malha',
+    agasalho: false
+  },
+  {
+    nome: 'Parka corta-vento (Zara)',
+    titulo: 'Parka técnica com capuz',
+    texto: 'Composição: 100% Poliéster. Parka corta-vento com capuz, acabamento repelente de água.',
+    fibras: [fibra('Poliéster', 100)],
+    esperaTipo: 'casaco',
+    agasalho: true
+  }
+];
+
+// ─── Regras: que frase não pode sair em que contexto ─────────────────
+// `quando` recebe o contexto da peça e devolve true se a regra se aplica.
+// `frase` é o que NÃO pode aparecer no texto quando ela se aplica.
+const REGRAS = [
+  {
+    id: 'agasalho-nao-e-pro-verao',
+    frase: /dias quentes|para o ver[ãa]o|pro ver[ãa]o/i,
+    quando: (c) => c.agasalho,
+    porque: 'ninguém compra casaco de pena para dia quente — a ressalva não faz sentido e queima a confiança na nota'
+  },
+  {
+    id: 'agasalho-nao-e-leve-demais',
+    frase: /tecido leve e fresco|refresca/i,
+    quando: (c) => c.agasalho,
+    porque: 'descreve peça de verão, não agasalho'
+  },
+  {
+    id: 'parte-de-baixo-sem-camada-por-cima',
+    frase: /camada por cima|casaco por cima|blaz[eê]r por cima/i,
+    quando: (c) => c.parteDeBaixo,
+    porque: 'não se resolve uma calça pondo camada por cima'
+  },
+  {
+    id: 'texto-nunca-vazio',
+    frase: null,
+    quando: () => true,
+    porque: 'card sem texto é pior que card com texto ruim'
+  },
+  {
+    id: 'sem-marcador-de-template',
+    frase: /undefined|null|NaN|\{\{|\[object/i,
+    quando: () => true,
+    porque: 'vazamento de código para o texto que a pessoa lê'
+  },
+  {
+    id: 'temperatura-certificada-aparece',
+    frase: null,
+    quando: () => false,
+    porque: 'checada à parte'
+  }
+];
+
+// ─── Execução ────────────────────────────────────────────────────────
+let ok = 0, falhas = 0;
+const detalhes = [];
+
+function checa(nome, condicao, detalhe) {
+  if (condicao) { ok++; console.log('  ✓ ' + nome); }
+  else { falhas++; console.log('  ✗ ' + nome); console.log('      ' + detalhe); detalhes.push(nome); }
+}
+
+console.log('\n── Coerência: o texto faz sentido para a peça? ──────\n');
+
+PECAS.forEach((p) => {
+  console.log('  ' + p.nome);
+
+  const s = calcScores(p.fibras, p.texto, '', p.titulo);
+  const tipo = detectGarmentType(s, null, 'clothing');
+  const texto = conclusionText(s, s.fibers || p.fibras, tipo);
+  const ctx = { agasalho: p.agasalho, parteDeBaixo: p.parteDeBaixo, tipo: tipo, scores: s };
+
+  // 1. o tipo detectado é o esperado — errar aqui troca a família de frases
+  //    inteira, que é a raiz de quase todo texto absurdo
+  checa('    tipo detectado = ' + p.esperaTipo,
+    tipo === p.esperaTipo,
+    'detectou "' + tipo + '" (isPadded=' + s.isPadded + ', isBulky=' + s.isBulkyGarment + ', isKnit=' + s.isKnit + ')');
+
+  // 2. as regras de frase proibida
+  REGRAS.forEach((r) => {
+    if (!r.frase || !r.quando(ctx)) return;
+    const achou = r.frase.exec(texto);
+    checa('    não diz: ' + r.id,
+      !achou,
+      'achou "' + (achou ? achou[0] : '') + '" — ' + r.porque + '\n      texto: ' + texto);
+  });
+
+  // 3. texto nunca vazio
+  checa('    texto não vazio', !!(texto && texto.trim().length > 20),
+    'texto = "' + texto + '"');
+
+  // 4. quando a loja certifica uma temperatura, ela tem que chegar ao texto —
+  //    é o dado mais concreto que existe numa peça de inverno
+  if (/-\s?\d{1,2}\s?°\s?C/.test(p.texto)) {
+    checa('    a temperatura certificada aparece no texto',
+      /-\d{1,2}°C/.test(texto),
+      'a página diz uma temperatura mínima, o texto não repassa.\n      texto: ' + texto);
+  }
+
+  console.log('');
+});
+
+console.log('──────────────────────────────────────');
+console.log(ok + ' ok · ' + falhas + ' falha(s)');
+if (falhas) {
+  console.log('\nFalha aqui = a pessoa lê uma frase que não bate com a peça.');
+}
+console.log('');
+process.exit(falhas > 0 ? 1 : 0);

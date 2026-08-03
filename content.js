@@ -823,8 +823,11 @@
     // pensado pra roupa que toca a pele o dia todo) em vez do peso de casaco
     // (0.10, calibrado pra estrutura importar mais) — e nenhuma das frases
     // específicas de casaco (calor como critério principal, etc.) disparava.
-    const garmentType = section.garmentType
-      || (scores.isBulkyGarment ? 'casaco' : (scores.isKnit ? 'malha' : category));
+    // A regra vive em shared.js para que tests/coerencia.js decida o tipo
+    // exatamente como aqui — quando isto era uma linha solta neste arquivo,
+    // nenhum teste alcançava a decisão e um casaco caindo em "clothing"
+    // genérico (com as frases erradas) só aparecia num print.
+    const garmentType = detectGarmentType(scores, section.garmentType, category);
     // O tipo entra na história para a landing parar de dizer "peça" no genérico
     // ("esta camiseta sai do armário" lê melhor que "esta peça").
     historia.tipo = garmentType;
