@@ -95,6 +95,19 @@ const PECAS = [
     agasalho: false
   },
   {
+    // A peça do print: 100% poliamida é SÓ o casco. O que aquece é a pena,
+    // que a etiqueta de composição não menciona.
+    nome: 'Simond — casaco de penas de alpinismo (Decathlon)',
+    titulo: 'Casaco de Penas Alpinismo Homem Ocre - Cinzento',
+    texto: 'Composição: 100% Poliamida. O corte ergonómico liberta os teus movimentos e permite '
+         + 'transportar o capacete debaixo do capuz. O fecho de correr duplo facilita o acesso ao '
+         + 'arnês. Dobra-se para dentro do bolso de arrumação.',
+    fibras: [fibra('Poliamida', 100)],
+    esperaTipo: 'casaco',
+    agasalho: true,
+    acolchoado: true
+  },
+  {
     nome: 'Casaco impermeável de trekking (Decathlon)',
     titulo: 'Casaco impermeável de caminhada na natureza mulher MH500',
     texto: 'Composição: 78% Poliamida, 22% Elastano. Casaco impermeável e corta-vento, '
@@ -129,6 +142,25 @@ const REGRAS = [
     frase: /tecido leve e fresco|refresca/i,
     quando: (c) => c.agasalho,
     porque: 'descreve peça de verão, não agasalho'
+  },
+  {
+    // A manchete é a primeira frase — é o que a pessoa lê antes de decidir
+    // se continua lendo. Num agasalho ela tem de responder "isto aquece e
+    // aguenta?", não "isto respira?". A ressalva de respirabilidade pode
+    // existir, mas no fim: quem compra casaco já sabe que vai tirar dentro
+    // de casa. Aberta, ela faz uma peça boa parecer má escolha.
+    id: 'agasalho-nao-abre-com-respirabilidade',
+    frase: /^[^.]*(n[aã]o respira bem|dois por[ée]ns|menos sustent[aá]vel)/i,
+    quando: (c) => c.agasalho,
+    porque: 'num casaco, respirar não é o critério de compra — aquecer e aguentar é'
+  },
+  {
+    // Peça acolchoada: a composição da etiqueta é só o casco. Se o texto
+    // não disser isso, a pessoa julga um edredão pela fronha.
+    id: 'acolchoado-avisa-que-a-etiqueta-e-so-o-casco',
+    exige: /s[oó] o tecido de fora|apenas o tecido de fora|recheio/i,
+    quando: (c) => c.acolchoado,
+    porque: 'sem o aviso, "100% Poliamida" parece descrever a peça inteira — e é só o casco'
   },
   {
     id: 'tecnico-nao-trata-sintetico-como-defeito',
@@ -180,7 +212,7 @@ PECAS.forEach((p) => {
   const tipo = detectGarmentType(s, null, 'clothing');
   const texto = conclusionText(s, s.fibers || p.fibras, tipo);
   const ctx = { agasalho: p.agasalho, parteDeBaixo: p.parteDeBaixo, tecnico: p.tecnico,
-                tipo: tipo, scores: s };
+                acolchoado: p.acolchoado, tipo: tipo, scores: s };
 
   // 1. o tipo detectado é o esperado — errar aqui troca a família de frases
   //    inteira, que é a raiz de quase todo texto absurdo
@@ -188,13 +220,22 @@ PECAS.forEach((p) => {
     tipo === p.esperaTipo,
     'detectou "' + tipo + '" (isPadded=' + s.isPadded + ', isBulky=' + s.isBulkyGarment + ', isKnit=' + s.isKnit + ')');
 
-  // 2. as regras de frase proibida
+  // 2. as regras: `frase` é o que NÃO pode aparecer, `exige` é o que TEM de
+  //    aparecer. Frase proibida sozinha não basta — há erros que são a
+  //    ausência de um aviso, não a presença de uma frase errada.
   REGRAS.forEach((r) => {
-    if (!r.frase || !r.quando(ctx)) return;
-    const achou = r.frase.exec(texto);
-    checa('    não diz: ' + r.id,
-      !achou,
-      'achou "' + (achou ? achou[0] : '') + '" — ' + r.porque + '\n      texto: ' + texto);
+    if (!r.quando(ctx)) return;
+    if (r.frase) {
+      const achou = r.frase.exec(texto);
+      checa('    não diz: ' + r.id,
+        !achou,
+        'achou "' + (achou ? achou[0] : '') + '" — ' + r.porque + '\n      texto: ' + texto);
+    }
+    if (r.exige) {
+      checa('    diz: ' + r.id,
+        r.exige.test(texto),
+        'faltou o aviso — ' + r.porque + '\n      texto: ' + texto);
+    }
   });
 
   // 3. texto nunca vazio

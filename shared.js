@@ -614,15 +614,25 @@ function conclusionText(scores, fibers, garmentType) {
     // de montanha é o mesmo erro de cobrar respirabilidade de um casaco: a
     // ressalva existe, mas não é a manchete. A manchete é que a peça foi
     // desenhada pra isso.
-    if (isCasaco && s?.hasTechSpec) {
+    // ACOLCHOADO/DE PENA vem antes de tudo, porque aqui a etiqueta engana:
+    // "100% Poliamida" é só o TECIDO DE FORA. O que aquece é o recheio
+    // (pena ou enchimento), que não aparece na etiqueta de composição — a
+    // loja põe noutro campo, ou em campo nenhum. Julgar a peça inteira pelo
+    // casco é como julgar um edredão pela fronha: o nylon fino é escolha
+    // deliberada de leveza, e cobrar respirabilidade dele é cobrar da parte
+    // errada da peça.
+    if (isCasaco && s?.isPadded) {
+      why = `${mainName} em ${mainPct}% é só o tecido de fora — num casaco acolchoado o que aquece é o recheio, e ele não aparece na etiqueta de composição. O sintético fino aqui é escolha de propósito: segura o vento, pesa quase nada e comprime bem na mala.${certNote} A etiqueta não conta o essencial desta peça; olhe o poder de aquecimento (fill power) e a temperatura que a loja indica.`;
+    } else if (isCasaco && s?.hasTechSpec) {
       why = `${mainName} em ${mainPct}% é a escolha certa aqui: casaco técnico é feito de sintético porque fibra natural encharca e pesa — nenhuma faz impermeável e respirável ao mesmo tempo.${certNote} Aguenta uso duro e seca rápido.`;
     } else if (isVirgin && isKnitwear) {
       why = `${mainName} em ${mainPct}% aquece bem e é fácil de cuidar${pills ? ', mas faz bolinhas com o tempo' : ''}. Sem certificação de reciclado, é a fibra menos sustentável — mas para uma peça de inverno, cumpre.`;
-    } else if (isVirgin && isCasaco) {
-      // casaco não é peça pra dia quente por definição — "não para os dias
-      // quentes" não fazia sentido como ressalva aqui; o ponto real é não
-      // respirar quando você entra num lugar aquecido
-      why = `${mainName} em ${mainPct}% é resistente e fácil de cuidar, mas não respira bem — pode sufocar assim que você entra em algum lugar aquecido. Também não tem certificação de reciclado.`;
+    } else if (isCasaco) {
+      // Num casaco, respirabilidade não é manchete: quem compra agasalho
+      // quer saber se aquece e se aguenta. A ressalva continua (entrar num
+      // lugar aquecido com ele vestido incomoda), mas no fim e no tamanho
+      // certo — antes ela abria a frase e fazia a peça parecer má escolha.
+      why = `${mainName} em ${mainPct}% segura o vento, aguenta uso pesado e é fácil de cuidar — é o que se espera de um casaco.${certNote} Ressalva: respira pouco, então dentro de lugar aquecido você vai querer tirar.`;
     } else if (isVirgin) {
       why = `${mainName} em ${mainPct}% é resistente e fácil de cuidar, mas tem dois poréns: não respira bem (esquenta mais) e, sem certificação de reciclado, é a fibra menos sustentável. Boa para uso prático, não para os dias quentes.`;
     } else if (isKnitwear) {
