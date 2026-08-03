@@ -238,6 +238,20 @@ function calcScores(fibers, pageText, certText, titleText) {
   const hasTechSpec = /imperme[aá]vel|waterproof|corta-?vento|windproof|\bwind[- ]?resistant\b|membrana|\bdwr\b|water[- ]?repellent|à prova de (água|chuva)|\b\d{1,2}(?:[.,]?000)?\s?k\/\d{1,2}(?:[.,]?000)?\s?k\b|\b\d{1,2}(?:[.,]?000)?\s?k\b(?=.{0,40}(imperme|water|chuva))/i.test(pageText || '');
   const techBonus = hasTechSpec ? 6 : 0;
 
+  // Nome comercial de tecnologia da marca (HEATTECH, AIRism...) — diferente
+  // de "impermeável"/"corta-vento" (afirmação genérica e verificável, de
+  // qualquer marca), isto É marketing: um nome registrado sobre a MESMA
+  // composição de fibra que já está sendo avaliada. Por isso NÃO soma nada
+  // na nota — só entra como nota informativa no card, pra não confundir
+  // "reconhecer engenharia real" com "confiar no que a marca chama o
+  // produto". Achado com uma peça HEATTECH que era 57% acrílico + 28%
+  // viscose + 9% caxemira: a nota baixa estava certa, o nome só suavizava.
+  const BRAND_TECH = [
+    { re: /heattech/i, nome: 'HEATTECH' },
+    { re: /\bairism\b/i, nome: 'AIRism' },
+  ];
+  const brandTech = (BRAND_TECH.find((b) => b.re.test(pageText || '')) || {}).nome || null;
+
   // Modificador de qualidade (Pima, Supima, penteado...) na fibra dominante
   const domFiber = [...fibers].sort((a,b)=>(b.pct||0)-(a.pct||0))[0];
   const qmod = typeof detectQualityModifier === 'function' ? detectQualityModifier(domFiber?.name, pageText) : null;
@@ -299,7 +313,7 @@ function calcScores(fibers, pageText, certText, titleText) {
   // Semente de variação: primeiro tipo de peça encontrado no texto → frases variam entre tipos de peça
   const garmentWords = (pageText || '').toLowerCase().match(/camisa|t-?shirt|camiseta|vestido|cal[çc]a|saia|blusa|top|casaco|blaz[eê]r|jaqueta|short|macac[ãa]o|sobretudo|cardigan|camisola|sweater|polo/);
   const productSeed = garmentWords ? garmentWords[0] : '';
-  return { quality: qualityFinal, comfort, durability: durabilityFinal, maintenance, versatility, costBenefit, travel, travelMaterial, packability, warmth, overall, natPct, synPct, certs, fibers, qualityModifier: qmod, isKnit, isHeavyWoven, isBulkyGarment, hasTechSpec, productSeed, colorInfo };
+  return { quality: qualityFinal, comfort, durability: durabilityFinal, maintenance, versatility, costBenefit, travel, travelMaterial, packability, warmth, overall, natPct, synPct, certs, fibers, qualityModifier: qmod, isKnit, isHeavyWoven, isBulkyGarment, hasTechSpec, brandTech, productSeed, colorInfo };
 }
 
 // ─── Buy Score: o score principal do copiloto ─────────────────────
@@ -596,6 +610,13 @@ function conclusionText(scores, fibers, garmentType) {
     why = en
       ? `${why} Has real technical specs listed (waterproof/windproof) — that's engineering, not just fibre.`
       : `${why} Tem especificação técnica de verdade na etiqueta (impermeável/corta-vento) — isso é engenharia da peça, não só a fibra.`;
+  }
+  // Nome comercial de tecnologia (HEATTECH, AIRism...) — informativo, NÃO
+  // muda a nota. É a marca nomeando a mesma composição já avaliada acima.
+  if (s?.brandTech) {
+    why = en
+      ? `${why} "${s.brandTech}" is the brand's name for this fabric — same composition already scored above, not an extra ingredient.`
+      : `${why} "${s.brandTech}" é o nome que a marca dá a este tecido — mesma composição já avaliada acima, não é um ingrediente a mais.`;
   }
 
   } // end PT branch
