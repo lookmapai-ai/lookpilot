@@ -238,14 +238,17 @@ function calcScores(fibers, pageText, certText, titleText) {
   const hasTechSpec = /imperme[aá]vel|waterproof|corta-?vento|windproof|\bwind[- ]?resistant\b|membrana|\bdwr\b|water[- ]?repellent|à prova de (água|chuva)|\b\d{1,2}(?:[.,]?000)?\s?k\/\d{1,2}(?:[.,]?000)?\s?k\b|\b\d{1,2}(?:[.,]?000)?\s?k\b(?=.{0,40}(imperme|water|chuva))/i.test(pageText || '');
   const techBonus = hasTechSpec ? 6 : 0;
 
-  // Nome comercial de tecnologia da marca (HEATTECH, AIRism...) — diferente
-  // de "impermeável"/"corta-vento" (afirmação genérica e verificável, de
-  // qualquer marca), isto É marketing: um nome registrado sobre a MESMA
-  // composição de fibra que já está sendo avaliada. Por isso NÃO soma nada
-  // na nota — só entra como nota informativa no card, pra não confundir
-  // "reconhecer engenharia real" com "confiar no que a marca chama o
-  // produto". Achado com uma peça HEATTECH que era 57% acrílico + 28%
-  // viscose + 9% caxemira: a nota baixa estava certa, o nome só suavizava.
+  // Nome comercial de tecnologia da marca (HEATTECH, AIRism...). Primeira
+  // versão disto tratava como marketing puro e não somava nada — pesquisa
+  // depois mostrou que é engenharia real: HEATTECH junta viscose (absorve
+  // umidade do corpo) com acrílico ultrafino (prende esse calor perto da
+  // pele) — mecanismo comprovado, não só nome bonito. Mas o que ele melhora
+  // é ESPECIFICAMENTE conforto térmico, não qualidade de construção nem
+  // durabilidade (uma peça 57% acrílico + 28% viscose ainda bola fácil e é
+  // frágil, o HEATTECH não resolve isso). Por isso o bônus vai só pro
+  // conforto — pra esse tipo de peça (roupa térmica), "esquenta de verdade"
+  // é o motivo real de compra, então precisa contar na nota, não só no
+  // texto.
   const BRAND_TECH = [
     { re: /heattech/i, nome: 'HEATTECH' },
     { re: /\bairism\b/i, nome: 'AIRism' },
@@ -265,7 +268,8 @@ function calcScores(fibers, pageText, certText, titleText) {
   const avg = key => Math.round(fibers.reduce((s, f) => s + ((f.data?.[key] || 0) * (f.pct / total)), 0));
 
   const quality     = avg('quality');
-  const comfort     = avg('comfort');
+  const comfortBonus = brandTech ? 8 : 0;
+  const comfort     = Math.min(100, avg('comfort') + comfortBonus);
   const durability  = avg('durability');
   const maintenance = avg('maintenance');
   const travelRaw   = avg('travel');
@@ -611,12 +615,14 @@ function conclusionText(scores, fibers, garmentType) {
       ? `${why} Has real technical specs listed (waterproof/windproof) — that's engineering, not just fibre.`
       : `${why} Tem especificação técnica de verdade na etiqueta (impermeável/corta-vento) — isso é engenharia da peça, não só a fibra.`;
   }
-  // Nome comercial de tecnologia (HEATTECH, AIRism...) — informativo, NÃO
-  // muda a nota. É a marca nomeando a mesma composição já avaliada acima.
+  // Nome comercial de tecnologia (HEATTECH, AIRism...) — mecanismo real
+  // (viscose absorve umidade, acrílico ultrafino prende o calor), já contado
+  // no conforto acima. Mas não muda qualidade nem durabilidade: a peça pode
+  // esquentar bem e ainda assim bolar fácil, se a fibra for a mesma de sempre.
   if (s?.brandTech) {
     why = en
-      ? `${why} "${s.brandTech}" is the brand's name for this fabric — same composition already scored above, not an extra ingredient.`
-      : `${why} "${s.brandTech}" é o nome que a marca dá a este tecido — mesma composição já avaliada acima, não é um ingrediente a mais.`;
+      ? `${why} "${s.brandTech}" is real engineering (already counted above) — but it doesn't fix durability or pilling, that's still down to the fibre.`
+      : `${why} "${s.brandTech}" é engenharia real (já contada no conforto acima) — mas não resolve durabilidade nem bolinha, isso continua sendo a fibra mesmo.`;
   }
 
   } // end PT branch
