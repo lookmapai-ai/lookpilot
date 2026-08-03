@@ -539,7 +539,20 @@
       // ex: Mango "Pormenores, composição e cuidados a ter". OU bate exato numa
       // frase de "material e cuidados" (Reserved), que sem "composi" precisa de
       // match exacto para não apanhar navegação tipo "material" isolado.
-      const exact = ['material e cuidados','materiais e cuidados','material e cuidado','material & care','material and care'];
+      // Rótulos que NÃO dizem "composição" mas abrem o painel que a contém.
+      // A Decathlon é o caso: a etiqueta vive dentro de "Especificações", um
+      // <button> sem aria-expanded — a parte 1 desta função não o vê (só olha
+      // aria-expanded/details) e a regra de "composi" também não. Resultado:
+      // "Não consegui ler a composição" numa página que tem a composição
+      // completa, só que a um clique de distância.
+      //
+      // Match EXATO, como os de baixo: "especificações" isolado é sempre um
+      // painel de ficha técnica; como parte de uma frase maior podia ser
+      // qualquer coisa. E continuam a valer as guardas de cima — nunca <a>,
+      // nunca dentro de link — por isso não há risco de mudar de página.
+      const exact = ['material e cuidados','materiais e cuidados','material e cuidado','material & care','material and care',
+                     'especificações','especificacoes','especificaciones','specifications','technical specifications',
+                     'ficha técnica','ficha tecnica','detalhes do produto','product details'];
       const matches = txt => /composi(?:ção|tion|ción)/.test(txt) || exact.includes(txt);
       const cand = [];
       document.querySelectorAll('button,[role="button"],[role="tab"],summary,div,span,li,h2,h3,h4,p,[class*="omposition"],[class*="CompositionTitle"]').forEach(el => {

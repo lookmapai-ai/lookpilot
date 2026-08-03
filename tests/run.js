@@ -1087,6 +1087,38 @@ test('[Soma] mistura legítima de 3 fibras não é cortada', () => {
   return true;
 });
 
+// Texto REAL da Decathlon (casaco de penas Simond, ID 8992572), copiado da
+// página. Cinco zonas, e o enchimento vem PRIMEIRO — antes de qualquer
+// tecido. É o formato que mais facilmente engana um corte por rótulo.
+const DECATHLON_PENAS = 'Composição\n\nEnchimento: 10.0% Pena de pato branco, 90.0% Plumas de pato branco\n\n\n\n\n'
+  + 'Tecido principal: 100.0% Poliamida\n\n\n\n\nForro principal: 100.0% Poliamida\n\n\n\n\n'
+  + 'Forro do capuz: 100.0% Poliéster\n\n\n\n\nPunho: 20.0% Elastano, 80.0% Poliamida\n\nFabricante';
+
+test('[Decathlon] casaco de penas: fica com o tecido principal, não com o forro', () => {
+  const f = parse(DECATHLON_PENAS);
+  if (f.length !== 1) return fail(`esperava só o tecido principal, veio ${JSON.stringify(f.map(x=>x.name+' '+x.pct))}`);
+  if (!/poliamida|nylon/i.test(f[0].name) || f[0].pct !== 100) return fail(`veio ${f[0].name} ${f[0].pct}%`);
+  return true;
+});
+
+test('[Decathlon] casaco de penas: o enchimento não vira a fibra da peça', () => {
+  const f = parse(DECATHLON_PENAS);
+  if (f.some(x => /pena|pluma|pato/i.test(x.name))) return fail(`o enchimento entrou como fibra: ${JSON.stringify(f.map(x=>x.name))}`);
+  return true;
+});
+
+// A composição da Decathlon vive dentro do painel "Especificações". Se esse
+// rótulo sair da lista de gatilhos, a extensão volta a dizer "não consegui
+// ler a composição" numa página que a tem completa. Testar o clique exigiria
+// DOM a sério; travar a lista é barato e pega a remoção acidental.
+test('[Gatilhos] rótulos que abrem o painel da composição continuam na lista', () => {
+  const src = fs.readFileSync(path.join(root, 'content.js'), 'utf8');
+  const faltam = ['especificações', 'ficha técnica', 'material e cuidados']
+    .filter(r => !src.includes(`'${r}'`));
+  if (faltam.length) return fail(`saíram da lista de gatilhos: ${faltam.join(', ')}`);
+  return true;
+});
+
 test('[Soma] fibra única a 100% continua intacta', () => {
   const f = parse('Composição: 100% Algodão');
   if (f.length !== 1 || f[0].pct !== 100) return fail(JSON.stringify(f.map(x=>x.name+' '+x.pct)));
