@@ -357,8 +357,41 @@ function calcScores(fibers, pageText, certText, titleText) {
       o_que: 'puxa o suor para fora e seca depressa, para não colar ao corpo' },
     { re: /coolmax/i,                 nome: 'Coolmax',    conforto: 6,
       o_que: 'afasta o suor da pele e espalha-o para secar mais depressa' },
-    { re: /dri-?fit|climacool/i,      nome: 'tecido de secagem rápida', conforto: 5,
-      o_que: 'tira o suor da pele em vez de o segurar' },
+    // ── desportivas: Nike, Adidas, New Balance ───────────────────────
+    // Roupa desportiva é peça técnica pela mesma razão que um casaco de
+    // montanha: existe para uma situação concreta (suar, correr no frio,
+    // apanhar chuva a meio do treino), e é a tecnologia que resolve isso —
+    // não a fibra da etiqueta, que vai ser poliéster em quase todas.
+    { re: /therma-?fit/i,             nome: 'Therma-FIT',  conforto: 7,
+      o_que: 'isolamento da Nike que segura o calor do corpo sem virar casaco pesado' },
+    { re: /cold\.?rdy/i,              nome: 'COLD.RDY',    conforto: 7,
+      o_que: 'linha da Adidas para treinar no frio: aquece sem prender o suor' },
+    { re: /\bnb\s?heat\b/i,           nome: 'NB Heat',     conforto: 6,
+      o_que: 'camada térmica da New Balance para treino em tempo frio' },
+    { re: /heat\.?rdy/i,              nome: 'HEAT.RDY',    conforto: 6,
+      o_que: 'linha da Adidas para calor: tira o suor e ajuda o corpo a arrefecer' },
+    { re: /aeroready/i,               nome: 'AEROREADY',   conforto: 6,
+      o_que: 'puxa o suor para fora do tecido para a roupa não colar durante o treino' },
+    { re: /dri-?fit/i,                nome: 'Dri-FIT',     conforto: 6,
+      o_que: 'tira o suor da pele e leva-o para a superfície, onde seca' },
+    { re: /climacool|climalite/i,     nome: 'Climacool',   conforto: 5,
+      o_que: 'malha ventilada da Adidas, feita para o ar circular durante o esforço' },
+    { re: /\bnb\s?dry\b/i,            nome: 'NB Dry',      conforto: 5,
+      o_que: 'tecido da New Balance que afasta o suor para secar mais depressa' },
+    // ── amortecimento (calçado): é o conforto real de um ténis ───────
+    { re: /fresh\s?foam/i,            nome: 'Fresh Foam',  conforto: 7,
+      o_que: 'espuma da New Balance feita para amortecer o passo em corrida longa' },
+    { re: /fuelcell/i,                nome: 'FuelCell',    conforto: 6,
+      o_que: 'espuma da New Balance com retorno de energia, pensada para ritmo rápido' },
+    { re: /\bboost\b/i,               nome: 'Boost',       conforto: 7,
+      o_que: 'espuma da Adidas que devolve energia a cada passo e não endurece no frio' },
+    { re: /\bzoom\s?air\b|\breact\b/i, nome: 'amortecimento Nike', conforto: 6,
+      o_que: 'amortecimento pensado para absorver o impacto sem perder resposta' },
+    // ── proteção contra o tempo em roupa desportiva ──────────────────
+    { re: /storm-?fit/i,              nome: 'Storm-FIT',   conforto: 0,
+      o_que: 'proteção da Nike contra chuva e vento durante o treino' },
+    { re: /windrunner|wind-?breaker/i, nome: 'corta-vento', conforto: 0,
+      o_que: 'construção feita para barrar o vento, que é o que mais rouba calor em movimento' },
     // ── membranas: entram em impermeabilidade, não em conforto ───────
     { re: /gore-?tex/i,               nome: 'GORE-TEX',   conforto: 0,
       o_que: 'a membrana de referência: barra a chuva e ainda deixa o vapor do corpo sair' },

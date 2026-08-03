@@ -1160,6 +1160,67 @@ test('[Separadores] zonas coladas numa linha não se apagam entre si', () => {
   return true;
 });
 
+// ─── Tecnologias de marca ───────────────────────────────────────────
+// Numa peça técnica ou desportiva a tecnologia decide o conforto térmico
+// mais do que a fibra — que vai ser poliéster em quase todas. Cada entrada
+// da tabela tem de reconhecer o nome E explicar o mecanismo: citar a marca
+// sem dizer o que ela faz é repetir o marketing da loja.
+test('[Tecnologias] os nomes do sector são reconhecidos', () => {
+  const esperados = [
+    ['GORE-TEX',   'Casaco com membrana GORE-TEX'],
+    ['PrimaLoft',  'Isolamento PrimaLoft Gold'],
+    ['Thinsulate', 'Forro 3M Thinsulate'],
+    ['Polartec',   'Fleece Polartec 200'],
+    ['HEATTECH',   'Camisola HEATTECH da Uniqlo'],
+    ['Therma-FIT', 'Casaco Nike Therma-FIT'],
+    ['AEROREADY',  'T-shirt adidas AEROREADY'],
+    ['COLD.RDY',   'Casaco adidas COLD.RDY'],
+    ['Dri-FIT',    'Calções Nike Dri-FIT'],
+    ['NB Dry',     'T-shirt New Balance NB Dry'],
+    ['Fresh Foam', 'Ténis New Balance Fresh Foam X'],
+    ['RECCO',      'Casaco com refletor RECCO']
+  ];
+  for (const [nome, texto] of esperados) {
+    const s = calcScores([fiber('poliéster', 100)], texto, '', '');
+    if (s.brandTech !== nome) return fail(`"${texto}" → esperava ${nome}, veio ${s.brandTech}`);
+  }
+  return true;
+});
+
+test('[Tecnologias] toda entrada explica o mecanismo, não só o nome', () => {
+  const nomes = ['GORE-TEX','PrimaLoft','Thinsulate','Polartec','HEATTECH','AIRism','Coolmax',
+                 'Therma-FIT','AEROREADY','COLD.RDY','HEAT.RDY','Dri-FIT','Climacool','NB Dry',
+                 'NB Heat','Fresh Foam','FuelCell','Boost','Storm-FIT','Sympatex','Novadry',
+                 'Omni-Heat','ThermoBall','Thermolite','RECCO'];
+  for (const nome of nomes) {
+    const s = calcScores([fiber('poliéster', 100)], 'Peça com ' + nome, '', '');
+    if (s.brandTech !== nome) continue;                 // coberto pelo teste acima
+    const info = s.brandTechInfo;
+    if (!info || !info.o_que || info.o_que.length < 25) {
+      return fail(`${nome} não explica o que faz: ${JSON.stringify(info && info.o_que)}`);
+    }
+    if (typeof info.conforto !== 'number') return fail(`${nome} sem peso de conforto definido`);
+  }
+  return true;
+});
+
+test('[Tecnologias] membrana e refletor não sobem conforto', () => {
+  for (const nome of ['GORE-TEX', 'RECCO', 'Sympatex', 'Storm-FIT']) {
+    const com = calcScores([fiber('poliéster', 100)], 'Casaco com ' + nome, '', '');
+    const sem = calcScores([fiber('poliéster', 100)], 'Casaco', '', '');
+    if (Math.round(com.comfort) !== Math.round(sem.comfort)) {
+      return fail(`${nome} mexeu no conforto (${sem.comfort} → ${com.comfort}) — não é isolamento`);
+    }
+  }
+  return true;
+});
+
+test('[Tecnologias] com várias na peça, ganha a que mexe no conforto', () => {
+  const s = calcScores([fiber('poliéster', 100)], 'Casaco com PrimaLoft, GORE-TEX e RECCO', '', '');
+  if (s.brandTech !== 'PrimaLoft') return fail(`resumiu a peça por ${s.brandTech} em vez do isolamento`);
+  return true;
+});
+
 test('[Soma] fibra única a 100% continua intacta', () => {
   const f = parse('Composição: 100% Algodão');
   if (f.length !== 1 || f[0].pct !== 100) return fail(JSON.stringify(f.map(x=>x.name+' '+x.pct)));
