@@ -255,6 +255,20 @@ function calcScores(fibers, pageText, certText, titleText) {
   ];
   const brandTech = (BRAND_TECH.find((b) => b.re.test(pageText || '')) || {}).nome || null;
 
+  // Temperatura mínima suportada (peças técnicas de inverno) — verificado
+  // com peças reais: Oysho ("certificado para resistir a temperaturas de
+  // -10°C") e Decathlon ("mantêm o calor até -20°C") anunciam isto como
+  // especificação própria, não vem da fibra. Só considera grau NEGATIVO —
+  // não tem como confundir com temperatura de lavagem (nunca é negativa).
+  // Informativo por ora, como brandTech: não entra na nota, só no texto.
+  let temperaturaMin = null;
+  { const TEMP_RE = /-\s?(\d{1,2})\s?°\s?c\b/gi; let tm;
+    while ((tm = TEMP_RE.exec(pageText || '')) !== null) {
+      const v = -parseInt(tm[1], 10);
+      if (temperaturaMin === null || v < temperaturaMin) temperaturaMin = v;
+    }
+  }
+
   // Modificador de qualidade (Pima, Supima, penteado...) na fibra dominante
   const domFiber = [...fibers].sort((a,b)=>(b.pct||0)-(a.pct||0))[0];
   const qmod = typeof detectQualityModifier === 'function' ? detectQualityModifier(domFiber?.name, pageText) : null;
@@ -317,7 +331,7 @@ function calcScores(fibers, pageText, certText, titleText) {
   // Semente de variação: primeiro tipo de peça encontrado no texto → frases variam entre tipos de peça
   const garmentWords = (pageText || '').toLowerCase().match(/camisa|t-?shirt|camiseta|vestido|cal[çc]a|saia|blusa|top|casaco|blaz[eê]r|jaqueta|short|macac[ãa]o|sobretudo|cardigan|camisola|sweater|polo/);
   const productSeed = garmentWords ? garmentWords[0] : '';
-  return { quality: qualityFinal, comfort, durability: durabilityFinal, maintenance, versatility, costBenefit, travel, travelMaterial, packability, warmth, overall, natPct, synPct, certs, fibers, qualityModifier: qmod, isKnit, isHeavyWoven, isBulkyGarment, hasTechSpec, brandTech, productSeed, colorInfo };
+  return { quality: qualityFinal, comfort, durability: durabilityFinal, maintenance, versatility, costBenefit, travel, travelMaterial, packability, warmth, overall, natPct, synPct, certs, fibers, qualityModifier: qmod, isKnit, isHeavyWoven, isBulkyGarment, hasTechSpec, brandTech, temperaturaMin, productSeed, colorInfo };
 }
 
 // ─── Buy Score: o score principal do copiloto ─────────────────────
@@ -623,6 +637,14 @@ function conclusionText(scores, fibers, garmentType) {
     why = en
       ? `${why} "${s.brandTech}" is real engineering (already counted above) — but it doesn't fix durability or pilling, that's still down to the fibre.`
       : `${why} "${s.brandTech}" é engenharia real (já contada no conforto acima) — mas não resolve durabilidade nem bolinha, isso continua sendo a fibra mesmo.`;
+  }
+  // Temperatura suportada, quando a própria loja anuncia (Oysho/Decathlon) —
+  // informativo, não muda a nota. Serve pra responder "até quantos graus"
+  // sem inventar número que a fibra sozinha não sustentaria.
+  if (s?.temperaturaMin != null) {
+    why = en
+      ? `${why} Rated by the store to hold up to ${s.temperaturaMin}°C.`
+      : `${why} A própria loja certifica esta peça até ${s.temperaturaMin}°C.`;
   }
 
   } // end PT branch
