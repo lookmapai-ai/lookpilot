@@ -608,7 +608,15 @@ function conclusionText(scores, fibers, garmentType) {
     const isKnitwear = s.isKnit;
     const mainLower = (main?.name || '').toLowerCase();
     const pills = ['acrílico','acrilico','acrylic'].includes(mainLower);
-    if (isVirgin && isKnitwear) {
+    // Casaco TÉCNICO: aqui o sintético não é atalho de custo, é o material
+    // certo. Nenhuma fibra natural faz impermeável-respirável — lã e algodão
+    // encharcam e ficam pesados. Tratar o poliéster como defeito num casaco
+    // de montanha é o mesmo erro de cobrar respirabilidade de um casaco: a
+    // ressalva existe, mas não é a manchete. A manchete é que a peça foi
+    // desenhada pra isso.
+    if (isCasaco && s?.hasTechSpec) {
+      why = `${mainName} em ${mainPct}% é a escolha certa aqui: casaco técnico é feito de sintético porque fibra natural encharca e pesa — nenhuma faz impermeável e respirável ao mesmo tempo.${certNote} Aguenta uso duro e seca rápido.`;
+    } else if (isVirgin && isKnitwear) {
       why = `${mainName} em ${mainPct}% aquece bem e é fácil de cuidar${pills ? ', mas faz bolinhas com o tempo' : ''}. Sem certificação de reciclado, é a fibra menos sustentável — mas para uma peça de inverno, cumpre.`;
     } else if (isVirgin && isCasaco) {
       // casaco não é peça pra dia quente por definição — "não para os dias

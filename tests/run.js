@@ -1045,6 +1045,54 @@ test('[Cross-loja] calçado sintético sem % detectado (PU catch-all)', () => {
   return true;
 });
 
+// ─── A soma tem de fechar 100% ──────────────────────────────────────
+// Uma etiqueta que soma 178% é uma mistura que não existe. Aconteceu num
+// casaco impermeável da Decathlon: o card dizia "78% poliamida, 26%
+// elastano, 74% poliéster". São duas ZONAS da peça lidas como uma só, e
+// nenhum corte por nome de zona pega isso — cada loja inventa o seu rótulo.
+// A soma é a prova que dispensa vocabulário.
+function somaPct(f) { return f.reduce((a, x) => a + (x.pct || 0), 0); }
+
+test('[Soma] duas zonas sem rótulo conhecido não somam mais de 100%', () => {
+  const text = 'Composição: 78% Poliamida, 22% Elastano. 74% Poliéster, 26% Elastano.';
+  const f = parse(text);
+  const s = somaPct(f);
+  if (s > 105) return fail(`soma ${s}% — as duas zonas foram juntas. fibers=${JSON.stringify(f.map(x=>x.name+' '+x.pct))}`);
+  return true;
+});
+
+test('[Soma] fica com a PRIMEIRA zona, e com a percentagem certa dela', () => {
+  const text = 'Composição: 78% Poliamida, 22% Elastano. 74% Poliéster, 26% Elastano.';
+  const f = parse(text);
+  const pa = f.find(x => /poliamida|nylon/i.test(x.name));
+  const el = f.find(x => /elastano/i.test(x.name));
+  if (!pa || pa.pct !== 78) return fail(`poliamida deveria ser 78%, veio ${pa ? pa.pct : 'ausente'}`);
+  if (!el || el.pct !== 22) return fail(`elastano deveria ser 22% (zona 1), veio ${el ? el.pct : 'ausente'} — sinal de que o corte veio depois da deduplicação`);
+  if (f.find(x => /poli[eé]ster/i.test(x.name))) return fail('o poliéster é da segunda zona, não devia entrar');
+  return true;
+});
+
+test('[Soma] ordem invertida das zonas também fecha em 100%', () => {
+  const text = 'Composição: 74% Poliéster, 26% Elastano. 78% Poliamida, 22% Elastano.';
+  const f = parse(text);
+  const s = somaPct(f);
+  if (s > 105) return fail(`soma ${s}%. fibers=${JSON.stringify(f.map(x=>x.name+' '+x.pct))}`);
+  return true;
+});
+
+test('[Soma] mistura legítima de 3 fibras não é cortada', () => {
+  const text = 'Composição: 45% Acrílico, 33% Poliéster, 17% Viscose, 5% Elastano';
+  const f = parse(text);
+  if (f.length < 4) return fail(`cortou uma mistura válida: ${JSON.stringify(f.map(x=>x.name+' '+x.pct))}`);
+  return true;
+});
+
+test('[Soma] fibra única a 100% continua intacta', () => {
+  const f = parse('Composição: 100% Algodão');
+  if (f.length !== 1 || f[0].pct !== 100) return fail(JSON.stringify(f.map(x=>x.name+' '+x.pct)));
+  return true;
+});
+
 // ════════════════════════════════════════════════════════════════════════
 // Relatório final
 // ════════════════════════════════════════════════════════════════════════

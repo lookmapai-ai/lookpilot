@@ -328,6 +328,44 @@
         }
       }
       if (data && !seen.has(word)) { seen.add(word); results.push({ pct, name: word, data }); }
+      return !!data;
+    };
+
+    // Resolve o nome sem adicionar — usado para saber, ANTES de acumular,
+    // se um "XX% palavra" é mesmo uma fibra (só fibras contam na soma).
+    const resolveFiber = (word) => {
+      word = (word || '').trim();
+      let data = getFiber(word) || (typeof getMaterialData === 'function' ? getMaterialData(word, category) : null);
+      if (!data) {
+        const parts = word.split(/\s+/);
+        for (let len = parts.length - 1; len >= 1; len--) {
+          const d = getFiber(parts.slice(0, len).join(' '))
+            || (typeof getMaterialData === 'function' ? getMaterialData(parts.slice(0, len).join(' '), category) : null);
+          if (d) { data = d; break; }
+        }
+      }
+      return data;
+    };
+
+    // Uma etiqueta só pode somar 100%. Quando a leitura passa disso, é prova
+    // de que duas ZONAS da peça (corpo e forro, casco e membrana...) foram
+    // lidas como se fossem uma só — e o resultado é uma mistura que não
+    // existe: "78% poliamida, 26% elastano, 74% poliéster" (178%) num casaco
+    // impermeável da Decathlon, onde o real era 78/22 numa zona e 74/26 na
+    // outra. Os cortes por NOME de zona (Forro, Trim, Tecido Secundário...)
+    // não pegam isto, porque cada loja inventa o seu rótulo.
+    //
+    // A soma é uma prova que dispensa vocabulário: acumula da primeira fibra
+    // em diante e para assim que uma zona fecha (~100%). O resto é outra zona.
+    const cortaNaPrimeiraZona = (pares) => {
+      const total = pares.reduce((a, p) => a + p.pct, 0);
+      if (total <= 105) return pares;            // soma plausível: nada a fazer
+      let acc = 0;
+      for (let i = 0; i < pares.length; i++) {
+        acc += pares[i].pct;
+        if (acc >= 99) return pares.slice(0, i + 1);
+      }
+      return pares;                               // nunca fecha 100: deixa como está
     };
 
     // Pass 1a: "XX% fibra" (número antes) — ex: Zara, Mango
@@ -338,9 +376,16 @@
     // "/" como parada válida, então "elastane" nunca terminava de casar.
     const pairRe = /(\d+(?:[.,]\d+)?)\s*%\s*(?:de\s+)?([a-zà-öø-ÿ][a-zà-öø-ÿ\s]{1,50}?)(?=[,;.\n/]|\d|$)/gi;
     let m;
+    // Recolhe primeiro, corta a zona extra, só depois acumula: o corte tem de
+    // acontecer ANTES da deduplicação por nome, senão uma fibra que aparece
+    // nas duas zonas (o elastano, quase sempre) já entrou com a percentagem
+    // da zona errada e não há como saber.
+    const pares = [];
     while ((m = pairRe.exec(norm)) !== null) {
-      addFiber(parseFloat(m[1].replace(',', '.')), m[2]);
+      const pct = parseFloat(m[1].replace(',', '.'));
+      if (resolveFiber(m[2])) pares.push({ pct, word: m[2] });
     }
+    cortaNaPrimeiraZona(pares).forEach((p) => addFiber(p.pct, p.word));
 
     // Pass 1b: "fibra XX%" (número depois) — ex: Massimo Dutti
     if (results.length === 0) {

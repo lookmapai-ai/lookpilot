@@ -95,6 +95,16 @@ const PECAS = [
     agasalho: false
   },
   {
+    nome: 'Casaco impermeável de trekking (Decathlon)',
+    titulo: 'Casaco impermeável de caminhada na natureza mulher MH500',
+    texto: 'Composição: 78% Poliamida, 22% Elastano. Casaco impermeável e corta-vento, '
+         + 'membrana com 10 000 mm de coluna de água. Costuras seladas.',
+    fibras: [fibra('Poliamida', 78), fibra('Elastano', 22)],
+    esperaTipo: 'casaco',
+    agasalho: true,
+    tecnico: true
+  },
+  {
     nome: 'Parka corta-vento (Zara)',
     titulo: 'Parka técnica com capuz',
     texto: 'Composição: 100% Poliéster. Parka corta-vento com capuz, acabamento repelente de água.',
@@ -119,6 +129,12 @@ const REGRAS = [
     frase: /tecido leve e fresco|refresca/i,
     quando: (c) => c.agasalho,
     porque: 'descreve peça de verão, não agasalho'
+  },
+  {
+    id: 'tecnico-nao-trata-sintetico-como-defeito',
+    frase: /menos sustent[aá]vel|dois por[ée]ns|n[aã]o respira bem/i,
+    quando: (c) => c.tecnico,
+    porque: 'num casaco técnico o sintético é o material certo — nenhuma fibra natural faz impermeável-respirável. Cobrar isso é como cobrar leveza de uma bota de montanha'
   },
   {
     id: 'parte-de-baixo-sem-camada-por-cima',
@@ -163,7 +179,8 @@ PECAS.forEach((p) => {
   const s = calcScores(p.fibras, p.texto, '', p.titulo);
   const tipo = detectGarmentType(s, null, 'clothing');
   const texto = conclusionText(s, s.fibers || p.fibras, tipo);
-  const ctx = { agasalho: p.agasalho, parteDeBaixo: p.parteDeBaixo, tipo: tipo, scores: s };
+  const ctx = { agasalho: p.agasalho, parteDeBaixo: p.parteDeBaixo, tecnico: p.tecnico,
+                tipo: tipo, scores: s };
 
   // 1. o tipo detectado é o esperado — errar aqui troca a família de frases
   //    inteira, que é a raiz de quase todo texto absurdo
