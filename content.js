@@ -51,6 +51,32 @@
     return { preco: melhor.toFixed(2).replace('.', ','), moeda };
   }
 
+  // Nota média + nº de avaliações — mesma fonte confiável do preço (JSON-LD
+  // schema.org), não texto solto na página. É sinal informativo (validação
+  // de quem já comprou), NÃO entra na nota de compra: 5 estrelas com 2
+  // avaliações não deveria valer o mesmo que 4.6 com 500, e decidir esse
+  // peso é decisão maior — por ora só mostra.
+  function getAvaliacaoJsonLd() {
+    let nota = null, contagem = null, encontrado = false;
+    try {
+      document.querySelectorAll('script[type="application/ld+json"]').forEach((s) => {
+        if (encontrado) return;
+        let data; try { data = JSON.parse(s.textContent); } catch (e) { return; }
+        const nodes = Array.isArray(data) ? data : (data['@graph'] || [data]);
+        nodes.forEach((n) => {
+          if (encontrado) return;
+          if (!n || !/product/i.test(n['@type'] || '')) return;
+          const ar = n.aggregateRating;
+          if (!ar) return;
+          const v = parseFloat(ar.ratingValue);
+          const c = parseInt(ar.reviewCount ?? ar.ratingCount, 10);
+          if (isFinite(v) && v > 0) { nota = v; contagem = isFinite(c) ? c : null; encontrado = true; }
+        });
+      });
+    } catch (e) {}
+    return { nota, contagem };
+  }
+
   // Último recurso: preço no DOM. Restringe-se à zona do produto para não
   // apanhar o preço de um item "relacionado" ou de um carrossel.
   function precoDoDom() {
@@ -92,7 +118,8 @@
                   meta('meta[property="og:price:currency"]') || '';
     const loja = meta('meta[property="og:site_name"]') ||
                  location.hostname.replace(/^www\./, '').split('.')[0];
-    return { nome, imagem, preco, moeda, loja, galeria: getGallery(imagem) };
+    const avaliacao = getAvaliacaoJsonLd();
+    return { nome, imagem, preco, moeda, loja, galeria: getGallery(imagem), avaliacaoNota: avaliacao.nota, avaliacaoContagem: avaliacao.contagem };
   }
 
   // Fotos declaradas no JSON-LD schema.org Product — a "etiqueta oficial" que
@@ -217,6 +244,10 @@
     if (m.preco)  params.set('preco',  m.preco);
     if (m.moeda)  params.set('moeda',  m.moeda);
     if (m.loja)   params.set('loja',   m.loja);
+    if (m.avaliacaoNota != null) {
+      params.set('nota_ava', m.avaliacaoNota);
+      if (m.avaliacaoContagem != null) params.set('nota_ava_n', m.avaliacaoContagem);
+    }
     if (confidence != null) params.set('confianca', Math.round(confidence));
     return `${LOOKMAP_BASE_URL}?${params.toString()}`;
   }
@@ -844,10 +875,16 @@
           ${(category === 'shoes' || category === 'bags') && typeof getCategoryConclusion === 'function' ? getCategoryConclusion(scores, category, (scores.fibers||fibers)[0]?.data?.label || (scores.fibers||fibers)[0]?.name) : conclusionText(scores, scores.fibers || [...fibers], garmentType)}
         </div>
 
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
         ${conf != null ? `
-        <div style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#6E6E73;background:#F5F5F7;border-radius:20px;padding:4px 9px;margin-bottom:12px;">
+        <div style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#6E6E73;background:#F5F5F7;border-radius:20px;padding:4px 9px;">
           <span style="color:#166534;">✓</span> Baseado na composição da etiqueta · ${conf}%
         </div>` : ''}
+        ${productMeta.avaliacaoNota != null ? `
+        <div style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#6E6E73;background:#F5F5F7;border-radius:20px;padding:4px 9px;" title="Avaliação de quem já comprou — não entra na nota de compra">
+          <span style="color:#B45309;">★</span> ${String(productMeta.avaliacaoNota).replace('.', ',')}${productMeta.avaliacaoContagem ? ` · ${productMeta.avaliacaoContagem} avaliações` : ''}
+        </div>` : ''}
+        </div>
 
         <a href="${buildAnaliseURL(scores, fibers, buy, bv.label, location.href, conf, historia)}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:600;color:#fff;background:#1D1D1F;text-decoration:none;border:none;padding:11px;border-radius:9px;letter-spacing:0.02em;">
           Ver análise completa →

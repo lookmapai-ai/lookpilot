@@ -60,6 +60,10 @@
   var loja = Q.get('loja') || (real ? '' : 'ZARA');
   var preco = Q.get('preco') || (real ? '' : DEFAULT.preco);
   var moeda = Q.get('moeda') || '€';
+  // Nota média de quem já comprou (vem do JSON-LD da própria loja, mesma
+  // fonte confiável do preço) — informativo, não entra em nenhum cálculo.
+  var notaAva = Q.get('nota_ava') || '';
+  var notaAvaN = Q.get('nota_ava_n') || '';
   // sem origem numa análise real, o link fica inerte — nunca cair no zara.com
   // da demonstração quando a peça é de outra loja
   var origem = Q.get('origem') || (has('score') ? '#' : DEFAULT.url);
@@ -679,7 +683,9 @@
       // fotografia
       heroMediaEl: mediaEl(imagem, nome, 'display:block;width:100%;aspect-ratio:21/10;object-fit:cover;object-position:' + DEFAULT.heroPos + ';filter:saturate(1.08) sepia(.06) contrast(1.03)'),
       capL: has('nome') ? nome : (real ? '' : DEFAULT.capL),
-      capR: loja + (Q.get('confianca') ? ' · confiança ' + int('confianca', 0) + '%' : ''),
+      capR: loja
+        + (notaAva ? ' · ★ ' + notaAva + (notaAvaN ? ' (' + notaAvaN + ')' : '') : '')
+        + (Q.get('confianca') ? ' · confiança ' + int('confianca', 0) + '%' : ''),
       // perguntas
       cartoes: cartoes,
       etiqComp: etiqComp,
