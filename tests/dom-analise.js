@@ -63,8 +63,26 @@ function criarDom() {
         return Object.keys(this._attrs).map((name) => ({ name, value: this._attrs[name] }));
       },
       closest() { return null; },
-      querySelectorAll() { return []; },
-      querySelector() { return null; },
+      // Procura a sério nos descendentes. Era `return []`, e por isso os
+      // blocos repetidos (data-for) nunca chegavam a ser preenchidos: os
+      // traços do selo de viagem ficavam INVISÍVEIS para os testes. Foi por
+      // aí que "Prende o suor por dentro" escapou num casaco impermeável.
+      querySelectorAll(q) {
+        const achados = [];
+        const anda = (n) => (n.children || []).forEach((c) => {
+          if (!c || c.nodeType !== 1) return;
+          const tem = q === '*' ? true
+            : q === '[data-txt]' ? c.getAttribute('data-txt') != null
+            : q === '[data-if]' ? c.getAttribute('data-if') != null
+            : q === 'template[data-for]' ? c.getAttribute('data-for') != null
+            : false;
+          if (tem) achados.push(c);
+          anda(c);
+        });
+        anda(this);
+        return achados;
+      },
+      querySelector(q) { return this.querySelectorAll(q)[0] || null; },
       addEventListener() {}, removeEventListener() {}, remove() {},
       cloneNode() { return elemento(Object.assign({}, this._attrs), this._marca); },
       appendChild(n) {
@@ -87,6 +105,25 @@ function criarDom() {
     });
   }
 
+  // Blocos repetidos (capítulos, traços do selo, peças guardadas): a página
+  // real usa <template data-for="lista" data-as="item">. Sem os reproduzir,
+  // tudo o que vive dentro deles nunca é escrito e nenhum teste o vê.
+  const FOR = bindings('data-for');
+  const AS = bindings('data-as');
+  const modelos = FOR.map((lista, i) => {
+    const alias = AS[i] || 'item';
+    const campos = TXT.filter((k) => k.indexOf(alias + '.') === 0);
+    const tpl = elemento({ 'data-for': lista, 'data-as': alias });
+    tpl.content = {
+      cloneNode() {
+        const frag = elemento({});
+        campos.forEach((k) => frag.appendChild(elemento({ 'data-txt': k }, k)));
+        return frag;
+      }
+    };
+    return tpl;
+  });
+
   // um elemento por binding encontrado na página real
   const porTxt = TXT.map((k) => elemento({ 'data-txt': k }, k));
   const porIf = IF.map((k) => {
@@ -107,12 +144,15 @@ function criarDom() {
     querySelectorAll(q) {
       if (q === '[data-txt]') return porTxt;
       if (q === '[data-if]') return porIf;
-      if (q === '*') return porTxt.concat(porIf);
+      if (q === 'template[data-for]') return modelos;
+      if (q === '*') return porTxt.concat(porIf).concat(modelos);
       return [];
     }
   };
   document.body = elemento({});
   document.body.querySelectorAll = document.querySelectorAll.bind(document);
+  // os modelos precisam de um pai para o insertBefore do motor de bindings
+  modelos.forEach((t) => { t.parentNode = document.body; });
 
   // display dos data-if é escrito em el.style.display (não substitui o objeto)
   porIf.forEach((el) => {

@@ -138,6 +138,20 @@ const PECAS = [
     tecnico: true
   },
   {
+    // Caso real, com as propriedades exatas que a extensão mandou para a
+    // página (4,74★ em 1735 avaliações). Dizia "Prende o suor por dentro"
+    // num impermeável cuja membrana existe precisamente para o contrário.
+    nome: 'MH500 — casaco impermeável de montanha (Decathlon)',
+    titulo: 'Casaco Impermeável de Caminhada na Montanha Mulher MH500 Framboesa',
+    texto: 'Composição: 78% Poliamida, 22% Poliéster. Casaco impermeável e corta-vento para '
+         + 'caminhada na montanha. Membrana respirável, costuras seladas, 10 000 mm.',
+    fibras: [fibra('Poliamida', 78), fibra('Poliéster', 22)],
+    props: 'bol:6,ama:8,sec:8,cal:5,res:4,pes:6,sus:3',
+    esperaTipo: 'casaco',
+    agasalho: true,
+    tecnico: true
+  },
+  {
     nome: 'Parka corta-vento (Zara)',
     titulo: 'Parka técnica com capuz',
     texto: 'Composição: 100% Poliéster. Parka corta-vento com capuz, acabamento repelente de água.',
@@ -224,6 +238,16 @@ const REGRAS = [
     porque: 'sem tradução, o número é ruído — a pessoa não sabe se 10 000 mm é muito ou pouco'
   },
   {
+    // A respirabilidade de um impermeável vem da MEMBRANA, que é o que a
+    // loja mede e publica (RET). O 'res' das propriedades é o da fibra crua.
+    // Acusar de "prende o suor" um casaco impermeável-respirável é julgar a
+    // camada errada — o mesmo erro de julgar um acolchoado pelo casco.
+    id: 'tecnico-nao-e-acusado-de-prender-o-suor',
+    frase: /prende o suor|vira estufa|abafa/i,
+    quando: (c) => c.tecnico,
+    porque: 'a membrana existe justamente para deixar o vapor sair enquanto segura a água'
+  },
+  {
     id: 'tecnico-nao-trata-sintetico-como-defeito',
     frase: /menos sustent[aá]vel|dois por[ée]ns|n[aã]o respira bem/i,
     quando: (c) => c.tecnico,
@@ -305,6 +329,12 @@ function paramsDaPeca(p, s, tipo) {
     chaves.forEach((k) => { if (pr[k] !== undefined) soma[k] += pr[k] * f.pct; });
   });
   if (peso) q.props = chaves.map((k) => k + ':' + Math.round(soma[k] / peso)).join(',');
+  // Uma peça pode fixar as propriedades REAIS que a extensão mandou, em vez
+  // das calculadas a partir das fibras. Serve para prender um caso vindo de
+  // uma URL de análise verdadeira: foi assim que "Prende o suor por dentro"
+  // escapou uma vez — a mistura calculada dava outro valor de respirabilidade
+  // e a regra passava a seco sobre a peça que tinha o defeito.
+  if (p.props) q.props = p.props;
   if (s.isKnit) q.malha = '1';
   if (s.isHeavyWoven) q.encorpado = '1';
   if (s.isPadded) q.acolchoado = '1';
@@ -380,6 +410,11 @@ PECAS.forEach((p) => {
 console.log('  Repetição entre peças');
 (function () {
   const LIMITE = 0.34;                      // acima de 1 em 3 já se nota ao mapear o armário
+  // ...mas também um piso absoluto. Com poucas peças no acervo a proporção
+  // é ruidosa: 4 em 11 dispara o limite sem que a frase seja de facto a
+  // assinatura de nada. Exigir os dois evita perseguir ruído agora e aperta
+  // sozinho à medida que o acervo cresce.
+  const PISO = 5;
   const MIN_CHARS = 45;                     // frases curtas repetem sem incomodar
   const contagem = new Map();
 
@@ -395,7 +430,7 @@ console.log('  Repetição entre peças');
 
   const total = textosPorPeca.length;
   const repetidas = [...contagem.entries()]
-    .filter(([, n]) => n / total > LIMITE)
+    .filter(([, n]) => n / total > LIMITE && n >= PISO)
     .sort((a, b) => b[1] - a[1]);
 
   checa('    nenhuma frase aparece em mais de 1 a cada 3 peças',

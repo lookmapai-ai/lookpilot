@@ -330,7 +330,14 @@
       if (ehAcolchoado) {
         t1 = '==' + comp + '== é só o tecido de fora. Num acolchoado o que aquece é o recheio — e ele não entra na etiqueta de composição.';
       } else if (ehTecnico) {
-        t1 = '==' + comp + '==, e aqui é o material certo: casaco técnico é sintético porque fibra natural encharca e pesa. Nenhuma faz impermeável e respirável ao mesmo tempo.';
+        // Quatro em cada onze peças do acervo são casacos técnicos, então
+        // este parágrafo precisa de variar tanto quanto os outros — senão é
+        // ele a assinatura de template do armário de quem gosta de montanha.
+        t1 = variante([
+          '==' + comp + '==, e aqui é o material certo: casaco técnico é sintético porque fibra natural encharca e pesa. Nenhuma faz impermeável e respirável ao mesmo tempo.',
+          '==' + comp + '==. Numa peça destas o sintético não é poupança: lã e algodão encharcam, e nenhum dos dois barra a água sem sufocar.',
+          '==' + comp + '== é o que a função pede. Impermeável e respirável ao mesmo tempo, só sintético consegue.'
+        ], 31);
         if (certs.length) t1 += ' Tem certificação ==' + certs.join(', ') + '==.';
       } else {
         t1 = traco
@@ -545,7 +552,16 @@
     if (tem('ama') && p.ama <= 5 && ehMalha) bom('Malha amassa pouco', 'Num tecido plano esta fibra amarrotaria; em malha, sai da mala bem melhor.');
     else if (tem('ama') && p.ama <= 5 && naoAmarrotaPelaEspessura) bom('Tecido grosso, não amassa como o fino', 'É estruturado — bem diferente do algodão fino que sai amassado da mala.');
     else if (tem('ama') && p.ama <= 5) mau('Amarrota fácil', 'Sai da mala com vincos. Precisa de ferro ou vapor antes de vestir.');
-    else if (tem('ama') && p.ama >= 7) bom('Não amarrota', 'Sai da mala e vai direto pro corpo, sem passar por ferro nenhum.');
+    // Este é o traço mais frequente do acervo todo — quase toda peça que
+    // presta não amarrota. Com um texto único, era a frase que a pessoa lia
+    // em nove de cada onze peças que mapeava, e frase repetida em tudo deixa
+    // de informar e passa a soar a formulário.
+    else if (tem('ama') && p.ama >= 7) bom('Não amarrota', variante([
+      'Sai da mala e vai direto pro corpo, sem passar por ferro nenhum.',
+      'Dobra, viaja, veste. O vinco não pega nesta.',
+      'Pode ir espremida na mochila que sai como entrou.',
+      'Nenhum ferro do outro lado: ela desamassa sozinha no corpo.'
+    ], 23));
 
     // combina fácil = menos peças na mala pro mesmo número de looks; usa o
     // mesmo 'ver' que já move a pergunta "No dia a dia". Estampado precisa
@@ -570,11 +586,25 @@
         bom('Leve pro tanto que esquenta', 'O recheio é que segura o calor, não o tecido de fora — por isso pesa pouco pro que entrega.');
       } else if (tem('pes') && p.pes >= 7) mau('Pesa na mala e no corpo', 'É a peça que mais ocupa espaço — e você sente o peso dela o dia inteiro.');
       else if (tem('pes') && p.pes <= 4) bom('Esquenta sem pesar', 'Aquece de verdade sem virar a peça mais pesada da mala.');
-      if (tem('res') && p.res <= 4) mau('Prende o suor por dentro', 'Vira estufa assim que você entra em algum lugar aquecido ou pega o metrô lotado.');
+      // Num casaco TÉCNICO a respirabilidade não vem da fibra — vem da
+      // membrana, que é precisamente a peça de engenharia que a loja mede e
+      // publica (RET, "respirável"). O 'res' aqui é o da poliamida crua, e
+      // acusar de "prende o suor" um casaco impermeável-respirável é julgar
+      // a camada errada: era o mesmo erro de julgar um acolchoado pelo casco.
+      if (ehTecnico) {
+        bom('Barra a chuva sem cozinhar por dentro', variante([
+          'A membrana é feita pra deixar o vapor do corpo sair enquanto segura a água de fora.',
+          'Água não entra, suor sai. É para isso que a membrana existe.',
+          'Segura o temporal por fora sem transformar você numa estufa por dentro.'
+        ], 29));
+      } else if (tem('res') && p.res <= 4) mau('Prende o suor por dentro', 'Vira estufa assim que você entra em algum lugar aquecido ou pega o metrô lotado.');
       else if (tem('res') && p.res >= 8) bom('Esquenta sem virar estufa', 'Segura o frio de fora sem sufocar quando você entra em algum lugar aquecido.');
       // sintético esquenta menos do que a nota de calor sugere e ainda gera
       // estática no ar seco do inverno — vale mesmo com nota de calor ok
-      if (_sintetica) mau('Sintético no frio', 'Esquenta menos que lã no mesmo peso, e gera estática no ar seco do inverno.');
+      // Num casaco técnico ou acolchoado, "sintético" não é atalho de custo:
+      // nenhum impermeável se faz de lã, e num acolchoado o casco é fino de
+      // propósito. A comparação com a lã só faz sentido num casaco de lã.
+      if (_sintetica && !ehTecnico && !ehAcolchoado) mau('Sintético no frio', 'Esquenta menos que lã no mesmo peso, e gera estática no ar seco do inverno.');
     } else {
       if (tem('res') && p.res <= 4) mau('Esquenta e não respira', 'O calor do corpo fica preso. Num dia de viagem longo, incomoda.');
       else if (tem('res') && p.res >= 8) bom('O corpo respira', 'O calor não fica preso, mesmo num dia inteiro fora.');
