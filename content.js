@@ -1118,7 +1118,38 @@
   // de composição muda muitas vezes a query/hash e isso NÃO é trocar de produto).
   // E nunca durante um scan ativo, para não apagar o loading a meio.
   let scanning = false;
-  const pathOf = () => location.origin + location.pathname;
+
+  // Identidade da peça que está no ecrã. Era só origin+pathname, e isso deixa
+  // de fora tudo o que vem depois do "?" — que é exatamente onde lojas como a
+  // Mango guardam a referência do produto e a cor. Resultado: mudar de peça
+  // dentro da loja não apagava o card, e a pessoa via a análise da peça
+  // ANTERIOR sobre a peça nova. Foi assim que uma camisa 53% modal apareceu
+  // como "Linho: fresquíssimo no calor" — o linho era de uma peça vista antes,
+  // e não existia em lado nenhum daquela página.
+  //
+  // Mostrar dados da peça errada é o pior defeito possível deste produto:
+  // parece um resultado, não parece um erro. Entre apagar o card a mais e
+  // mostrar o card errado, apaga-se a mais — recomeçar custa um clique.
+  //
+  // Os parâmetros de rastreio ficam de fora: mudam sozinhos, sem a peça
+  // mudar, e fariam o card desaparecer sem motivo.
+  // "ref" NÃO entra aqui, por muito que pareça rastreio: é onde a Mango
+  // guarda a referência do produto. Na dúvida sobre um parâmetro, deixá-lo
+  // contar — o custo de errar para este lado é um card apagado a mais; para
+  // o outro lado é a análise da peça errada.
+  const RASTREIO = /^(utm_|gclid|fbclid|msclkid|_gl|mc_|referrer|srsltid)$|^utm_/i;
+  const pathOf = () => {
+    try {
+      const u = new URL(location.href);
+      const ps = [...u.searchParams.entries()]
+        .filter(([k]) => !RASTREIO.test(k))
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([k, v]) => k + '=' + v).join('&');
+      return u.origin + u.pathname + (ps ? '?' + ps : '');
+    } catch (e) {
+      return location.origin + location.pathname;
+    }
+  };
   let lastPath = pathOf();
   new MutationObserver(() => {
     if (scanning) return;

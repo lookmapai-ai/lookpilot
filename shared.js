@@ -638,7 +638,12 @@ function escalaCompra(bruto) {
 // Veredito grande para o header — 3 níveis claros
 function buyVerdict(buy) {
   const en = typeof LP_LANG !== 'undefined' && LP_LANG === 'en';
-  if (buy >= 80) return { emoji:'🟢', label: en ? 'Good buy'          : 'Pode comprar tranquila', color:'#166534', bg:'#e7f6ec' };
+  // "tranquila" concordava com quem LÊ, não com a peça — e o LookPilot lê
+  // etiqueta de roupa de homem, de criança e de quem não se revê em nenhum
+  // dos dois. Um veredito que trata a pessoa pelo género errado estraga
+  // justamente o momento em que ela devia confiar mais na resposta.
+  // "sem medo" diz o mesmo e não pressupõe nada sobre quem está do outro lado.
+  if (buy >= 80) return { emoji:'🟢', label: en ? 'Good buy'          : 'Pode comprar sem medo', color:'#166534', bg:'#e7f6ec' };
   if (buy >= 70) return { emoji:'🟢', label: en ? 'Worth it'          : 'Vale a pena',            color:'#166534', bg:'#e7f6ec' };
   if (buy >= 55) return { emoji:'🟡', label: en ? 'Worth considering' : 'Vale considerar',         color:'#B45309', bg:'#fdf6e3' };
   if (buy >= 45) return { emoji:'🟡', label: en ? 'Think twice'       : 'Pense bem',               color:'#B45309', bg:'#fdf6e3' };

@@ -90,7 +90,7 @@
         { n: '3', txt: 'Clique em “Carregar sem compactação” e escolha essa pasta "lookpilot" que acabou de aparecer (não o arquivo .zip). Pronto — abra qualquer loja.' }
       ],
       resp1El: mark('O LookPilot abre a etiqueta e lê fibra a fibra — ==100% lã ou 94% sintético==, sem marketing pelo meio. O que a loja esconde nas letras miúdas, você vê num relance.'),
-      resp2El: mark('A composição vira uma ==nota de 0 a 100== e um veredito direto — de "não vale a pena" a "pode comprar tranquila". Cada fibra tem ficha própria, com ==fontes técnicas== por trás de cada número: é dado, não opinião.'),
+      resp2El: mark('A composição vira uma ==nota de 0 a 100== e um veredito direto — de "não vale a pena" a "pode comprar sem medo". Cada fibra tem ficha própria, com ==fontes técnicas== por trás de cada número: é dado, não opinião.'),
       resp3El: mark('Gostou do resultado? ==Salve a peça== com um clique. Com o tempo, isso vira o ==LookMap==: o mapa do guarda-roupa inteiro — e você compra menos e melhor, porque já sabe o que tem.')
     };
   }

@@ -470,7 +470,7 @@ test('pesos malha vs clothing diferem', () => {
   return true;
 });
 
-test('buyVerdict: score 80 → verde "Pode comprar tranquila"', () => {
+test('buyVerdict: score 80 → verde "Pode comprar sem medo"', () => {
   const v = buyVerdict(80);
   return equals(v.emoji, '🟢', 'emoji score 80');
 });
@@ -1158,6 +1158,79 @@ test('[Separadores] zonas coladas numa linha não se apagam entre si', () => {
     const esperado = /poliamida|algod|linho|lã|la\b/i;
     if (!esperado.test(f[0].name)) return fail(`"${nome}": a primeira zona sumiu, veio ${f[0].name} (${JSON.stringify(f.map(x=>x.name))})`);
   }
+  return true;
+});
+
+// ─── Card preso na peça anterior ────────────────────────────────────
+// Uma camisa 53% modal da Mango apareceu como "Linho: fresquíssimo no
+// calor" — e não havia linho nenhum naquela página. O linho era de uma peça
+// vista ANTES: as lojas modernas trocam de produto sem recarregar a página,
+// e a identidade que dispara a limpeza do card era só origin+pathname.
+// Tudo o que vem depois do "?" — onde a Mango guarda referência e cor —
+// ficava de fora, e o card antigo sobrevivia por cima da peça nova.
+//
+// Mostrar dados da peça errada é o pior defeito deste produto: parece um
+// resultado, não parece um erro.
+test('[SPA] trocar de peça pelo ? muda a identidade da página', () => {
+  const src = fs.readFileSync(path.join(root, 'content.js'), 'utf8');
+  const m = /const RASTREIO = ([^;]+);[\s\S]*?const pathOf = (\(\) => \{[\s\S]*?\n  \});/.exec(src);
+  if (!m) return fail('não encontrei o pathOf() no content.js');
+  const pathOf = (href) => {
+    const location = { href, origin: new URL(href).origin, pathname: new URL(href).pathname };
+    // eslint-disable-next-line no-eval
+    return eval(`(function(){ const RASTREIO = ${m[1]}; const location = arguments[0]; const f = ${m[2]}; return f(); })`)(location);
+  };
+  const a = pathOf('https://shop.mango.com/pt/p/camisa?ref=87065923');
+  const b = pathOf('https://shop.mango.com/pt/p/camisa?ref=99999999');
+  if (a === b) return fail('duas peças diferentes com a mesma identidade — o card antigo sobrevive');
+  return true;
+});
+
+test('[SPA] parâmetro de rastreio não apaga o card sem motivo', () => {
+  const src = fs.readFileSync(path.join(root, 'content.js'), 'utf8');
+  const m = /const RASTREIO = ([^;]+);[\s\S]*?const pathOf = (\(\) => \{[\s\S]*?\n  \});/.exec(src);
+  const pathOf = (href) => {
+    const location = { href, origin: new URL(href).origin, pathname: new URL(href).pathname };
+    // eslint-disable-next-line no-eval
+    return eval(`(function(){ const RASTREIO = ${m[1]}; const location = arguments[0]; const f = ${m[2]}; return f(); })`)(location);
+  };
+  const limpo = pathOf('https://loja.com/p/camisa?cor=bege');
+  const comUtm = pathOf('https://loja.com/p/camisa?cor=bege&utm_source=insta&gclid=abc');
+  if (limpo !== comUtm) return fail(`rastreio mudou a identidade:\n     ${limpo}\n     ${comUtm}`);
+  const ordemTrocada = pathOf('https://loja.com/p/camisa?utm_source=x&cor=bege');
+  if (limpo !== ordemTrocada) return fail('a ordem dos parâmetros mudou a identidade');
+  return true;
+});
+
+// ─── Género de quem lê ──────────────────────────────────────────────
+// O veredito verde dizia "Pode comprar tranquila". A concordância era com
+// quem LÊ, não com a peça — e o LookPilot lê etiqueta de roupa de homem, de
+// criança, e de quem não se revê em nenhum dos dois. Apanhado numa camisa
+// de homem da Mango.
+//
+// A lista é curta e curada de propósito: só palavras que, em português,
+// qualificam A PESSOA e não têm uso como verbo. "Segura" fica de fora
+// porque em "segura o frio" é verbo, e um teste que grita sem razão deixa
+// de ser lido. Concordância com a PEÇA ("o casaco pronto" / "a camisa
+// pronta") é outro problema, e tem o tipoArt do runtime.js para isso.
+test('[Género] nenhum texto trata quem lê por um género', () => {
+  const FICHEIROS = ['shared.js', 'strings.js', 'landing/runtime.js', 'landing/marketing.js'];
+  const PALAVRAS = /\b(tranquil[oa]|preparad[oa]|cansad[oa]|sozinh[oa]s?\s+(?:você|tu)|satisfeit[oa]|segur[oa]\s+de\s+si|obrigad[oa]|certinh[oa]|descansad[oa])\b/i;
+  const achados = [];
+  for (const f of FICHEIROS) {
+    const caminho = path.join(root, f);
+    if (!fs.existsSync(caminho)) continue;
+    fs.readFileSync(caminho, 'utf8').split('\n').forEach((linha, i) => {
+      // só texto que a pessoa lê: string entre aspas, fora de comentário
+      const semComentario = linha.replace(/^\s*(\/\/|\*).*$/, '');
+      const strings = semComentario.match(/'[^']{6,}'|"[^"]{6,}"|`[^`]{6,}`/g) || [];
+      strings.forEach((str) => {
+        const m = PALAVRAS.exec(str);
+        if (m) achados.push(`${f}:${i + 1} "${m[0]}" em ${str.slice(0, 70)}`);
+      });
+    });
+  }
+  if (achados.length) return fail('texto que assume o género de quem lê:\n     ' + achados.join('\n     '));
   return true;
 });
 
