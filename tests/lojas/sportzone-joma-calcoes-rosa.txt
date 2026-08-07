@@ -2,6 +2,7 @@ loja: Sport Zone
 titulo: Calções Joma Mulher Rosa
 url: https://www.sportzone.pt/ (ref 0405275)
 capturado: 2026-08-03
+espera: sem_composicao
 nota_humana: calcoes de verao, tecido leve e respiravel. NAO TEM COMPOSICAO na pagina. Se aparecer fibra nenhuma, o correto e dizer que nao leu — inventar e pior. Ja apareceu como "La em 25%": o 25% era o desconto e a la vinha de "camisola".
 ---
 Envio gratuito para Portugal a partir de 45€ +info

@@ -1161,6 +1161,50 @@ test('[Separadores] zonas coladas numa linha não se apagam entre si', () => {
   return true;
 });
 
+// ─── Selo de marketing não é etiqueta ───────────────────────────────
+// A Mango Outlet não publica composição nuns calções de linho. Publica um
+// selo — "QUALIDADES DO ARTIGO / LINHO / No mínimo 20%" — e dali saía
+// "Linho, 20%" com nota e veredito por cima, como se fosse a etiqueta lida.
+// Uma leitura falsa é pior que nenhuma: "não consegui ler" faz a pessoa
+// conferir a etiqueta; um número inventado ela leva para casa.
+test('[Mango] selo "no mínimo 20%" não passa por composição', () => {
+  const real = 'Tecido com mistura de linho. Design reto. PORMENORES, COMPOSIÇÃO E CUIDADOS A TER '
+    + 'QUALIDADES DO ARTIGO LINHO No mínimo 20% Natural, respirável e leve.';
+  const f = parse(real);
+  if (f.length) return fail(`inventou etiqueta: ${JSON.stringify(f.map(x => x.pct + '% ' + x.name))}`);
+  return true;
+});
+
+test('[Composição] uma leitura que não chega perto de 100% é descartada', () => {
+  const f = parse('Peça em linho 20%');
+  if (f.length) return fail(`aceitou ${JSON.stringify(f.map(x => x.pct + '% ' + x.name))} como etiqueta`);
+  return true;
+});
+
+test('[Composição] etiquetas reais, mesmo incompletas, continuam a passar', () => {
+  const devem = [
+    ['Composição: 55% linho, 45% viscose', 2],
+    ['Tecido principal: 100% Poliamida', 1],
+    ['Composição: 80% algodão', 1],
+    ['Composição: 95% algodão, 5% elastano', 2]
+  ];
+  for (const [txt, n] of devem) {
+    const f = parse(txt);
+    if (f.length !== n) return fail(`"${txt}" → ${JSON.stringify(f.map(x => x.pct + '% ' + x.name))}, esperava ${n} fibra(s)`);
+  }
+  return true;
+});
+
+test('[Nome] lixo à FRENTE do nome da fibra é aparado', () => {
+  // "ados a ter linho" — o "ados a ter" é o fim de "CUIDADOS A TER".
+  // A aparagem só existia do fim do nome, nunca do início.
+  const f = parse('ados a ter linho 60%, viscose 40%');
+  const linho = f.find((x) => /linho/i.test(x.name));
+  if (!linho) return fail(`não leu o linho: ${JSON.stringify(f.map(x => x.name))}`);
+  if (linho.name !== 'linho') return fail(`nome ficou "${linho.name}" em vez de "linho"`);
+  return true;
+});
+
 // ─── Fibra tem de casar como PALAVRA, não como pedaço de texto ──────
 // Uns calções de verão rosa da Sport Zone apareceram como "Lã em 25%". O
 // 25% era o desconto de saldos; a lã veio de "camisola", que contém "la ".

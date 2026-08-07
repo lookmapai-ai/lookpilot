@@ -94,7 +94,20 @@ function analisar(peca) {
   const nota = fibras.length ? Math.round(buyScore(s, tipo)) : null;
   const cardTexto = fibras.length ? conclusionText(s, s.fibers || fibras, tipo) : '';
 
-  return { fibras, s, tipo, nota, cardTexto, seccoes };
+  // A MESMA página chega ao motor de formas diferentes conforme a loja: umas
+  // entregam o texto com quebras de linha, outras achatado numa linha só. E
+  // isso muda tudo, porque a quebra de linha é uma fronteira que impede o
+  // nome de uma fibra de se colar ao texto anterior. Foi exatamente o
+  // achatamento que produziu a fibra "ados a ter linho" na Mango Outlet:
+  // com quebras, "CUIDADOS A TER" e "LINHO" nunca se tocariam.
+  //
+  // Guardar as duas formas de cada página seria duplicar o acervo todo. Em
+  // vez disso testa-se a versão achatada também, e uma leitura inventada em
+  // qualquer das duas conta como inventada.
+  const achatado = texto.replace(/\s*\n+\s*/g, ' ');
+  const fibrasAchatado = achatado === texto ? fibras : API.parseComposition(achatado, categoria);
+
+  return { fibras, fibrasAchatado, s, tipo, nota, cardTexto, seccoes };
 }
 
 // ─── SUSPEITAS ───────────────────────────────────────────────────────
@@ -102,12 +115,26 @@ function analisar(peca) {
 // qual é o defeito por trás. É isto que apanha o que ainda não sabemos.
 const SUSPEITAS = [
   {
+    // A peça mais valiosa do acervo: quando a resposta certa é NÃO LER.
+    // Há páginas que falam de composição sem a publicar — a Mango Outlet
+    // tem um selo "QUALIDADES DO ARTIGO / LINHO / No mínimo 20%" debaixo de
+    // um painel chamado "COMPOSIÇÃO E CUIDADOS A TER". Nenhuma regra
+    // automática separa isso de uma etiqueta a sério; quem olhou a página
+    // sabe. Por isso a peça declara-o no cabeçalho (espera: sem_composicao)
+    // e o acervo trata inventar ali como falha grave.
+    id: 'inventou-composicao-onde-nao-ha',
+    porque: 'a página não publica etiqueta e o motor leu uma — leitura falsa é pior que nenhuma, porque a pessoa leva o número para casa',
+    ve: (r, p) => p.meta.espera === 'sem_composicao'
+      && (r.fibras.length > 0 || r.fibrasAchatado.length > 0)
+  },
+  {
     // Só quando a página DECLARA uma composição. Uma página de saldos tem
     // percentagens (-25%) e nenhuma etiqueta: ali, não ler nada é o
     // comportamento certo, e dar alarme ensinaria a ignorar o alarme.
     id: 'composicao-declarada-mas-nao-lida',
     porque: 'a página anuncia uma composição com percentagens e o motor não leu fibra nenhuma',
-    ve: (r, p) => r.fibras.length === 0
+    ve: (r, p) => p.meta.espera !== 'sem_composicao'
+      && r.fibras.length === 0
       && /composi[çc][ãa]o|composici[óo]n|composition|tecido principal|tejido principal/i.test(p.texto)
       && /\d\s?%/.test(p.texto)
   },

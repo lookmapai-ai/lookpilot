@@ -325,8 +325,22 @@
       // (ex.: "algodão orgânico") ficam intactos.
       if (data) {
         const partes = word.split(/\s+/);
+        // apara do fim
         for (let len = 1; len < partes.length; len++) {
           const curto = partes.slice(0, len).join(' ');
+          const d = getFiber(curto) || (typeof getMaterialData === 'function' ? getMaterialData(curto, category) : null);
+          if (d === data) { word = curto; break; }
+        }
+        // ...e do INÍCIO. Só se aparava do fim, e por isso um nome com lixo
+        // à frente sobrevivia inteiro: a Mango Outlet produziu a fibra
+        // "ados a ter linho" — o "ados a ter" é o fim do título do painel
+        // ("PORMENORES, COMPOSIÇÃO E CUIDADOS A TER").
+        // Do fim para o início, para ficar com o MENOR pedaço que ainda
+        // resolve a mesma fibra: começando do princípio, "a ter linho" já
+        // resolvia e a aparagem parava aí, com o lixo ainda colado.
+        const restantes = word.split(/\s+/);
+        for (let ini = restantes.length - 1; ini >= 1; ini--) {
+          const curto = restantes.slice(ini).join(' ');
           const d = getFiber(curto) || (typeof getMaterialData === 'function' ? getMaterialData(curto, category) : null);
           if (d === data) { word = curto; break; }
         }
@@ -404,6 +418,25 @@
       while ((m = revRe.exec(norm)) !== null) {
         addFiber(parseFloat(m[2].replace(',', '.')), m[1]);
       }
+    }
+
+    // Uma etiqueta descreve a peça INTEIRA. Se o que sobrou não chega perto
+    // de 100%, aquilo não era etiqueta — era outro número qualquer da página
+    // com uma palavra de fibra por perto.
+    //
+    // Caso real: a Mango Outlet não publica composição nesta peça. O que
+    // publica é um selo de marketing — "QUALIDADES DO ARTIGO / LINHO / No
+    // mínimo 20%" — e daí saía "Linho, 20%" como se fosse a etiqueta lida,
+    // com nota e veredito por cima. Uma leitura falsa é pior que nenhuma:
+    // "não consegui ler" faz a pessoa conferir a etiqueta; um número
+    // inventado ela leva para casa.
+    //
+    // O limite é folgado de propósito. Etiquetas reais incompletas existem
+    // ("80% algodão", sem declarar o elastano), e essas continuam a passar;
+    // o que não passa é um número solto a fazer de composição.
+    if (category === 'clothing' && results.length) {
+      const total = results.reduce((a, f) => a + (f.pct || 0), 0);
+      if (total < 70) results.length = 0;
     }
 
     // Pass 2: category material keywords without % (shoes/bags often do this)
