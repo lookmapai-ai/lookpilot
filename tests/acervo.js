@@ -85,7 +85,11 @@ function analisar(peca) {
     ? primaria.fibers
     : API.parseComposition(texto, categoria);
 
-  const s = calcScores(fibras, texto, '', titulo);
+  // Sem fibras, calcScores devolve nulo — e é o comportamento certo: a peça
+  // sem etiqueta legível não tem nota. O acervo tem de aguentar isso, senão
+  // rebenta exatamente nas páginas que mais interessam: as que não deviam
+  // produzir leitura nenhuma.
+  const s = calcScores(fibras, texto, '', titulo) || {};
   const tipo = detectGarmentType(s, null, categoria);
   const nota = fibras.length ? Math.round(buyScore(s, tipo)) : null;
   const cardTexto = fibras.length ? conclusionText(s, s.fibers || fibras, tipo) : '';
@@ -98,9 +102,14 @@ function analisar(peca) {
 // qual é o defeito por trás. É isto que apanha o que ainda não sabemos.
 const SUSPEITAS = [
   {
-    id: 'composicao-nao-lida',
-    porque: 'a página tem percentagens mas o motor não leu fibra nenhuma',
-    ve: (r, p) => /\d\s?%/.test(p.texto) && r.fibras.length === 0
+    // Só quando a página DECLARA uma composição. Uma página de saldos tem
+    // percentagens (-25%) e nenhuma etiqueta: ali, não ler nada é o
+    // comportamento certo, e dar alarme ensinaria a ignorar o alarme.
+    id: 'composicao-declarada-mas-nao-lida',
+    porque: 'a página anuncia uma composição com percentagens e o motor não leu fibra nenhuma',
+    ve: (r, p) => r.fibras.length === 0
+      && /composi[çc][ãa]o|composici[óo]n|composition|tecido principal|tejido principal/i.test(p.texto)
+      && /\d\s?%/.test(p.texto)
   },
   {
     id: 'soma-nao-fecha',
@@ -141,7 +150,40 @@ const SUSPEITAS = [
   {
     id: 'tecnica-com-nota-baixa',
     porque: 'peça com ficha técnica a sério a tirar nota baixa — a nota está a olhar para a fibra do casco em vez da engenharia',
-    ve: (r) => r.nota != null && r.nota < 45 && (r.s.hasTechSpec || r.s.fichaTecnica)
+    ve: (r) => r.nota != null && r.nota < 45 && !!(r.s.hasTechSpec || r.s.fichaTecnica)
+  },
+  // ── composição INVENTADA ──────────────────────────────────────────
+  // A família de defeito que mais custou: o motor não erra uma conta, ele
+  // fabrica um dado a partir de ruído da página. "Lã em 25%" nuns calções
+  // de verão — o 25% era o desconto, a lã veio de "camisola". Não dá alarme
+  // nenhum, porque tem exatamente a cara de um resultado.
+  //
+  // Dizer "não consegui ler" é sempre melhor do que inventar: a pessoa
+  // confere a etiqueta e segue. Uma leitura falsa ela leva para casa.
+  {
+    id: 'composicao-nao-fecha-100',
+    porque: 'uma etiqueta declara a peça inteira — ler só 25% e mais nada quer dizer que aquele número não era composição',
+    ve: (r) => {
+      if (!r.fibras.length) return false;
+      const soma = r.fibras.reduce((a, f) => a + (f.pct || 0), 0);
+      return soma < 90;
+    }
+  },
+  {
+    id: 'fibra-sem-a-palavra-composicao-por-perto',
+    porque: 'leu fibra numa página que nunca diz "composição" — o número quase de certeza é preço, desconto ou tamanho',
+    ve: (r, p) => r.fibras.length > 0
+      && !/composi[çc][ãa]o|composici[óo]n|composition|material principal|tecido principal|tejido|\bfabric\b/i.test(p.texto)
+  },
+  {
+    id: 'fibra-de-inverno-em-peca-de-verao',
+    porque: 'lã, caxemira ou pena numa peça que o próprio título diz ser de verão — uma das duas leituras está errada',
+    ve: (r, p) => {
+      const verao = /cal[çc][õo]es|shorts|bermuda|top\b|regata|biquíni|bikini|fato de banho|swim|t-shirt|camiseta|sandália|vestido de praia/i;
+      const inverno = /\bl[ãa]\b|caxemira|cashmere|merino|penas?\b|alpaca|mohair/i;
+      const titulo = (p.meta.titulo || '') + ' ' + p.texto.slice(0, 400);
+      return verao.test(titulo) && r.fibras.some((f) => inverno.test(f.name || ''));
+    }
   },
   {
     id: 'nome-de-fibra-com-lixo',
@@ -156,7 +198,7 @@ const SUSPEITAS = [
   {
     id: 'ficha-tecnica-ignorada',
     porque: 'a página publica coluna de água ou poder de expansão e o motor não os leu',
-    ve: (r, p) => /\d\s?000\s?mm|\d{1,2}k\s?mm|\d{3}\s?cuin/i.test(p.texto) && !r.s.fichaTecnica,
+    ve: (r, p) => /\d\s?000\s?mm|\d{1,2}k\s?mm|\d{3}\s?cuin/i.test(p.texto) && !r.s.fichaTecnica && r.fibras.length > 0,
     aviso: true
   },
   {
@@ -195,8 +237,8 @@ pecas.forEach((p) => {
   console.log(`  ${marca} [${loja}] ${p.meta.titulo || p.meta.ficheiro}`);
   if (listar || achados.length) {
     console.log(`      nota ${r.nota == null ? '—' : r.nota}/100 · tipo ${r.tipo} · ${comp}`);
-    if (r.s.fichaTecnica) console.log(`      ficha: ${JSON.stringify(r.s.fichaTecnica)}`);
-    if (r.s.brandTech) console.log(`      tecnologia: ${r.s.brandTech}`);
+    if (r.s && r.s.fichaTecnica) console.log(`      ficha: ${JSON.stringify(r.s.fichaTecnica)}`);
+    if (r.s && r.s.brandTech) console.log(`      tecnologia: ${r.s.brandTech}`);
   }
   achados.forEach((a) => {
     console.log(`      ${a.aviso ? '!' : '✗'} ${a.id} — ${a.porque}`);
