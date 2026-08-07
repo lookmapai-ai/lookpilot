@@ -1161,6 +1161,41 @@ test('[Separadores] zonas coladas numa linha não se apagam entre si', () => {
   return true;
 });
 
+// ─── Fibra tem de casar como PALAVRA, não como pedaço de texto ──────
+// Uns calções de verão rosa da Sport Zone apareceram como "Lã em 25%". O
+// 25% era o desconto de saldos; a lã veio de "camisola", que contém "la ".
+// O banco tinha chaves com espaço no fim ("la ", "lã ", "lin ") — remendo
+// antigo para "la" não casar dentro de outras palavras — e a busca era por
+// substring, então "camisola ", "gola ", "sola " e "parcela " passavam.
+test('[Fibra] palavra que termina em "la" não vira lã', () => {
+  const enganos = ['camisola rosa', 'gola redonda', 'sola de borracha', 'tela leve',
+                   'parcela do preço', 'escola', 'janela', 'vela'];
+  for (const w of enganos) {
+    const d = getFiber(w);
+    if (d) return fail(`"${w}" resolveu para ${d.label}`);
+  }
+  return true;
+});
+
+test('[Fibra] "-25% camisola" não produz composição nenhuma', () => {
+  // O texto de uma página de saldos, sem etiqueta de composição em lado nenhum.
+  const f = parse('Saldos -25%\nCamisola e calções Joma\nTecido leve e respirável\nLavar à máquina');
+  if (f.length) return fail(`inventou composição: ${JSON.stringify(f.map(x => x.pct + '% ' + x.name))}`);
+  return true;
+});
+
+test('[Fibra] as fibras a sério continuam a casar', () => {
+  const devem = [['lã', 'Lã'], ['la', 'Lã'], ['wool', 'Lã'], ['lana', 'Lã'],
+                 ['lã merino', 'Lã Merino'], ['algodão', 'Algodão'],
+                 ['algodão orgânico', 'Algodão Orgânico'], ['lino', 'Linho'],
+                 ['mistura de lã', 'Lã'], ['100% lã virgem', 'Lã']];
+  for (const [w, esperado] of devem) {
+    const d = getFiber(w);
+    if (!d || d.label !== esperado) return fail(`"${w}" → ${d ? d.label : '—'}, esperava ${esperado}`);
+  }
+  return true;
+});
+
 // ─── Card preso na peça anterior ────────────────────────────────────
 // Uma camisa 53% modal da Mango apareceu como "Linho: fresquíssimo no
 // calor" — e não havia linho nenhum naquela página. O linho era de uma peça

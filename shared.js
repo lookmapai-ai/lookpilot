@@ -165,8 +165,34 @@ function getFiber(name) {
   if (/poli[eé]ster|polyester/.test(key)) return FIBER_DB[hasRecycled ? 'poliéster reciclado' : 'poliéster'] || null;
   if (/poliamida|nylon/.test(key)) return FIBER_DB[hasRecycled ? 'poliamida reciclada' : 'poliamida'] || null;
 
-  // Procura qualquer chave do FIBER_DB contida na string
-  const found = Object.keys(FIBER_DB).find(k => key.includes(k));
+  // Procura qualquer chave do FIBER_DB na string — mas como PALAVRA, não
+  // como pedaço de texto.
+  //
+  // Era `key.includes(k)`, e o banco tem chaves com espaço no fim ("la ",
+  // "lã ", "lin ") — um remendo antigo para "la" não casar dentro de outras
+  // palavras. Só que "camisola ", "gola ", "sola " e "parcela " também
+  // contêm "la ". Resultado: uns calções de verão da Sport Zone apareceram
+  // como "Lã em 25%" — o 25% era o desconto de saldos e a lã era a camisola
+  // do conjunto ao lado.
+  //
+  // Fronteira de palavra a sério resolve a família toda de uma vez, em vez
+  // de ir tapando caso a caso.
+  const naoLetra = (c) => c === undefined || !/[\p{L}\p{N}]/u.test(c);
+  const contemPalavra = (texto, palavra) => {
+    const alvo = palavra.trim();
+    if (!alvo) return false;
+    let i = texto.indexOf(alvo);
+    while (i !== -1) {
+      if (naoLetra(texto[i - 1]) && naoLetra(texto[i + alvo.length])) return true;
+      i = texto.indexOf(alvo, i + 1);
+    }
+    return false;
+  };
+  // As chaves mais longas primeiro: "algodão orgânico" tem de ganhar a
+  // "algodão", senão a variante certa nunca é alcançada.
+  const found = Object.keys(FIBER_DB)
+    .sort((a, b) => b.trim().length - a.trim().length)
+    .find((k) => contemPalavra(key, k));
   return found ? FIBER_DB[found] : null;
 }
 
