@@ -1161,6 +1161,51 @@ test('[Separadores] zonas coladas numa linha não se apagam entre si', () => {
   return true;
 });
 
+// ─── Varredura: nenhuma etiqueta real pode ficar muda ───────────────
+// A regra "leitura que não fecha ~100% é descartada" protege contra
+// inventar composição, mas apertá-la demais silencia etiquetas boas — e
+// esse defeito é invisível: a peça simplesmente deixa de ser analisada, sem
+// erro nenhum. Esta varredura é o contrapeso: 30 formatos reais recolhidos
+// das lojas do projeto, e nenhum pode devolver vazio.
+test('[Varredura] os formatos reais das lojas continuam todos a ser lidos', () => {
+  const FORMATOS = [
+    ['Zara simples',          'Composição: 100% algodão'],
+    ['Zara duas fibras',      'COMPOSIÇÃO\n95% algodão\n5% elastano'],
+    ['Zara zonas',            'EXTERIOR\nTECIDO PRINCIPAL: 100% algodão\nFORRO: 100% viscose'],
+    ['Mango',                 'Composição: 53% modal, 47% poliamida'],
+    ['Mango 3 fibras',        'Composição: 60% viscose, 35% poliéster, 5% elastano'],
+    ['H&M',                   'Composição\nAlgodão 100%'],
+    ['H&M mistura',           'Composição\nAlgodão 60%, Poliéster 40%'],
+    ['Uniqlo body/trim',      'Body: 92% Polyamide, 8% Elastane/ Trim: 100% Polyester'],
+    ['Uniqlo simples',        'Material: 100% Cotton'],
+    ['Oysho reciclado',       'Composição: 92% Poliamida reciclada, 8% Elastano'],
+    ['Decathlon principal',   'Composição\nTecido principal: 100.0% Poliamida'],
+    ['Decathlon multi-zona',  'Composição\nTecido principal: 100.0% Poliamida\nForro: 100.0% Poliéster\nPunho: 20.0% Elastano, 80.0% Poliamida'],
+    ['Decathlon pena',        'Composição\nEnchimento: 10.0% Pena de pato, 90.0% Plumas\nTecido principal: 100.0% Poliamida'],
+    ['ES simples',            'Composición: 100% algodón'],
+    ['ES mistura',            'Composición: 95% algodón, 5% elastano'],
+    ['ES lana',               'Composición: 80% lana, 20% poliamida'],
+    ['ES zonas',              'Tejido principal: 100% algodón. Forro: 100% poliéster.'],
+    ['EN simples',            'Composition: 100% cotton'],
+    ['EN mistura',            'Composition: 78% polyester, 22% elastane'],
+    ['decimais',              'Composição: 66,5% Poliéster, 33,5% Algodão'],
+    ['4 fibras',              '45% Acrílico, 33% Poliéster, 17% Viscose, 5% Elastano'],
+    ['incompleta 80',         'Composição: 80% algodão'],
+    ['incompleta 95',         'Composição: 95% algodão'],
+    ['lã pura',               'Composição: 100% lã'],
+    ['merino',                'Composição: 100% lã merino'],
+    ['caxemira mistura',      'Composição: 70% lã, 30% caxemira'],
+    ['orgânico',              'Composição: 100% algodão orgânico'],
+    ['linho misto',           'Composição: 55% linho, 45% viscose'],
+    ['ruído antes',           'Regular fit. Gola redonda. Composição: 100% algodão. Lavar a 30.'],
+    ['ruído depois',          'Composição: 100% algodão\nOs nossos produtos recomendados\nCamisola 19,99 €'],
+    ['saldos + etiqueta',     '-40%\nComposição: 92% algodão, 8% elastano']
+  ];
+  const mudos = FORMATOS.filter(([, t]) => parse(t).length === 0).map(([n]) => n);
+  if (mudos.length) return fail(`deixaram de ser lidos: ${mudos.join(', ')}`);
+  return true;
+});
+
 // ─── Selo de marketing não é etiqueta ───────────────────────────────
 // A Mango Outlet não publica composição nuns calções de linho. Publica um
 // selo — "QUALIDADES DO ARTIGO / LINHO / No mínimo 20%" — e dali saía

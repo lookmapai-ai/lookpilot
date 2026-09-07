@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Privacidade — LookPilot</title>
+<meta name="description" content="O que o LookPilot lê, o que guarda e o que nunca sai do seu navegador.">
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #FAFAFA; color: #1D1D1F;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+                 "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+    line-height: 1.62;
+  }
+  header {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 22px clamp(20px, 5vw, 64px); border-bottom: 1px solid rgba(0,0,0,.06);
+  }
+  header img { display: block; height: 22px; width: auto; }
+  header a.voltar {
+    font-size: 13px; color: #6E6E73; text-decoration: underline; text-underline-offset: 3px;
+  }
+  main { max-width: 720px; margin: 0 auto; padding: clamp(40px, 7vw, 80px) clamp(20px, 5vw, 32px) 96px; }
+  h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.1; letter-spacing: -.02em; margin: 0 0 14px; }
+  .data { margin: 0 0 40px; font-size: 13px; color: #86868B; }
+  h2 {
+    font-size: 19px; letter-spacing: -.01em; margin: 44px 0 10px;
+    padding-top: 26px; border-top: 1px solid rgba(0,0,0,.07);
+  }
+  h2:first-of-type { border-top: 0; padding-top: 0; }
+  p, li { font-size: 15.5px; color: #3A3A3C; margin: 0 0 14px; }
+  ul { margin: 0 0 14px; padding-left: 20px; }
+  li { margin-bottom: 8px; }
+  strong { color: #1D1D1F; font-weight: 600; }
+  .destaque {
+    background: #fff; border: 1px solid #E8E8ED; border-radius: 14px;
+    padding: 20px 22px; margin: 0 0 34px;
+  }
+  .destaque p:last-child { margin-bottom: 0; }
+  .marca { color: #FF009D; font-weight: 600; }
+  footer {
+    border-top: 1px solid rgba(0,0,0,.06); padding: 22px clamp(20px, 5vw, 64px);
+    font-size: 12px; color: #6E6E73;
+    display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between;
+  }
+  footer a { color: #6E6E73; text-decoration: underline; text-underline-offset: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html"><img src="images/lookpilot-wordmark.svg" alt="LookPilot"></a>
+  <a class="voltar" href="index.html">Voltar ao início</a>
+</header>
+
+<main>
+  <h1>Privacidade</h1>
+  <p class="data">Última atualização: 7 de setembro de 2026</p>
+
+  <div class="destaque">
+    <p><strong>O resumo, em três linhas.</strong></p>
+    <p>A análise acontece toda dentro do seu navegador. O <span class="marca">LookPilot</span> não tem servidor, não tem conta, não tem login — e não faz uma única chamada de rede para enviar o que leu.</p>
+    <p>Nada do que você analisa é guardado por nós. As peças que você salva ficam no seu próprio navegador, e só você as vê.</p>
+  </div>
+
+  <h2>O que a extensão lê</h2>
+  <p>Quando você clica no ícone do LookPilot numa página de produto, ela lê <strong>o texto visível dessa página</strong> — a composição da etiqueta, o nome da peça, o preço, a avaliação e as fotos. É a mesma informação que está diante dos seus olhos.</p>
+  <p>Ela lê apenas a aba em que você clicou, e apenas naquele momento. Não acompanha a sua navegação, não lê outras abas, não lê o que você escreve.</p>
+
+  <h2>Onde a análise acontece</h2>
+  <p>Inteiramente no seu computador. A tabela de fibras que dá origem à nota vem dentro da própria extensão, então não é preciso consultar nada fora.</p>
+  <p>Isto não é uma promessa vaga: o código da extensão não contém nenhuma chamada de rede para envio de dados.</p>
+
+  <h2>O que sai do navegador — e é só isto</h2>
+  <p>Quando você abre a <strong>análise completa</strong>, a extensão abre uma página em <code>lookpilotapp.com</code> e leva os dados da peça <strong>dentro do endereço</strong>: nome, composição, nota e o link da loja.</p>
+  <p>Como qualquer endereço visitado, esse endereço passa pelo serviço que hospeda o site (a Vercel) e pode ficar nos registos técnicos dele. É o mesmo que acontece quando você visita qualquer site. Não guardamos esses dados em base de dados nenhuma, porque não temos nenhuma.</p>
+  <p>Se preferir que nem isso aconteça, o card na loja já traz a nota e o veredito — abrir a análise completa é opcional.</p>
+
+  <h2>O que fica guardado, e onde</h2>
+  <ul>
+    <li><strong>A última peça analisada</strong> — para o ícone conseguir mostrá-la de novo. Fica no armazenamento da extensão, no seu navegador.</li>
+    <li><strong>As peças que você salva</strong> — ficam no armazenamento do site, no seu navegador. Não são enviadas para lado nenhum, e por isso não aparecem noutro computador seu.</li>
+  </ul>
+  <p>Apagar a extensão, ou limpar os dados do site no seu navegador, apaga tudo isto de vez. Não temos cópia.</p>
+
+  <h2>Medição de audiência no site</h2>
+  <p>O site <code>lookpilotapp.com</code> usa o Vercel Analytics e o Google Analytics para saber quantas pessoas o visitam e que botões usam. Isso mede <strong>o uso do site</strong>, não as suas peças, e não está ligado a nenhuma identidade — não há conta para ligar.</p>
+  <p>A extensão em si não tem medição nenhuma.</p>
+
+  <h2>As permissões que a extensão pede, e porquê</h2>
+  <ul>
+    <li><strong>Ler a página em que você clicou</strong> — é o próprio trabalho: sem ler a etiqueta, não há análise.</li>
+    <li><strong>Armazenamento</strong> — para lembrar a última peça e as que você salvou.</li>
+    <li><strong>Abas</strong> — para saber em que página você está quando clica no ícone, e para abrir a análise completa.</li>
+  </ul>
+  <p>A extensão declara acesso a qualquer site porque as lojas são muitas e mudam de endereço. Esse acesso serve só para ler a página quando você pede — em nenhum momento o conteúdo é enviado para fora.</p>
+
+  <h2>O que nunca fazemos</h2>
+  <ul>
+    <li>Não vendemos nem partilhamos os seus dados. Não há dados nossos para vender.</li>
+    <li>Não pedimos nome, email, morada ou dados de pagamento.</li>
+    <li>Não usamos o que você analisa para publicidade.</li>
+    <li>Não seguimos a sua navegação entre sites.</li>
+  </ul>
+
+  <h2>Crianças</h2>
+  <p>O LookPilot não se destina a menores de 13 anos e não recolhe dados de forma consciente de ninguém nessa idade.</p>
+
+  <h2>Alterações</h2>
+  <p>Se algo mudar — por exemplo, se um dia passar a existir conta ou sincronização — esta página é atualizada antes da mudança entrar em vigor, e a data no topo passa a mostrar quando.</p>
+
+  <h2>Contacto</h2>
+  <p>Dúvidas ou pedidos sobre privacidade: <a href="mailto:CONTACTO@EXEMPLO.COM">CONTACTO@EXEMPLO.COM</a>.</p>
+</main>
+
+<footer>
+  <span>LookPilot · A qualidade se descobre</span>
+  <span><a href="index.html">Início</a></span>
+</footer>
+
+</body>
+</html>
