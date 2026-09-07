@@ -1146,10 +1146,13 @@
     });
   }
 
-  // Clear card on SPA navigation (scan stays user-triggered).
-  // Só conta como navegação a mudança de PATH — não hash/query (abrir um modal
-  // de composição muda muitas vezes a query/hash e isso NÃO é trocar de produto).
-  // E nunca durante um scan ativo, para não apagar o loading a meio.
+  // Limpa o card ao trocar de peça (o scan continua a ser pedido pela pessoa).
+  // Este comentário descrevia o contrário do que o código faz hoje: dizia que
+  // só a mudança de PATH contava, e não a query. Contava até a camisa de modal
+  // da Mango aparecer como "Linho" — a análise da peça ANTERIOR, porque a
+  // Mango troca de produto pela query e o card antigo sobrevivia por cima.
+  // Agora a query conta (menos os parâmetros de rastreio), e nunca se limpa
+  // durante um scan activo, para não apagar o loading a meio.
   let scanning = false;
 
   // Identidade da peça que está no ecrã. Era só origin+pathname, e isso deixa
