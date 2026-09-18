@@ -823,26 +823,6 @@
     } catch (e) {
       card.removeAttribute('popover');
     }
-    mantemVivo(card);
-  }
-
-  // O card tem de continuar a aceitar cliques enquanto a loja abre a gaveta.
-  // Era ESTE o "botão morto" da Zara: ao abrir a gaveta da composição — que a
-  // própria extensão manda abrir para ler a etiqueta — a Zara marca com
-  // `inert` tudo o que está fora dela, e o nosso card levava a marca junto.
-  // Inert é invisível: a peça continua desenhada na tela, com a nota e o
-  // botão, e o clique simplesmente atravessa. Nenhum erro, nenhum aviso.
-  // Qualquer loja com modal acessível faz o mesmo, por isso o card vigia a
-  // marca e tira-a sempre que ela voltar.
-  function mantemVivo(card) {
-    const limpa = () => {
-      if (card.hasAttribute('inert')) card.removeAttribute('inert');
-      card.inert = false;
-    };
-    limpa();
-    try {
-      new MutationObserver(limpa).observe(card, { attributes: true, attributeFilter: ['inert'] });
-    } catch (e) {}
   }
 
   // Quem abre a aba é o Chrome, não a página da loja.

@@ -1558,8 +1558,9 @@ console.log('══════════════════════�
 //   entrega.js — o zip que o botão "Baixar extensão" entrega
 //   coerencia.js — o texto bate com a peça? (nota certa, frase absurda)
 //   acervo.js — o motor contra páginas reais guardadas de cada loja
+//   abrir-aba.js — os botões do card abrem mesmo (a Zara engolia o clique)
 let extras = 0;
-for (const t of ['coerencia.js', 'acervo.js', 'pagina.js', 'entrega.js']) {
+for (const t of ['coerencia.js', 'acervo.js', 'pagina.js', 'entrega.js', 'abrir-aba.js']) {
   try {
     require('child_process').execSync('node ' + require('path').join(__dirname, t),
       { stdio: 'inherit' });
