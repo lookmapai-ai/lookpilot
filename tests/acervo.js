@@ -198,9 +198,12 @@ const SUSPEITAS = [
   },
   {
     id: 'fibra-sem-a-palavra-composicao-por-perto',
-    porque: 'leu fibra numa página que nunca diz "composição" — o número quase de certeza é preço, desconto ou tamanho',
+    porque: 'leu fibra numa página que nunca diz "composição" nem rotula o material — o número quase de certeza é preço, desconto ou tamanho',
+    // "Composição" não é a única palavra: a C&A nunca a escreve, e põe a
+    // etiqueta em "Informacoes gerais: Material: 65% poliéster". Exigir só
+    // aquela palavra transformava uma leitura certa em suspeita.
     ve: (r, p) => r.fibras.length > 0
-      && !/composi[çc][ãa]o|composici[óo]n|composition|material principal|tecido principal|tejido|\bfabric\b/i.test(p.texto)
+      && !/composi[çc][ãa]o|composici[óo]n|composition|material\s*:|materiais|materials?\s*:|informa[çc][õo]es gerais|material principal|tecido principal|tejido|\bfabric\b/i.test(p.texto)
   },
   {
     id: 'fibra-de-inverno-em-peca-de-verao',

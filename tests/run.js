@@ -1464,6 +1464,36 @@ test('[Recomendados] carrossel da loja não empresta tecnologia à peça', () =>
   return true;
 });
 
+test('[Recomendados] botão no topo da página não corta a etiqueta', () => {
+  // C&A: "Me mostre produtos similares" é um BOTÃO no topo, e a etiqueta
+  // vive lá em baixo, sem a palavra "composição". Cortar no primeiro
+  // marcador deitava a página fora a partir do botão, e a extensão dizia
+  // que não conseguia ler uma página que publica a composição.
+  const texto = 'Camisa listrada\nMe mostre produtos similares\nSobre o produto\n'
+    + 'Informacoes gerais:\nMaterial: 65% poliéster, 35% algodão\nCor: Azul';
+  const f = parseComposition(cortaRecomendados(texto), 'clothing');
+  if (f.length !== 2) return fail(`leu ${JSON.stringify(f.map(x => x.name + ':' + x.pct))}`);
+  return true;
+});
+
+test('[Recomendados] o corte continua a acontecer DEPOIS da etiqueta', () => {
+  // A protecção que motivou o corte não pode cair com a correcção acima:
+  // o que vem depois do carrossel é de outras peças.
+  const texto = 'Composição: 100% algodão\nProdutos similares\nCasaco 100% lã';
+  const cortado = cortaRecomendados(texto);
+  if (/lã/.test(cortado)) return fail('o carrossel sobreviveu ao corte');
+  const f = parseComposition(cortado, 'clothing');
+  return (f.length === 1 && f[0].pct === 100) || fail(JSON.stringify(f.map(x => x.name)));
+});
+
+test('[Recomendados] página sem etiqueta nenhuma corta no primeiro marcador', () => {
+  // Sem composição da peça, tudo o que vier depois do marcador é de outra —
+  // aqui o corte cedo continua a ser o comportamento certo.
+  const texto = 'Blusa bonita\nProdutos similares\nCamisola 100% lã merino';
+  const f = parseComposition(cortaRecomendados(texto), 'clothing');
+  return f.length === 0 || fail(`leu a peça do lado: ${JSON.stringify(f.map(x => x.name))}`);
+});
+
 test('[Tecnologias] afirmação normal continua a contar', () => {
   const s = calcScores([fiber('poliéster', 100)], 'Sistema recco integrado', '', 'Casaco');
   if (s.brandTech !== 'RECCO') return fail(`esperava RECCO, veio ${s.brandTech}`);

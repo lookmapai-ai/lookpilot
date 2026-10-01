@@ -655,9 +655,51 @@
   // por CSS e não pegou; isto pega pelo texto do próprio título da secção,
   // que varia menos entre sites do que o nome da classe.
   const RECOMENDADOS_RE = /people also (viewed|bought|liked)|you may also like|customers? also (bought|viewed)|também compraram|também viu|também gostou|produtos relacionados|related products|complete o look|complete the look|produtos recomendados|produtos semelhantes|produtos similares|artigos relacionados|quem viu isto|outros clientes|recomendado para si|pode(?:rá)? também gostar|comprar conjunto/i;
+  // Onde começa a composição no texto (-1 se não houver). "25% OFF" e
+  // "50% desconto" não contam — por isso o filtro de palavras.
+  // `[^\S\n]` = espaço mas NÃO quebra de linha, senão "50%\nSelecione"
+  // (desconto numa linha, palavra na seguinte) passava por etiqueta.
+  const NOT_FIBER = /^(desconto|desc|discount|off|rebaix|reduc|poupan|save|menos|extra|ate|até|mais|desde|apenas|only|gratis|grátis|selecion|select|tamanho|size)/i;
+  function indiceComposicao(s) {
+    const re = /\d{1,3}[.,]?\d*[^\S\n]*%[^\S\n]*(?:de[^\S\n]+)?([a-zà-öø-ÿ]{3,})/gi;
+    let m;
+    while ((m = re.exec(s)) !== null) { if (!NOT_FIBER.test(m[1])) return m.index; }
+    const re2 = /([a-zà-öø-ÿ]{3,})[^\S\n]+\d{1,3}[.,]?\d*[^\S\n]*%/gi;
+    while ((m = re2.exec(s)) !== null) { if (!NOT_FIBER.test(m[1])) return m.index; }
+    const main = /\bmain\s*:/i.exec(s);
+    return main ? main.index : -1;
+  }
+  const hasComposition = (s) => indiceComposicao(s) >= 0;
+
+  // O corte acontece DEPOIS da etiqueta da peça, nunca antes.
+  // A C&A tem um botão "Me mostre produtos similares" no TOPO da página, e a
+  // etiqueta vive lá em baixo, em "Informacoes gerais: Material: 65%
+  // poliéster". Cortar no primeiro marcador deitava a página fora a partir do
+  // botão, e a extensão dizia não conseguir ler uma página que publica a
+  // composição. Veio de retorno de quem testa.
+  //
+  // Três casos, e a regra tem de acertar nos três:
+  //   1. etiqueta ANTES do marcador  → corta aí (é o carrossel da loja);
+  //   2. nada de etiqueta antes, e depois do marcador vem uma ficha ROTULADA
+  //      ("Composição", "Material:") → é a ficha da peça, não se corta ali;
+  //   3. nada de etiqueta antes e nenhuma ficha rotulada depois → corta no
+  //      primeiro marcador, porque o "100% lã" ali à frente é da peça do lado.
+  const ROTULO_FICHA = /composi[çc][ãa]o|composici[óo]n|composition|material\s*:|materiais|materials?\s*:|tecido principal|material principal/i;
   function cortaRecomendados(txt) {
-    const m = RECOMENDADOS_RE.exec(txt || '');
-    return m ? txt.slice(0, m.index) : txt;
+    const t = txt || '';
+    const re = new RegExp(RECOMENDADOS_RE.source, 'gi');
+    let m, primeiro = -1;
+    while ((m = re.exec(t)) !== null) {
+      if (primeiro < 0) primeiro = m.index;
+      if (indiceComposicao(t.slice(0, m.index)) >= 0) return t.slice(0, m.index);
+    }
+    if (primeiro < 0) return t;
+    const rotulo = ROTULO_FICHA.exec(t.slice(primeiro));
+    if (!rotulo) return t.slice(0, primeiro);
+    // Guarda a ficha da peça e corta no marcador seguinte, se houver.
+    re.lastIndex = primeiro + rotulo.index;
+    const seguinte = re.exec(t);
+    return seguinte ? t.slice(0, seguinte.index) : t;
   }
 
   function extractAllText() {
@@ -723,18 +765,6 @@
     // Deteta composição REAL: "% fibra" ou "fibra %" — não descontos tipo "-46%"
     // nem "50% de desconto" (Mango). Exclui palavras de desconto/poupança.
     // (o leaf-scan ignora <p> com filhos, onde lojas como Pull&Bear metem a descrição)
-    // `[^\S\n]` = espaço mas NÃO quebra de linha — impede casar "50%\nSelecione"
-    // (desconto numa linha + palavra na seguinte) como se fosse composição.
-    const NOT_FIBER = /^(desconto|desc|discount|off|rebaix|reduc|poupan|save|menos|extra|ate|até|mais|desde|apenas|only|gratis|grátis|selecion|select|tamanho|size)/i;
-    const hasComposition = s => {
-      const re = /\d{1,3}[.,]?\d*[^\S\n]*%[^\S\n]*(?:de[^\S\n]+)?([a-zà-öø-ÿ]{3,})/gi;
-      let m;
-      while ((m = re.exec(s)) !== null) { if (!NOT_FIBER.test(m[1])) return true; }
-      const re2 = /([a-zà-öø-ÿ]{3,})[^\S\n]+\d{1,3}[.,]?\d*[^\S\n]*%/gi;
-      while ((m = re2.exec(s)) !== null) { if (!NOT_FIBER.test(m[1])) return true; }
-      return /\bmain\s*:/i.test(s);
-    };
-
     // Último recurso: se o leaf-scan não apanhou composição, usa innerText completo
     if (!hasComposition(text)) {
       const bodyText = cortaRecomendados((document.body.innerText || '').trim());
