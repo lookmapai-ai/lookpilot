@@ -1589,8 +1589,9 @@ console.log('══════════════════════�
 //   coerencia.js — o texto bate com a peça? (nota certa, frase absurda)
 //   acervo.js — o motor contra páginas reais guardadas de cada loja
 //   abrir-aba.js — os botões do card abrem mesmo (a Zara engolia o clique)
+//   acordeao.js — a etiqueta que está a um clique (painel fechado da loja)
 let extras = 0;
-for (const t of ['coerencia.js', 'acervo.js', 'pagina.js', 'entrega.js', 'abrir-aba.js']) {
+for (const t of ['coerencia.js', 'acervo.js', 'pagina.js', 'entrega.js', 'abrir-aba.js', 'acordeao.js']) {
   try {
     require('child_process').execSync('node ' + require('path').join(__dirname, t),
       { stdio: 'inherit' });

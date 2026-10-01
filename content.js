@@ -594,7 +594,16 @@
       // painel de ficha técnica; como parte de uma frase maior podia ser
       // qualquer coisa. E continuam a valer as guardas de cima — nunca <a>,
       // nunca dentro de link — por isso não há risco de mudar de página.
+      // "material" sozinho entra nesta lista apesar de parecer arriscado: na
+      // C&A europeia o painel da etiqueta abre num <button> escrito só
+      // "Material", sem aria-expanded — a parte 1 desta função não o vê, e a
+      // regra de "composi" também não, porque a palavra "Composition" só
+      // aparece DEPOIS de abrir. A extensão dizia não conseguir ler uma blusa
+      // de linho que publica "Outer material: 100% Linen". Veio de retorno de
+      // quem testa. O risco de navegação continua coberto pelas guardas: aqui
+      // nunca se clica num <a> nem em nada dentro de um link.
       const exact = ['material e cuidados','materiais e cuidados','material e cuidado','material & care','material and care',
+                     'material','materiais','materials',
                      'especificações','especificacoes','especificaciones','specifications','technical specifications',
                      'ficha técnica','ficha tecnica','detalhes do produto','product details'];
       const matches = txt => /composi(?:ção|tion|ción)/.test(txt) || exact.includes(txt);
