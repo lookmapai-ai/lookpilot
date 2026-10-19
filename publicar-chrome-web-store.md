@@ -9,20 +9,55 @@ campo tal como aparece no painel do Google.
 
 ---
 
+## 0 · Antes de abrir o formulário
+
+Duas coisas têm de estar no ar e actualizadas antes de submeter, porque o
+avaliador clica nelas:
+
+1. **A política de privacidade** — `https://www.lookpilotapp.com/privacidade.html`.
+   O formulário pede o endereço e ele tem de abrir.
+2. **A página de análise** — `https://www.lookpilotapp.com/analise.html`. É
+   para onde o botão "Ver análise completa" leva. O site é publicado pela
+   Vercel a partir do que está no GitHub: enquanto o último commit não for
+   empurrado, a página no ar corre a versão antiga e mostra frases que já
+   foram corrigidas aqui.
+
+```bash
+git push                 # a Vercel publica sozinha a partir daí
+```
+
+Para confirmar que o que está no ar é o que está aqui:
+
+```bash
+curl -s https://www.lookpilotapp.com/runtime.js | shasum | cut -c1-12
+shasum landing/runtime.js | cut -c1-12      # têm de dar o mesmo
+```
+
+---
+
 ## 1 · Ficha da loja
+
+> **Nome e descrição curta não se escrevem no painel.** Vêm do
+> `manifest.json` que vai dentro do zip, e depois do primeiro envio o painel
+> não deixa editá-los — corrigir um erro custa versão nova e revisão nova.
+> Já estão certos no manifest; os blocos abaixo são o espelho dele, e um
+> teste (`node tests/entrega.js`) falha se os dois deixarem de bater.
 
 **Nome**
 ```
 LookPilot — a etiqueta, lida por você
 ```
 
-**Descrição curta** (132 caracteres no máximo)
+**Descrição curta** (132 caracteres no máximo — também vem do manifest)
 ```
 Lê a composição da etiqueta em qualquer loja online e diz, em segundos, se a peça vale mesmo a pena.
 ```
 
 **Categoria:** Compras
 **Idioma:** Português (Portugal)
+
+Estes dois, sim, escolhem-se no painel — tal como a descrição completa
+abaixo, as imagens e tudo o que vem a seguir.
 
 **Descrição completa**
 ```
@@ -138,6 +173,15 @@ O conteúdo lido não é enviado para nenhum servidor da extensão. Quando o uti
 | Ícone da loja | 128×128 | já existe (`icon128.png`) |
 | Mosaico pequeno | 440×280 | opcional, mas ajuda na descoberta |
 
+Os ficheiros já existem, e o `empacotar.sh` copia-os todos para `dist/` —
+a pasta do envio. Não é preciso andar à procura deles durante o formulário:
+
+| Campo do painel | Ficheiro em `dist/` |
+|---|---|
+| Captura de ecrã | `loja-captura-1280x800.png` |
+| Ícone da loja | `icon128.png` |
+| Mosaico pequeno | `loja-mosaico-440x280.png` |
+
 **Sugestão para a primeira captura:** o cartão do LookPilot aberto sobre uma
 página de produto real, com a nota e o veredito visíveis. É a única imagem
 que explica o produto sem uma linha de texto.
@@ -147,17 +191,34 @@ composição — mas nunca como primeira imagem.
 
 ---
 
-## 6 · Antes de carregar o zip
+## 6 · O zip a carregar
+
+São dois zips, com o mesmo código arrumado de duas maneiras opostas:
+
+| Ficheiro | Para quê | Como está lá dentro |
+|---|---|---|
+| `dist/lookpilot-loja.zip` | **é este que sobe para a loja** | `manifest.json` na raiz |
+| `landing/lookpilot-extensao.zip` | botão "Baixar extensão" da landing | tudo dentro da pasta `lookpilot/` |
+
+A diferença não é cosmética: o Google recusa o pacote inteiro — *"Manifest
+file is missing or unreadable"* — se o manifest estiver dentro de uma pasta,
+e quem instala à mão precisa exactamente do contrário, porque o Chrome manda
+escolher uma pasta em "Carregar sem compactação".
+
+Gere os dois e corra a suite, por esta ordem:
 
 ```bash
+cd landing && ./empacotar.sh && cd ..
 node tests/run.js
 ```
 
-Tem de dar tudo verde. O último teste confirma que o zip corresponde ao
-código do repositório — se estiver desactualizado, quem instalar recebe uma
-versão velha.
+Tem de dar tudo verde. A secção "Pacote da Chrome Web Store" confere que o
+zip da loja tem o manifest na raiz, que não leva lixo dentro, que é mais novo
+que o código e que bate byte a byte com o repositório — se estiver
+desactualizado, sobe para revisão uma versão velha.
 
-O ficheiro a carregar é `landing/lookpilot-extensao.zip`.
+`dist/` não é versionado de propósito: o pacote da loja gera-se sempre na
+hora do envio, para nunca haver um zip esquecido com cara de novo.
 
 ---
 

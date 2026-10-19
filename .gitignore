@@ -11,3 +11,6 @@ LookPilot*.html
 # landing/lookpilot-extensao.zip É versionado: é o arquivo que o botão
 # "Baixar extensão" entrega em produção (não tem servidor gerando na hora).
 !landing/lookpilot-extensao.zip
+
+# o pacote da loja gera-se na hora do envio (empacotar.sh), nunca se versiona
+dist/

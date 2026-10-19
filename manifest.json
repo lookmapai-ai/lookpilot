@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "LookPilot",
+  "name": "LookPilot — a etiqueta, lida por você",
   "version": "9.5",
-  "description": "Analisa a composição têxtil de qualquer peça e diz se vale a pena comprar.",
+  "description": "Lê a composição da etiqueta em qualquer loja online e diz, em segundos, se a peça vale mesmo a pena.",
   "permissions": [
     "activeTab",
     "storage",
