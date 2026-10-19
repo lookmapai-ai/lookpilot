@@ -232,9 +232,26 @@ const SUSPEITAS = [
     aviso: true
   },
   {
+    // O inverso do caso acima: o tipo está certo, a peça É agasalho, e
+    // mesmo assim a nota premeia. Um casaco que não declara enchimento, nem
+    // malha, nem membrana, nem fibra quente não aquece — e se ainda assim
+    // sai de "Vale considerar" para cima, a nota está a medir durabilidade e
+    // manutenção (onde o poliéster é bom) no lugar da única coisa que um
+    // casaco tem de fazer. Era o caso do blusão da Zara: 66/100.
+    id: 'agasalho-sem-calor-com-nota-alta',
+    porque: 'o agasalho não declara nada que aqueça e a nota continua a recomendá-lo — a nota está a medir outra coisa',
+    ve: (r) => r.tipo === 'casaco' && r.s && r.s.semProvaDeCalor && r.nota != null && r.nota >= 55
+  },
+  {
     id: 'agasalho-nao-reconhecido',
     porque: 'o título diz que é casaco/jaqueta e o motor classificou como peça genérica — troca a família de frases inteira',
-    ve: (r, p) => /casaco|jaqueta|parka|anorak|chaqueta|abrigo|jacket|coat/i.test(p.meta.titulo || '')
+    // A lista é de propósito INDEPENDENTE da do shared.js: uma suspeita que
+    // importasse a regra do motor concordaria sempre com ele e nunca apanhava
+    // nada. Por isso é também mais larga — aqui lê-se só o título do produto,
+    // onde "abrigo" é o casaco espanhol e não o rodapé da garantia legal.
+    // Faltava-lhe "blusão", a palavra da Zara portuguesa: quando o motor
+    // deixou de reconhecer o blusão, esta rede também não o viu.
+    ve: (r, p) => /casac|jaquet|parka|anorak|chaquet|abrigo|jacket|coats?\b|blus[ãa]o|blus[õo]es|bomber|corta[-\s]?vento|windbreaker|kispo|cazadora|plum[ií]fero|gabardin|trench|sobretudo|manteau|doudoune|blouson|puffer/i.test(p.meta.titulo || '')
                   && r.tipo !== 'casaco'
   }
 ];

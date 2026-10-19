@@ -541,8 +541,43 @@ function calcScores(fibers, pageText, certText, titleText) {
   const travelMaterial = Math.min(100, Math.round(travelRaw + (elastano ? Math.min(8, (elastano.pct || 0) * 0.4) : 0)));
   // Packability precisa de saber se é malha — calcula isKnit antes do travel
   const isKnitEarly = /tricot|tric[ôo]|knit|malha|jersey|jacquard|knitwear|croch[eê]|crochet|sweater|camisola|pullover|pul[oô]ver|cardigan|cardig[aã]|gola alta|tur(t|l)eneck|jumper|camisaco/i.test(textoAmplo);
-  // Peças estruturadas/volumosas ocupam muito espaço na mala, seja qual for a fibra
-  const isBulkyGarment = /casaco|sobretudo|parka|trench|blaz[eê]r|jaqueta|jacket|coat|overcoat|puffer|acolchoad|quilted|gabardine|trincheira/i.test(textoAmplo);
+  // Peças estruturadas/volumosas ocupam muito espaço na mala, seja qual for a
+  // fibra — e esta mesma lista decide o TIPO da peça no detectGarmentType
+  // (agasalho vs. roupa genérica), por isso uma palavra que falta aqui não
+  // custa só volume de mala: troca a família de frases inteira.
+  //
+  // Foi o que aconteceu com "blusão", que é a palavra que a Zara portuguesa
+  // usa para quase todo agasalho leve ("BLUSÃO CRUZADO SOFT", 100% poliéster
+  // no exterior e no forro). Sem a palavra na lista, a peça caía em
+  // "clothing" genérico: era julgada com o peso de roupa que toca a pele o
+  // dia inteiro e saía com "não respira bem (esquenta mais) ... não para os
+  // dias quentes" — dito de um blusão de inverno, que existe precisamente
+  // para abafar. Veio de retorno de quem testa.
+  //
+  // Por isso entram juntas as outras palavras da MESMA classe que faltavam,
+  // nas línguas em que escrevem as lojas que servem Portugal: blusão, anorak,
+  // bomber, corta-vento, kispo (PT); chaqueta, cazadora, plumífero, gabardina
+  // (ES); manteau, doudoune, blouson (FR); windbreaker (EN).
+  //
+  // Ficam de fora, de propósito, duas tentações: "abrigo", porque em
+  // português aparece em "ao abrigo da garantia legal", que a Zara tem no
+  // rodapé de TODAS as páginas; e "veste", porque é o verbo ("a peça veste
+  // bem"). Uma palavra ambígua aqui transforma uma t-shirt em casaco.
+  //
+  // E "coat" passa a exigir fim de palavra (`coats?\b`): assim continua a
+  // apanhar coat, overcoat, raincoat e trench coat, e deixa de apanhar
+  // "coated"/"coating" — o acabamento encerado que as lojas põem em calças e
+  // saias, que transformava a calça num agasalho.
+  //
+  // E há palavras desta lista que descrevem TAMBÉM uma peça de baixo: a
+  // Decathlon vende "Calças corta-vento" e a Zara vende "Calças gabardine"
+  // (aí gabardina é o tecido, não o sobretudo). Nenhuma peça de baixo é um
+  // agasalho, e isso lê-se no TÍTULO do produto — não no texto da página, que
+  // num casaco fala de calças na secção "complete o seu look". Por isso o
+  // título manda aqui, e manda como veto.
+  const ehParteDeBaixo = /\bcal[çc]as?\b|\bcal[çc][õo]es\b|\bsaia\b|\bshorts?\b|\bbermudas?\b|\bleggings?\b|\btrousers\b|\bpants\b|\bskirt\b/i.test(titleText || '');
+  const isBulkyGarment = !ehParteDeBaixo
+    && /casac|sobretudo|parka|trench|blaz[eê]r|jaquet|jacket|coats?\b|puffer|acolchoad|quilted|gabardin|trincheira|blus[ãa]o|blus[õo]es|anorak|bomber|corta[-\s]?vento|windbreaker|kispo|chaquet|cazadora|plum[ií]fero|manteau|doudoune|blouson/i.test(textoAmplo);
   const packability = typeof packabilityScore === 'function' ? packabilityScore(fibers, isKnitEarly, isBulkyGarment) : 65;
   const warmth = typeof warmthScore === 'function' ? warmthScore(fibers) : null;
   // Travel Score: para peças de inverno (calor alto), o calor é um trunfo —
@@ -569,10 +604,43 @@ function calcScores(fibers, pageText, certText, titleText) {
   // bermuda "carpinteiro" (na prática quase jeans) herdava o amassa:3 médio
   // do algodão fino, quando quem já viu a peça sabe que ela não amarrota.
   const isHeavyWoven = /sarja|gabardine|ganga\b|denim|canvas|\bbrim\b|carpinteiro|workwear|twill|cargo|caqui pesad[oa]|drill/i.test(textoAmplo);
+  // ─── Agasalho sem prova nenhuma de que aquece ──────────────────────
+  // Um casaco tem uma função antes de todas as outras: aquecer. E o
+  // LookPilot media tudo menos essa — a nota de casaco é feita de qualidade,
+  // durabilidade, manutenção e custo-benefício, e o poliéster pontua bem em
+  // todas. Resultado: o blusão 100% poliéster da Zara, sem enchimento e sem
+  // membrana, saía com 66/100 "Vale considerar" e com a frase "é o que se
+  // espera de um casaco". Não é. O que se espera de um casaco é calor, e
+  // esta peça não dá prova nenhuma de o ter. Veio de retorno de quem testa.
+  //
+  // "Prova" é qualquer coisa que a página publique e que explique o calor:
+  // enchimento ou pena, ficha técnica ou membrana, malha, tecido encorpado,
+  // uma construção quente declarada (polar, sherpa, forro térmico) ou uma
+  // fibra quente em dose que conte. Sem nenhuma delas, a peça não aquece —
+  // é camada de fora, e o preço de inverno dela é publicidade.
+  //
+  // Duas notas sobre o desenho desta regra:
+  //   · a dose de 20% e o corte de 70 na tabela de calor deixam passar lã,
+  //     caxemira, alpaca, mohair e acrílico — as fibras que de facto aquecem
+  //     — e não deixam passar os 3% de lã decorativos de uma mistura;
+  //   · o blazer fica fora da acusação: ninguém o compra para aquecer, e
+  //     cobrar-lhe calor é cobrar o que ele nunca prometeu.
+  const construcaoQuente = /\bpolar(es)?\b|fleece|\bvelo\b|sherpa|borrego|teddy|pel[úu]cia|\bpile\b|softshell|soft\s?shell|forro t[eé]rmico|isolamento t[eé]rmico|thinsulate|primaloft/i.test(textoAmplo);
+  // A tabela de calor por fibra vive mais abaixo neste ficheiro; o guarda
+  // existe pelo mesmo motivo dos outros (`typeof warmthScore === 'function'`):
+  // quem carrega só parte do shared.js não pode rebentar aqui.
+  const tabelaCalor = (typeof WARMTH !== 'undefined') ? WARMTH : {};
+  const fibraQuenteEmDose = (fibers || []).some((f) =>
+    (tabelaCalor[(f.name || '').toLowerCase()] || 0) >= 70 && (f.pct || 0) >= 20);
+  const ehBlazer = /blaz[eê]r/i.test(textoAmplo);
+  const semProvaDeCalor = isBulkyGarment && !ehBlazer
+    && !isPadded && !hasTechSpec && !fichaTecnica && !isKnit && !isHeavyWoven
+    && !construcaoQuente && !fibraQuenteEmDose;
+
   // Semente de variação: primeiro tipo de peça encontrado no texto → frases variam entre tipos de peça
   const garmentWords = (pageText || '').toLowerCase().match(/camisa|t-?shirt|camiseta|vestido|cal[çc]a|saia|blusa|top|casaco|blaz[eê]r|jaqueta|short|macac[ãa]o|sobretudo|cardigan|camisola|sweater|polo/);
   const productSeed = garmentWords ? garmentWords[0] : '';
-  return { quality: qualityFinal, comfort, durability: durabilityFinal, maintenance, versatility, costBenefit, travel, travelMaterial, packability, warmth, overall, natPct, synPct, certs, fibers, qualityModifier: qmod, isKnit, isHeavyWoven, isBulkyGarment, isPadded, fichaTecnica, hasTechSpec, brandTech, brandTechInfo, temperaturaMin, productSeed, colorInfo };
+  return { quality: qualityFinal, comfort, durability: durabilityFinal, maintenance, versatility, costBenefit, travel, travelMaterial, packability, warmth, overall, natPct, synPct, certs, fibers, qualityModifier: qmod, isKnit, isHeavyWoven, isBulkyGarment, isPadded, semProvaDeCalor, fichaTecnica, hasTechSpec, brandTech, brandTechInfo, temperaturaMin, productSeed, colorInfo };
 }
 
 // ─── Que tipo de peça é essa? ─────────────────────────────────────
@@ -639,7 +707,22 @@ function buyScore(scores, garmentType) {
     if (factors[k] != null) { sum += factors[k] * w[k]; wsum += w[k]; }
   }
   const bruto = wsum > 0 ? sum / wsum : scores.overall;
-  return escalaCompra(bruto);
+
+  // Desconto do agasalho que não dá prova de aquecer (a regra e o porquê
+  // estão no calcScores, em `semProvaDeCalor`). Não há aqui um fator "calor"
+  // a entrar na média, e é de propósito: o calor que o motor calcula vem da
+  // FIBRA da etiqueta, e num casaco acolchoado a etiqueta descreve o casco —
+  // um casaco de pena marcaria calor de poliéster e levaria o desconto que
+  // menos merece. Enquanto o calor não puder ser medido na peça, e não só na
+  // fibra, isto é um desconto declarado e não um fator.
+  //
+  // 8 pontos de bruto são ~18 na escala final (a faixa útil é 40–85): o
+  // blusão 100% poliéster da Zara passa de 66 "Vale considerar" para 48
+  // "Pense bem". Não é zero — a peça corta vento, dura e lava-se fácil, e a
+  // 23 € cumpre como camada de meia-estação. Só não é o casaco de inverno
+  // que o preço e a fotografia sugerem.
+  const descontoSemCalor = (garmentType === 'casaco' && scores.semProvaDeCalor) ? 8 : 0;
+  return escalaCompra(bruto - descontoSemCalor);
 }
 
 // ─── Escala da nota ──────────────────────────────────────────────
@@ -754,6 +837,14 @@ function fichaTecnicaTexto(s) {
   // a mesma frase na quinta peça confia menos, não mais.
   return `A ficha da loja: ${partes.join('; ')}.`;
 }
+
+// A frase do agasalho que não aquece. Vive fora do conclusionText porque é
+// dita em dois lugares (o ramo do casaco sintético e a rede de segurança no
+// fim) e as duas têm de dizer exatamente o mesmo — duas versões da mesma
+// ressalva acabam sempre com uma delas desatualizada.
+const SEM_CALOR_PT = 'Mas não aquece: sem enchimento, sem malha e sem membrana, '
+  + 'a etiqueta descreve um tecido de meia-estação. Para o frio a sério é camada de '
+  + 'fora, sobre uma peça que aqueça.';
 
 function conclusionText(scores, fibers, garmentType) {
   const en = typeof LP_LANG !== 'undefined' && LP_LANG === 'en';
@@ -904,6 +995,13 @@ function conclusionText(scores, fibers, garmentType) {
       why = `${mainName} em ${mainPct}% é a escolha certa aqui: casaco técnico é feito de sintético porque fibra natural encharca e pesa — nenhuma faz impermeável e respirável ao mesmo tempo.${certNote} Aguenta uso duro e seca rápido.`;
     } else if (isVirgin && isKnitwear) {
       why = `${mainName} em ${mainPct}% aquece bem e é fácil de cuidar${pills ? ', mas faz bolinhas com o tempo' : ''}. Sem certificação de reciclado, é a fibra menos sustentável — mas para uma peça de inverno, cumpre.`;
+    } else if (isCasaco && s?.semProvaDeCalor) {
+      // O MESMO casaco, mas sem nada que explique o calor: nem enchimento,
+      // nem malha, nem membrana, nem fibra quente. Aqui a frase de cima
+      // ("é o que se espera de um casaco") era uma mentira por elogio —
+      // num agasalho, o que se espera é precisamente o que falta. A peça
+      // continua a ter o que tem: corta vento, dura e lava-se fácil.
+      why = `${mainName} em ${mainPct}% corta o vento, aguenta uso pesado e é fácil de cuidar.${certNote} ${SEM_CALOR_PT} E respira pouco, então dentro de lugar aquecido você vai querer tirar.`;
     } else if (isCasaco) {
       // Num casaco, respirabilidade não é manchete: quem compra agasalho
       // quer saber se aquece e se aguenta. A ressalva continua (entrar num
@@ -1014,6 +1112,16 @@ function conclusionText(scores, fibers, garmentType) {
   if (!en) {
     const ficha = fichaTecnicaTexto(s);
     if (ficha) why = `${why} ${ficha}`;
+  }
+
+  // Rede de segurança do aviso de calor. O ramo do casaco sintético acima já
+  // o diz com as palavras dele; mas um agasalho sem prova de calor pode cair
+  // em qualquer outro ramo de texto — um sobretudo 100% algodão, por exemplo,
+  // sai pelo ramo das fibras naturais e nunca passa por lá. Nota e texto não
+  // podem divergir: se a nota desconta o calor que falta, o texto tem de
+  // dizer qual é o desconto. Entra uma vez só, nunca duas.
+  if (!en && s?.semProvaDeCalor && !/camada de fora/i.test(why)) {
+    why = `${why} ${SEM_CALOR_PT}`;
   }
 
   } // end PT branch

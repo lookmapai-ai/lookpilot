@@ -95,6 +95,13 @@
   // Sem isto, "pesa na mala" e "cria bolinhas" eram lidos do tecido externo
   // como se descrevessem a peça inteira.
   var ehAcolchoado = Q.get('acolchoado') === '1';
+  // Agasalho sem prova nenhuma de que aquece: nem enchimento, nem malha, nem
+  // membrana, nem fibra quente. Um blusão 100% poliéster é disto o exemplo —
+  // e a página dizia-lhe "barra o frio de fora", que é precisamente o que
+  // ele não faz. O card e a nota já tratavam a peça como camada de fora; sem
+  // este sinal, as duas telas que a pessoa lê davam respostas opostas sobre
+  // a mesma peça, e é a confiança na nota que paga essa conta.
+  var semProvaDeCalor = Q.get('semcalor') === '1';
   // Especificação técnica na etiqueta (impermeável, corta-vento, membrana).
   // Num casaco técnico o sintético é o material certo, não atalho de custo:
   // nenhuma fibra natural faz impermeável-respirável. Sem este sinal a
@@ -392,6 +399,16 @@
           t2 = variante([
             '==Aquece pelo recheio==, não pelo tecido de fora. Em lugar aquecido, você abre o fecho.',
             'O ==recheio é que segura o frio== — o tecido de fora corta o vento. Dentro, abre e resolve.'
+          ]);
+        } else if (semProvaDeCalor) {
+          // A peça corta vento — isso o tecido faz. O que ela não faz é
+          // aquecer, e é essa a pergunta deste capítulo.
+          t2 = variante([
+            '==Corta o vento, mas não aquece==: sem enchimento nem malha, é camada de fora sobre uma peça que aqueça.',
+            // As duas variantes dizem "não aquece" de propósito: é a
+            // afirmação que o teste de coerência exige em todas as telas, e
+            // variante que diz o mesmo por outras palavras passava a seco.
+            '==Segura o vento, mas não aquece==: para o inverno, pede uma camada quente por baixo.'
           ]);
         } else if (respira <= 4) {
           t2 = variante([

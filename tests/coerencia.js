@@ -52,7 +52,10 @@ const PECAS = [
          + 'Impermeável e corta-vento.',
     fibras: [fibra('Poliéster', 100)],
     esperaTipo: 'casaco',
-    agasalho: true
+    agasalho: true,
+    // O espelho do blusão: aqui o enchimento é a prova de calor, e a peça
+    // não pode levar nem o aviso nem o desconto.
+    esperaSemCalor: false
   },
   {
     nome: 'Columbia Puffect II — casaco acolchoado (Decathlon)',
@@ -149,7 +152,8 @@ const PECAS = [
     props: 'bol:6,ama:8,sec:8,cal:5,res:4,pes:6,sus:3',
     esperaTipo: 'casaco',
     agasalho: true,
-    tecnico: true
+    tecnico: true,
+    esperaSemCalor: false
   },
   {
     nome: 'Parka corta-vento (Zara)',
@@ -158,6 +162,28 @@ const PECAS = [
     fibras: [fibra('Poliéster', 100)],
     esperaTipo: 'casaco',
     agasalho: true
+  },
+  {
+    // A peça do print: a Zara portuguesa chama "blusão" a quase todo o
+    // agasalho leve, e a palavra não estava no vocabulário de agasalho. O
+    // blusão caía em "clothing" genérico e era julgado como roupa colada ao
+    // corpo: "não respira bem (esquenta mais) ... não para os dias quentes",
+    // dito de um agasalho de inverno. Sem título nenhum a dizer "casaco", é
+    // só a palavra "blusão" que separa o certo do absurdo aqui.
+    nome: 'Blusão cruzado soft (Zara)',
+    titulo: 'BLUSÃO CRUZADO SOFT - Borgonha | ZARA Portugal',
+    texto: 'EXTERIOR 100% poliéster FORRO 100% poliéster. Blusão de gola subida e manga '
+         + 'comprida. Bolsos dianteiros de debrum duplo. Acabamentos com pregas. Fecho '
+         + 'frontal cruzado com botões.',
+    fibras: [fibra('Poliéster', 100)],
+    esperaTipo: 'casaco',
+    agasalho: true,
+    esperaSemCalor: true,
+    // A segunda metade do mesmo print: reconhecer o blusão como agasalho
+    // corrigiu as frases, mas a nota continuava a dizer "Vale considerar"
+    // (66/100) a uma peça que não declara nada que aqueça. Quem testa viu
+    // logo: "100% poliéster não vale a pena pro inverno, não é peça técnica".
+    esperaVeredito: 'Pense bem'
   }
 ];
 
@@ -197,6 +223,35 @@ const REGRAS = [
     frase: /abafa|n[aã]o deixa a pele respirar|o calor do corpo n[aã]o sai/i,
     quando: (c) => c.agasalho,
     porque: 'casaco se abre e se tira — julgar como se fosse vestido colado ao corpo o dia todo inverte o que é qualidade'
+  },
+  {
+    // Agasalho que não dá prova nenhuma de aquecer (sem enchimento, sem
+    // malha, sem membrana, sem fibra quente): aqui o elogio é que mente. Um
+    // blusão 100% poliéster que recebe "é o que se espera de um casaco" está
+    // a ser vendido como o que não é — e quem o levar para o frio descobre
+    // sozinho. É o contrário da regra de cima: lá proibia-se cobrar calor a
+    // quem o tem, aqui proíbe-se dá-lo a quem não o tem.
+    id: 'agasalho-sem-calor-nao-leva-elogio-de-casaco',
+    frase: /[eé] o que se espera de um casaco|aquece bem|aquece muito|cumpre no frio/i,
+    quando: (c) => c.semCalor,
+    porque: 'a peça não declara nada que aqueça — elogiá-la como casaco é vender o que ela não é'
+  },
+  {
+    // E o aviso tem de existir, não basta não mentir: a nota desconta o
+    // calor que falta, e nota a descer sem frase que explique parece erro do
+    // LookPilot, não defeito da peça.
+    id: 'agasalho-sem-calor-diz-que-nao-aquece',
+    exige: /n[aã]o aquece|camada de fora/i,
+    quando: (c) => c.semCalor,
+    porque: 'sem o aviso, a nota cai e a pessoa não sabe porquê'
+  },
+  {
+    // O espelho, que é o que impede esta correção de virar o defeito
+    // seguinte: um casaco de pena ou de membrana NÃO pode levar o aviso.
+    id: 'agasalho-com-calor-nao-leva-o-aviso-de-que-nao-aquece',
+    frase: /n[aã]o aquece|camada de fora, sobre uma pe[çc]a que aque[çc]a/i,
+    quando: (c) => c.agasalho && !c.semCalor,
+    porque: 'dizer a um casaco de pena que não aquece é o mesmo defeito ao contrário'
   },
   {
     // O casco de um acolchoado é nylon fino esticado, não malha: não
@@ -338,6 +393,7 @@ function paramsDaPeca(p, s, tipo) {
   if (s.isKnit) q.malha = '1';
   if (s.isHeavyWoven) q.encorpado = '1';
   if (s.isPadded) q.acolchoado = '1';
+  if (s.semProvaDeCalor) q.semcalor = '1';
   if (s.hasTechSpec) q.tecnico = '1';
   const ficha = typeof fichaTecnicaTexto === 'function' ? fichaTecnicaTexto(s) : '';
   if (ficha) q.ficha = ficha;
@@ -359,6 +415,10 @@ PECAS.forEach((p) => {
   const texto = conclusionText(s, s.fibers || p.fibras, tipo);
   const ctx = { agasalho: p.agasalho, parteDeBaixo: p.parteDeBaixo, tecnico: p.tecnico,
                 acolchoado: p.acolchoado, temFicha: !!s.fichaTecnica,
+                // semCalor vem do MOTOR, não da peça: é a decisão que se quer
+                // testar. Marcá-la à mão no fixture faria o teste concordar
+                // consigo mesmo e nunca com a extensão.
+                semCalor: !!s.semProvaDeCalor,
                 tipo: tipo, scores: s };
 
   // 1. o tipo detectado é o esperado — errar aqui troca a família de frases
@@ -366,6 +426,20 @@ PECAS.forEach((p) => {
   checa('    tipo detectado = ' + p.esperaTipo,
     tipo === p.esperaTipo,
     'detectou "' + tipo + '" (isPadded=' + s.isPadded + ', isBulky=' + s.isBulkyGarment + ', isKnit=' + s.isKnit + ')');
+
+  // 1b. a prova de calor, quando a peça a fixa. É o mesmo raciocínio do
+  //     `esperaTipo`: as regras de texto que dependem desta decisão só
+  //     correm quando ela é `true`, logo nenhuma delas percebe a decisão a
+  //     deixar de disparar — desfazendo a correção de propósito, só o
+  //     veredito reprovava. Quem fixa a decisão é esta linha.
+  if (p.esperaSemCalor !== undefined) {
+    checa('    prova de calor: ' + (p.esperaSemCalor ? 'nenhuma' : 'existe'),
+      !!s.semProvaDeCalor === p.esperaSemCalor,
+      'semProvaDeCalor = ' + !!s.semProvaDeCalor
+      + ' (acolchoado=' + !!s.isPadded + ', ficha=' + !!s.fichaTecnica
+      + ', tecnico=' + !!s.hasTechSpec + ', malha=' + !!s.isKnit
+      + ', encorpado=' + !!s.isHeavyWoven + ')');
+  }
 
   // 2. as regras: `frase` é o que NÃO pode aparecer, `exige` é o que TEM de
   //    aparecer. Frase proibida sozinha não basta — há erros que são a
@@ -393,10 +467,87 @@ PECAS.forEach((p) => {
       'a página diz uma temperatura mínima, o texto não repassa.\n      texto: ' + texto);
   }
 
+  // 5. a nota. Texto certo com nota errada continua a vender a peça: o
+  //    blusão 100% poliéster saía com "Vale considerar" porque a nota de
+  //    casaco é feita de durabilidade e manutenção, onde o poliéster é bom,
+  //    e nunca de calor, que é a única coisa que um casaco tem de fazer.
+  if (p.esperaVeredito) {
+    const nota = Math.round(buyScore(s, tipo));
+    const vd = buyVerdict(nota);
+    checa('    veredito = ' + p.esperaVeredito, vd.label === p.esperaVeredito,
+      'deu ' + nota + '/100, "' + vd.label + '"');
+  }
+
   textosPorPeca.push({ nome: p.nome, card: texto, pagina: textoPagina });
 
   console.log('');
 });
+
+// ─── Vocabulário de agasalho ─────────────────────────────────────────
+// O bloco acima prova a peça; este prova a CLASSE. O defeito do blusão não
+// foi de lógica — a lógica estava certa e bem testada. Foi uma palavra que
+// faltava numa lista, e esse defeito volta sempre que uma loja escreve o
+// agasalho com outro nome: anorak, cazadora, doudoune, kispo. Pedir um print
+// por palavra não escala, então a lista inteira passa aqui.
+//
+// E passa nos dois sentidos, porque o erro espelhado custa igual: uma palavra
+// ambígua ("abrigo" do rodapé legal, "veste" do verbo, "coated" do
+// acabamento) transforma uma t-shirt num casaco e põe-lhe as frases de
+// inverno. Cada nome abaixo tem UM gatilho só — assim, quando um falha,
+// falha a palavra e não a frase.
+console.log('  Vocabulário de agasalho');
+(function () {
+  const AGASALHO = [
+    // português
+    'Blusão cruzado soft', 'Blusões de nylon', 'Casaco comprido de lã',
+    'Casacão de alfaiataria', 'Jaqueta de ganga', 'Jaquetão cruzado',
+    'Anorak com capuz', 'Bomber com fecho', 'Corta-vento com capuz',
+    'Cortavento leve', 'Kispo de gola subida', 'Gabardina comprida',
+    'Trench com cinto', 'Trincheira com cinto', 'Parka com capuz',
+    'Blazer de alfaiataria', 'Sobretudo de lã',
+    // espanhol
+    'Chaqueta vaquera', 'Chaquetón de paño', 'Cazadora de piel',
+    'Plumífero ligero',
+    // francês
+    'Manteau en laine', 'Doudoune légère', 'Blouson en cuir',
+    // inglês
+    'Lightweight windbreaker', 'Wool coat', 'Raincoat with hood',
+    'Puffer with hood', 'Quilted overshirt', 'Padded jacket',
+  ];
+  const NAO_AGASALHO = [
+    'Blusa de linho com manga curta',
+    'Calças com efeito coated',
+    'Saia com coating encerado',
+    'A troca é feita ao abrigo da garantia legal',
+    'T-shirt de algodão que veste bem',
+    'Camisa de popelina',
+    // peças de baixo que usam palavra de agasalho: a Decathlon vende isto
+    'Calças corta-vento de caminhada',
+    'Calças gabardine com pregas',
+    'Saia blazer curta',
+    'Saia gabardina midi',
+    'Shorts bomber de ganga',
+  ];
+  const fibras = [fibra('Poliéster', 100)];
+  const texto = 'Composição: 100% Poliéster.';
+
+  AGASALHO.forEach((titulo) => {
+    const s = calcScores(fibras, texto, '', titulo);
+    const tipo = detectGarmentType(s, null, 'clothing');
+    checa('    "' + titulo + '" é agasalho', tipo === 'casaco',
+      'detectou "' + tipo + '" — a palavra não está no vocabulário de agasalho '
+      + 'do shared.js, e a peça vai receber as frases de roupa colada ao corpo');
+  });
+
+  NAO_AGASALHO.forEach((titulo) => {
+    const s = calcScores(fibras, texto, '', titulo);
+    const tipo = detectGarmentType(s, null, 'clothing');
+    checa('    "' + titulo + '" NÃO é agasalho', tipo !== 'casaco',
+      'detectou "casaco" — uma palavra ambígua do vocabulário apanhou esta peça '
+      + 'e ela vai receber as frases de inverno');
+  });
+})();
+console.log('');
 
 // ─── Repetição: a mesma frase em peça atrás de peça ──────────────────
 // Um texto correto ainda pode destruir confiança. Quem mapeia cinco peças e

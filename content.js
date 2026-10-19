@@ -214,6 +214,7 @@
       if (historia.isKnit) params.set('malha', '1');
       if (historia.isHeavyWoven) params.set('encorpado', '1');
       if (historia.isPadded) params.set('acolchoado', '1');
+      if (historia.semProvaDeCalor) params.set('semcalor', '1');
       if (historia.hasTechSpec) params.set('tecnico', '1');
       if (historia.fichaTexto) params.set('ficha', historia.fichaTexto.slice(0, 400));
       if (historia.tecNome) params.set('tecnome', historia.tecNome.slice(0, 40));
@@ -1005,6 +1006,12 @@
       // aparece nela. Sem isto, peso/bolinha do tecido externo eram lidos
       // como se descrevessem a peça inteira.
       isPadded: !!scores.isPadded,
+      // Agasalho que não declara NADA que aqueça (sem enchimento, sem malha,
+      // sem membrana, sem fibra quente). O card já diz que a peça é camada
+      // de fora e a nota desconta por isso; sem este sinal a página fazia o
+      // contrário no capítulo 02 — "barra o frio de fora" — e a mesma peça
+      // tinha duas respostas opostas nas duas telas que a pessoa lê.
+      semProvaDeCalor: !!scores.semProvaDeCalor,
       // Especificação técnica de verdade na etiqueta (impermeável, corta-vento,
       // membrana, "10k"). O card já usava isto; a página reconstruía os
       // capítulos sem saber, e cobrava sustentabilidade e respirabilidade de
