@@ -97,7 +97,7 @@ function bate(el, sel) {
 }
 
 /* ---------- carrega o motor contra essa árvore -------------------- */
-function lerPagina(raizDom, { titulo = '', url = 'https://loja.com/peca-p1.html' } = {}) {
+function lerPagina(raizDom, { titulo = '', url = 'https://loja.com/peca-p1.html', categoria = 'clothing' } = {}) {
   const ctx = {
     console, setTimeout, clearTimeout, URL, Set, Map,
     MutationObserver: class { observe() {} disconnect() {} },
@@ -126,7 +126,7 @@ function lerPagina(raizDom, { titulo = '', url = 'https://loja.com/peca-p1.html'
     .replace(/\}\)\(\);\s*$/, '  return { extractAllText, parseComposition, findCompositionZone };\n})();');
   vm.runInContext(src, ctx, { filename: 'content.js' });
   const texto = ctx._api.extractAllText();
-  return { texto, fibras: ctx._api.parseComposition(texto, 'clothing') };
+  return { texto, fibras: ctx._api.parseComposition(texto, categoria) };
 }
 
 /* ---------- o menu da loja, igual em todas as páginas ------------- */
@@ -193,6 +193,70 @@ teste('a zona verdadeira continua a ganhar à página toda', () => {
   const lidas = nomes(fibras);
   return (/algod/.test(lidas) && !/poli[ée]ster/.test(lidas))
     || 'devia ler só o algodão da zona, leu: ' + lidas.trim();
+});
+
+/* ---------- a zona fraca, que não pode sequestrar a página -------
+ * A correcção da moldura do site tirou à zona fraca o poder de ganhar a uma
+ * zona forte, mas deixou-lhe outro: quando não havia zona forte NENHUMA, a
+ * fraca continuava a ser devolvida — e deitava fora a página inteira. Basta
+ * uma peça com a etiqueta solta no texto, sem rótulo "Composição" por perto,
+ * numa loja cujo menu não usa <nav>.
+ *
+ * Os dois testes de mala abaixo não chegaram a falhar: são guardas da
+ * fronteira do Pass 2 (malas e sapatos aceitam material sem percentagem),
+ * que é por onde uma leitura errada de material sairia se a zona voltasse
+ * a sequestrar a página.
+ */
+function menuSemNav() {
+  return no('div', [no('ul', CATEGORIAS.map(c => no('li', [no('span', c)])))]);
+}
+
+teste('uma mala com etiqueta a sério não vira pele por causa do menu', () => {
+  const { fibras } = lerPagina(no('body', [
+    menuSemNav(),
+    no('div', [no('h1', 'MALA COMBINADA COM POMPÕES'),
+               no('span', 'Composição: 92% algodão, 8% ráfia')]),
+  ]), { titulo: 'MALA COMBINADA COM POMPÕES | ZARA', categoria: 'bags' });
+  const lidas = nomes(fibras);
+  if (/pele|couro|leather/.test(lidas)) return 'leu "' + lidas.trim() + '" — a palavra veio do menu, não da peça';
+  return /algod/.test(lidas) || 'não leu o algodão da etiqueta: ' + (lidas.trim() || 'nada lido');
+});
+
+teste('a peça com etiqueta solta não se perde no menu sem <nav>', () => {
+  const { fibras } = lerPagina(no('body', [
+    menuSemNav(),
+    no('div', [no('h1', 'BLUSÃO ACOLCHOADO'), no('span', '100% poliéster')]),
+  ]), { titulo: 'BLUSÃO ACOLCHOADO | ZARA' });
+  return /poli[ée]ster/.test(nomes(fibras)) || 'perdeu a etiqueta: ' + (nomes(fibras).trim() || 'nada lido');
+});
+
+teste('uma mala de poliéster não vira pele (couro) pela palavra "sintética"', () => {
+  // Guarda, não reprodução. Veio de um retorno — "leu poliéster como pele" —
+  // que não se conseguiu reproduzir: em Portugal diz-se pele ao couro, e o
+  // motor não conhece "pele", conhece "couro". A cadeia plausível é esta: se
+  // o menu sequestrar a zona, o Pass 1 fica sem nada e o Pass 2 cai no
+  // apanha-tudo dos sintéticos ("sint[eé]tico|faux|vegan leather|pu |pvc"),
+  // que a descrição da peça tem — 100% couro sintético numa mala cuja
+  // etiqueta diz 100% poliéster. Fica a trancar essa porta.
+  const { fibras } = lerPagina(no('body', [
+    menuSemNav(),
+    no('div', [no('h1', 'MALA EFEITO PELE'),
+               no('p', 'Mala de ombro em pele sintética com fecho magnético.'),
+               no('span', 'Composição: 100% poliéster')]),
+  ]), { titulo: 'MALA EFEITO PELE | ZARA', categoria: 'bags' });
+  const lidas = nomes(fibras);
+  if (/couro|leather/.test(lidas)) return 'leu "' + lidas.trim() + '" numa mala que publica 100% poliéster';
+  return /poli[ée]ster/.test(lidas) || 'não leu o poliéster da etiqueta: ' + (lidas.trim() || 'nada lido');
+});
+
+teste('a mala sem percentagem nenhuma continua a ser lida pelo material', () => {
+  // O Pass 2 existe para isto e tem de continuar a funcionar: malas e sapatos
+  // declaram "Pele" sem percentagem nenhuma.
+  const { fibras } = lerPagina(no('body', [
+    no('div', [no('h1', 'MALA DE OMBRO EM PELE'),
+               no('span', 'Composição'), no('span', 'Pele')]),
+  ]), { titulo: 'MALA DE OMBRO EM PELE | ZARA', categoria: 'bags' });
+  return /pele|couro|leather/.test(nomes(fibras)) || 'deixou de ler a mala de pele verdadeira: ' + (nomes(fibras).trim() || 'nada lido');
 });
 
 console.log('\n──────────────────────────────────────');

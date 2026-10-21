@@ -760,9 +760,20 @@
       return false;
     };
 
-    // Tenta primeiro extrair só a zona de composição (perto do marcador)
+    // Tenta primeiro extrair só a zona de composição (perto do marcador).
+    // Só uma zona com percentagem a sério ("53% viscose") dispensa ler o resto
+    // da página. Uma que apenas traz NOMES de material tanto pode ser etiqueta
+    // sem percentagem ("Couro genuíno") como uma lista de categorias da loja —
+    // fica à espera, e só serve se a página toda não tiver nada melhor.
+    //
+    // O buraco que isto fecha ficou da correcção anterior (a moldura do site):
+    // a zona fraca deixou de ganhar a uma zona forte, mas continuava a ser
+    // devolvida quando não havia zona forte NENHUMA — e aí deitava fora a
+    // página inteira. Uma peça cuja etiqueta está solta no texto, sem rótulo
+    // "Composição" por perto, e uma loja cujo menu não usa <nav>: a lista de
+    // categorias era tudo o que a extensão lia, e a etiqueta perdia-se.
     const compZone = findCompositionZone();
-    if (compZone) return cortaRecomendados(compZone);
+    if (compZone && indiceComposicao(compZone) >= 0) return cortaRecomendados(compZone);
 
     // Fallback: texto da página mas sem as zonas de ruído, e sem duplicar aninhados
     let text = '';
@@ -779,6 +790,9 @@
     if (!hasComposition(text)) {
       const bodyText = cortaRecomendados((document.body.innerText || '').trim());
       if (hasComposition(bodyText)) return bodyText;
+      // Nada com percentagem em lado nenhum: agora sim, a zona fraca é a
+      // melhor pista que há (etiqueta de mala/sapato sem percentagem).
+      if (compZone) return cortaRecomendados(compZone);
     }
     return cortaRecomendados(text);
   }
