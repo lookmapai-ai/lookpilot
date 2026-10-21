@@ -268,6 +268,38 @@ if (!fs.existsSync(ZIP_LOJA)) {
   });
 }
 
+// ── UMA SÓ CÓPIA DA EXTENSÃO ────────────────────────────────────────
+// Havia uma segunda cópia completa versionada em landing/lookpilot/, parada
+// a 18 de Setembro, que nada gerava nem actualizava. Ninguém a carregava de
+// propósito — mas estava ali, com um manifest válido, à espera de ser
+// escolhida por engano em "Carregar sem compactação". Custou meia tarde de
+// suspeita quando uma correcção parecia não pegar.
+console.log('\n── Uma só cópia da extensão ────────────────────────────\n');
+
+checa('não há segunda cópia da extensão no repositório', () => {
+  const achados = [];
+  (function procura(dir) {
+    for (const nome of fs.readdirSync(dir)) {
+      if (nome === '.git' || nome === 'node_modules' || nome === 'dist') continue;
+      const p = path.join(dir, nome);
+      if (!fs.statSync(p).isDirectory()) continue;
+      if (fs.existsSync(path.join(p, 'manifest.json'))) {
+        try {
+          const m = JSON.parse(fs.readFileSync(path.join(p, 'manifest.json'), 'utf8'));
+          if (m.content_scripts || m.background) achados.push(path.relative(raiz, p));
+        } catch (e) {}
+      }
+      procura(p);
+    }
+  })(raiz);
+  if (achados.length) {
+    throw new Error('cópia da extensão em: ' + achados.join(', ') +
+      '\n      Uma pasta com manifest válido pode ser carregada no Chrome por engano' +
+      '\n      e servir código velho — a correcção parece não funcionar.');
+  }
+  return true;
+});
+
 console.log('\n── Entrega pela landing ────────────────────────────────\n');
 
 checa('a página aponta para o zip que existe', () => {

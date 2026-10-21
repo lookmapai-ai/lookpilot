@@ -83,14 +83,24 @@ function updateTab(tabId, url) {
 chrome.action.onClicked.addListener((tab) => {
   if (!tab.id) return;
   const enviar = () => chrome.tabs.sendMessage(tab.id, { action: 'scanPage' }, () => void chrome.runtime.lastError);
+  const injetar = () => chrome.scripting.executeScript(
+    { target: { tabId: tab.id }, files: ['strings.js', 'shared.js', 'categories.js', 'content.js'] },
+    () => { if (!chrome.runtime.lastError) enviar(); }
+  );
+  const versaoActual = chrome.runtime.getManifest().version;
   chrome.tabs.sendMessage(tab.id, { action: 'ping' }, (resp) => {
     if (chrome.runtime.lastError) {
       // content script ainda não injetado (aba aberta antes da extensão):
       // injeta e reenvia
-      chrome.scripting.executeScript(
-        { target: { tabId: tab.id }, files: ['strings.js', 'shared.js', 'categories.js', 'content.js'] },
-        () => { if (!chrome.runtime.lastError) enviar(); }
-      );
+      injetar();
+    } else if (!resp || resp.v !== versaoActual) {
+      // RESPONDE, MAS É VELHO. Uma aba aberta antes de a extensão ser
+      // actualizada mantém o script antigo lá dentro até a página ser
+      // recarregada à mão — e responde ao ping como se nada fosse. O
+      // resultado era uma correcção já instalada a parecer que não pegou,
+      // e horas a procurar no sítio errado. Agora o fundo compara a versão
+      // e põe lá o código novo por cima, sem ninguém ter de carregar em F5.
+      injetar();
     } else {
       enviar();
     }

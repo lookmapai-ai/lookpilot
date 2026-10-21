@@ -189,6 +189,12 @@
   // (blends.json, por dose) e o modificador de qualidade detectado na página
   // (ex.: Supima). A landing tem os scores, mas não este conhecimento — sem
   // isto o capítulo "A matéria" cai sempre na mesma frase genérica.
+  // A versão que está a correr AGORA, nesta página. Explode quando o contexto
+  // da extensão foi invalidado por um recarregamento — daí o try.
+  function versaoDaExtensao() {
+    try { return chrome.runtime.getManifest().version || ''; } catch (e) { return ''; }
+  }
+
   function buildAnaliseURL(scores, fibers, buy, verdictLabel, productUrl, confidence, historia) {
     const params = new URLSearchParams();
     params.set('score',     buy);
@@ -263,10 +269,8 @@
     // cópia da extensão instalada de uma pasta velha: tudo isto se parece,
     // do lado de quem relata, com "continua avariado". O relato chega como
     // link da análise, por isso é o link que tem de o dizer.
-    try {
-      const v = chrome.runtime.getManifest().version;
-      if (v) params.set('v', v);
-    } catch (e) {}
+    const v = versaoDaExtensao();
+    if (v) params.set('v', v);
     return `${LOOKMAP_BASE_URL}?${params.toString()}`;
   }
 
@@ -1173,7 +1177,7 @@
         </a>
 
         <div style="font-size:10px;color:#86868B;text-align:center;border-top:1px solid #F5F5F7;padding-top:8px;margin-top:14px;">
-          LookPilot · LookMap
+          LookPilot · LookMap${versaoDaExtensao() ? ` · v${versaoDaExtensao()}` : ''}
         </div>
       </div>
     `;
@@ -1358,7 +1362,12 @@
 
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.action === 'ping') {
-      sendResponse({ alive: true });
+      // A versão vai na resposta para o fundo saber se o script desta página
+      // é o actual. Uma aba aberta ANTES de a extensão ser actualizada fica
+      // com o script antigo lá dentro até a página ser recarregada à mão — e
+      // continua a responder como se estivesse tudo bem. Era assim que uma
+      // correcção já instalada parecia não ter funcionado.
+      sendResponse({ alive: true, v: versaoDaExtensao() });
       return true;
     }
     if (msg.action === 'scanPage') {
