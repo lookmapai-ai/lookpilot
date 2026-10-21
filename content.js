@@ -790,8 +790,20 @@
     // precisa do seu próprio guarda contra o card da extensão — senão volta a
     // ler-se a si mesma (ver "100% algodão chat analisando a peça").
     const nosso = document.getElementById('__fqa-card');
+    // A MOLDURA DO SITE NÃO É A PEÇA. Menu, cabeçalho e rodapé repetem-se em
+    // todas as páginas da loja: o que está lá dentro nunca é a etiqueta desta
+    // peça. Sem esta guarda, a Zara pôs "TECIDOS PREMIUM" no menu de
+    // categorias, o marcador "tecido" apanhou-o, e a zona passou a ser o MENU
+    // inteiro — aceite como etiqueta porque trazia a palavra "PELE", outra
+    // categoria. Todas as peças da Zara deixaram de ser lidas sem uma linha
+    // deste lado ter mudado, com a etiqueta visível na página o tempo todo.
+    // O filtro de ruído do extractAllText já corta nav/footer, mas só no
+    // caminho de baixo — este atalho corre antes dele e precisa do seu.
+    const MOLDURA = 'nav,header,footer,[role="navigation"],[role="banner"],[role="contentinfo"]';
     const all = Array.from(document.querySelectorAll('h1,h2,h3,h4,h5,dt,th,strong,b,p,span,div'))
-      .filter(el => !nosso || !nosso.contains(el));
+      .filter(el => !nosso || !nosso.contains(el))
+      .filter(el => { try { return !el.closest(MOLDURA); } catch(e) { return true; } });
+    let fraca = null;
     for (const el of all) {
       const txt = (el.textContent || '').trim().toLowerCase();
       if (txt.length < 40 && markers.some(mk => txt === mk || txt.startsWith(mk))) {
@@ -813,12 +825,19 @@
           });
           zone = (leafText || container.textContent || '').trim();
           if (zone.length > 30 && zone.length < 2500 && /\d+\s*%|%\s*\d+|algod|cotton|poli|polyester|elasta|elastane|lyocell|lã|wool|linho|linen|viscose|couro|pele|leather|nylon|silk|seda/i.test(zone)) {
-            return zone;
+            // Uma zona com percentagem a sério ("53% viscose") é etiqueta e
+            // ganha já. Uma que só traz NOMES de material pode ser etiqueta
+            // sem percentagem ("Couro genuíno") ou pode ser uma lista de
+            // categorias — guarda-se como último recurso e continua-se a
+            // procurar, em vez de parar no primeiro palpite e deitar fora o
+            // resto da página.
+            if (indiceComposicao(zone) >= 0) return zone;
+            if (!fraca) fraca = zone;
           }
         }
       }
     }
-    return null;
+    return fraca;
   }
 
   let scanDone = false;
