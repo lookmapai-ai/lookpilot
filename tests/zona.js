@@ -97,7 +97,7 @@ function bate(el, sel) {
 }
 
 /* ---------- carrega o motor contra essa árvore -------------------- */
-function lerPagina(raizDom, { titulo = '', url = 'https://loja.com/peca-p1.html', categoria = 'clothing' } = {}) {
+function lerPagina(raizDom, { titulo = '', url = 'https://loja.com/peca-p1.html', categoria = null } = {}) {
   const ctx = {
     console, setTimeout, clearTimeout, URL, Set, Map,
     MutationObserver: class { observe() {} disconnect() {} },
@@ -125,8 +125,12 @@ function lerPagina(raizDom, { titulo = '', url = 'https://loja.com/peca-p1.html'
     .replace('(function() {', 'var _api = (function() {')
     .replace(/\}\)\(\);\s*$/, '  return { extractAllText, parseComposition, findCompositionZone };\n})();');
   vm.runInContext(src, ctx, { filename: 'content.js' });
+  // Como o tryScan faz: a categoria SAI do texto lido. É um passo decisivo —
+  // se a zona estiver errada, a categoria sai errada com ela, e uma camisa
+  // julgada "calçado" abre a porta ao Pass 2 (materiais sem percentagem).
   const texto = ctx._api.extractAllText();
-  return { texto, fibras: ctx._api.parseComposition(texto, categoria) };
+  const cat = categoria || ctx.detectCategory(texto.slice(0, 3000), url, titulo);
+  return { texto, categoria: cat, fibras: ctx._api.parseComposition(texto, cat) };
 }
 
 /* ---------- o menu da loja, igual em todas as páginas ------------- */
@@ -169,6 +173,28 @@ for (const [tag, onde] of [['nav', 'o menu de categorias'],
     return true;
   });
 }
+
+teste('a camisa oxford não é lida como pele (a peça do retorno)', () => {
+  // A cadeia inteira, reproduzida a partir da página real:
+  //   1. "TECIDOS PREMIUM" no menu bate no rótulo "tecido";
+  //   2. a zona passa a ser o menu;
+  //   3. o motor lê esse texto e decide que a peça é CALÇADO (detectCategory
+  //      devolve "shoes" para uma lista de categorias de loja);
+  //   4. não sendo roupa, entra o Pass 2 — materiais sem percentagem — e
+  //      tira do menu "tecido" a 100% e "PELE" a 15%.
+  // Resultado: uma camisa de 56% algodão analisada como pele. Pior do que
+  // não ler: ler com confiança o que não está lá.
+  const { fibras } = lerPagina(no('body', [
+    menu(),
+    no('div', [no('h1', 'CAMISA BÁSICA OXFORD'),
+               no('p', 'Camisa com colarinho de lapela e manga comprida.'),
+               no('span', 'Composição: 56% algodão, 44% poliéster')]),
+  ]), { titulo: 'CAMISA BÁSICA OXFORD - Azul-celeste | ZARA Portugal',
+        url: 'https://www.zara.com/pt/pt/camisa-basica-oxford-p08741239.html' });
+  const lidas = nomes(fibras);
+  if (/pele|couro|leather/.test(lidas)) return 'leu "' + lidas.trim() + '" numa camisa de algodão';
+  return /algod/.test(lidas) || 'não leu o algodão da etiqueta: ' + (lidas.trim() || 'nada lido');
+});
 
 teste('o menu por [role="navigation"], sem tag <nav>', () => {
   const m = no('div', [no('ul', CATEGORIAS.map(c => no('li', [no('span', c)])))], { role: 'navigation' });
