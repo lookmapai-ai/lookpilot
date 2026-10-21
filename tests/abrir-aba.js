@@ -54,18 +54,22 @@ teste('o card de resultado liga os links a abrirAba', () =>
 function carregaContent(chromeStub, abertas) {
   const src = CONTENT
     .replace('(function() {', 'var _api = (function() {')
-    .replace(/\}\)\(\);\s*$/, '  return { abrirAba, ligaAbrirAba, mostraCard, mantemVivo };\n})();');
+    .replace(/\}\)\(\);\s*$/, '  return { abrirAba, ligaAbrirAba, mostraCard, mantemVivo, buildAnaliseURL };\n})();');
   const ctx = {
     chrome: chromeStub,
-    location: { protocol: 'https:', href: 'https://www.zara.com/pt/pt/x-p01.html', origin: 'https://www.zara.com', pathname: '/pt/pt/x-p01.html' },
+    location: { protocol: 'https:', href: 'https://www.zara.com/pt/pt/x-p01.html', origin: 'https://www.zara.com', pathname: '/pt/pt/x-p01.html', hostname: 'www.zara.com' },
     MutationObserver: class { observe() {} },
-    URL, console, setTimeout,
+    URL, URLSearchParams, console, setTimeout,
   };
   ctx.window = { open: (u) => abertas.push(['pagina', u]) };
   ctx.MutationObserver = class { constructor(cb) { this._cb = cb; } observe(alvo) { if (alvo) alvo.observado = this._cb; } };
   ctx.entraram = [];
-  ctx.document = { body: { appendChild: (n) => ctx.entraram.push(n) }, documentElement: {},
-                   getElementById: () => null, querySelectorAll: () => [] };
+  ctx.document = { body: { appendChild: (n) => ctx.entraram.push(n),
+                           querySelector: () => null, querySelectorAll: () => [], innerText: '' },
+                   documentElement: {},
+                   getElementById: () => null, querySelectorAll: () => [],
+                   // o buildAnaliseURL vai buscar nome/imagem da peça à página
+                   querySelector: () => null, title: '' };
   vm.createContext(ctx);
   for (const f of ['strings.js', 'shared.js', 'categories.js']) {
     vm.runInContext(fs.readFileSync(path.join(raiz, f), 'utf8'), ctx, { filename: f });
@@ -200,6 +204,48 @@ teste('o card vigia a marca: se a loja puser inert outra vez, sai de novo', () =
   card.attrs.inert = '';
   card.observado();               // a loja voltou a marcar
   return card.attrs.inert === undefined || 'a marca ficou na segunda vez';
+});
+
+
+/* ---------- a URL tem de dizer que código a produziu -------------- */
+// Custou duas voltas inteiras: um relato de leitura errada chegou como link
+// da análise, e não havia maneira de saber se tinha sido produzido pelo
+// código corrigido ou pelo antigo. A correcção pode estar feita e não estar
+// a correr — extensão por recarregar, aba aberta antes do recarregamento (o
+// script antigo fica na página até ela ser recarregada), uma segunda cópia
+// instalada de uma pasta velha. Do lado de quem relata tudo isso se parece
+// com "continua avariado". O link é o que chega; o link tem de o dizer.
+teste('a URL da análise diz a versão que a produziu', () => {
+  const chromeStub = { runtime: {
+    lastError: undefined,
+    onMessage: { addListener() {} },
+    sendMessage: () => {},
+    getManifest: () => ({ version: '9.5' }),
+  } };
+  const api = carregaContent(chromeStub, []);
+  const url = api.buildAnaliseURL(
+    { quality: 71, durability: 73, comfort: 74, versatility: 64, maintenance: 76, costBenefit: 73, travel: 73 },
+    [{ name: 'algodão', pct: 56 }, { name: 'poliéster', pct: 44 }],
+    73, 'Vale a pena', 'https://www.zara.com/pt/pt/camisa-basica-oxford-p08741239.html', 65, null);
+  const v = new URL(url).searchParams.get('v');
+  return v === '9.5' ||
+    'a URL não diz a versão (v=' + v + ') — quem relatar uma leitura errada não consegue provar que código correu';
+});
+
+teste('a URL sai inteira mesmo sem o manifest à mão', () => {
+  // Dentro de um teste, ou se o chrome.runtime tiver sido invalidado por um
+  // recarregamento, getManifest explode. Isso não pode levar a análise atrás.
+  const chromeStub = { runtime: {
+    lastError: undefined,
+    onMessage: { addListener() {} },
+    sendMessage: () => {},
+    getManifest: () => { throw new Error('Extension context invalidated.'); },
+  } };
+  const api = carregaContent(chromeStub, []);
+  const url = api.buildAnaliseURL({ quality: 71 }, [{ name: 'algodão', pct: 56 }],
+    73, 'Vale a pena', 'https://loja.com/p1', 65, null);
+  return /score=73/.test(url) && !/[?&]v=/.test(url)
+    || 'a análise partiu-se por causa do número de versão: ' + url.slice(0, 80);
 });
 
 console.log(`\n${ok} ok · ${falhas} falha(s)\n`);

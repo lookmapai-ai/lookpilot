@@ -255,6 +255,18 @@
       if (m.avaliacaoContagem != null) params.set('nota_ava_n', m.avaliacaoContagem);
     }
     if (confidence != null) params.set('confianca', Math.round(confidence));
+    // A VERSÃO QUE PRODUZIU ESTA ANÁLISE. Parece supérfluo e não é: quando
+    // alguém relata uma leitura errada, a primeira pergunta é sempre "que
+    // código é que estava a correr?" — e ninguém sabe responder. Uma correcção
+    // já feita mas não recarregada, uma aba aberta antes do recarregamento
+    // (o script antigo fica lá até a página ser recarregada), uma segunda
+    // cópia da extensão instalada de uma pasta velha: tudo isto se parece,
+    // do lado de quem relata, com "continua avariado". O relato chega como
+    // link da análise, por isso é o link que tem de o dizer.
+    try {
+      const v = chrome.runtime.getManifest().version;
+      if (v) params.set('v', v);
+    } catch (e) {}
     return `${LOOKMAP_BASE_URL}?${params.toString()}`;
   }
 
