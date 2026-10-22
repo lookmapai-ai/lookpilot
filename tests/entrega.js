@@ -331,6 +331,61 @@ try {
     '      Rode: cd landing && ./servir.sh');
 }
 
+// O QUE O CHROME TEM CARREGADO. Estado da máquina, não do repositório — por
+// isso é aviso, não falha (noutro computador não há Chrome nenhum).
+//
+// Custou uma tarde inteira. Um defeito foi corrigido, testado e commitado, e
+// continuou a aparecer. A extensão era recarregada e nada mudava. O que o
+// Chrome tinha carregado não era este código: era uma pasta descompactada do
+// zip, em Downloads, parada no dia do commit anterior. E o manifest dela
+// anunciava o MESMO nome e a MESMA versão — ler "9.5" no cartão do Chrome
+// não distinguia nada.
+//
+// O Chrome regista no perfil a pasta de cada extensão carregada sem
+// compactação. Comparar com o repositório é imediato.
+try {
+  const perfilBase = path.join(process.env.HOME || '', 'Library', 'Application Support', 'Google', 'Chrome');
+  const carregadas = [];
+  for (const perfil of ['Default', 'Profile 1', 'Profile 2', 'Profile 3']) {
+    for (const nome of ['Secure Preferences', 'Preferences']) {
+      const f = path.join(perfilBase, perfil, nome);
+      if (!fs.existsSync(f)) continue;
+      let dados;
+      try { dados = JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) { continue; }
+      const settings = ((dados.extensions || {}).settings) || {};
+      for (const id of Object.keys(settings)) {
+        const caminho = String(settings[id].path || '');
+        if (/lookpilot/i.test(caminho) && !carregadas.some(c => c.caminho === caminho)) {
+          carregadas.push({ caminho, perfil });
+        }
+      }
+    }
+  }
+  if (carregadas.length) {
+    const diferentes = [];
+    for (const c of carregadas) {
+      if (path.resolve(c.caminho) === path.resolve(raiz)) continue;
+      const fora = NECESSARIOS.filter((n) => {
+        const a = path.join(raiz, n), b = path.join(c.caminho, n);
+        if (!fs.existsSync(b)) return true;
+        return !fs.readFileSync(a).equals(fs.readFileSync(b));
+      });
+      if (fora.length) diferentes.push({ ...c, fora });
+    }
+    if (diferentes.length) {
+      avisos++;
+      avisa('o Chrome tem carregado código diferente deste',
+        diferentes.map(d =>
+          `pasta: ${d.caminho}\n      difere em: ${d.fora.join(', ')}`).join('\n      ') +
+        '\n      A correção não chega ao navegador: o Chrome lê essa pasta, não esta.' +
+        '\n      Copie os arquivos para lá, ou aponte o Chrome a este diretório.');
+    } else {
+      console.log('  ✓ o Chrome tem carregado este mesmo código');
+      ok++;
+    }
+  }
+} catch (e) { /* sem Chrome, sem perfil, outro sistema: não é defeito */ }
+
 console.log('\n────────────────────────────────────────────────────────');
 console.log(`${ok} ok · ${falhas} falha(s) · ${avisos} aviso(s)`);
 if (falhas) console.log('\nFalha = defeito no repositório. Corrija antes de publicar.');
