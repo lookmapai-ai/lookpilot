@@ -66,6 +66,12 @@ rm -rf "$TMP"
 # todo aqui, para não haver que o ir buscar a três sítios no meio do envio.
 cp landing/loja-captura-1280x800.png landing/loja-mosaico-440x280.png icon128.png dist/
 
+# O Chrome não carrega este repositório: carrega uma CÓPIA, escolhida um dia
+# em "Carregar sem compactação". Sem este passo, empacotar deixava a cópia
+# instalada para trás — e a correcção recém-feita não chegava ao navegador,
+# por mais vezes que se recarregasse a extensão.
+./sincronizar-extensao.sh "${ARQUIVOS[@]}"
+
 VER=$(python3 -c "import json;print(json.load(open('manifest.json'))['version'])")
 echo "$ZIP       ·  versão $VER  ·  $(du -h "$ZIP" | cut -f1)  ·  ${#ARQUIVOS[@]} arquivos  ·  pasta $PASTA/"
 echo "$ZIP_LOJA  ·  versão $VER  ·  $(du -h "$ZIP_LOJA" | cut -f1)  ·  ${#ARQUIVOS[@]} arquivos  ·  manifest na raiz"
