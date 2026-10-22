@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LookPilot — a etiqueta, lida por você",
-  "version": "9.5",
+  "version": "9.6",
   "description": "Lê a composição da etiqueta em qualquer loja online e diz, em segundos, se a peça vale mesmo a pena.",
   "permissions": [
     "activeTab",
