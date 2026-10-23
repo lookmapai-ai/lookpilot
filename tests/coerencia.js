@@ -26,8 +26,12 @@ const path = require('path');
 const vm = require('vm');
 
 const raiz = path.join(__dirname, '..');
+// LP_SHARED aponta a um shared.js de outra versão, para comparar o antes e o
+// depois sem trocar o ficheiro que o Chrome carrega — trocá-lo ao vivo já
+// instalou código errado uma vez, e o defeito pareceu voltar.
 ['shared.js', 'categories.js'].forEach((f) => {
-  vm.runInThisContext(fs.readFileSync(path.join(raiz, f), 'utf8'), { filename: f });
+  const caminho = (f === 'shared.js' && process.env.LP_SHARED) || path.join(raiz, f);
+  vm.runInThisContext(fs.readFileSync(caminho, 'utf8'), { filename: f });
 });
 
 // A página de análise tem motor próprio (landing/runtime.js) e é a outra
@@ -588,6 +592,63 @@ console.log('  Repetição entre peças');
     repetidas.length === 0,
     'frases coladas em quase tudo (vira assinatura de template):\n      '
       + repetidas.map(([f, n]) => `[${n}/${total}] ${f.slice(0, 110)}`).join('\n      '));
+})();
+console.log('');
+
+/* ─── A MOBÍLIA DA LOJA NÃO DECIDE A CONSTRUÇÃO DA PEÇA ───────────────
+ *
+ * Veio de umas culottes de bombazina da Uniqlo (98% algodão) analisadas
+ * como casaco acolchoado, com a frase:
+ *
+ *   "Aquece pelo recheio, não pelo tecido de fora.
+ *    Em lugar aquecido, você abre o fecho."
+ *
+ * Dita de umas calças. Sem recheio nenhum e sem fecho nenhum.
+ *
+ * A palavra que a desencadeou estava num BANNER DE SALDOS no topo da
+ * página — "down jackets", uma categoria em promoção. O "down" decidiu
+ * que esta peça era acolchoada, e acolchoado tem atalho próprio: é sempre
+ * casaco, à frente de qualquer outra regra.
+ *
+ * É a mesma classe do menu da Zara lido como etiqueta: uma palavra da
+ * mobília da loja — banner, menu, carrossel de recomendados — a decidir o
+ * que a peça É. O veto do título já existia e foi escrito para este
+ * perigo; faltava aplicá-lo ao acolchoado.
+ */
+(function () {
+  console.log('\n  A mobília da loja não decide a construção da peça\n');
+
+  // O banner verdadeiro da página, palavra por palavra.
+  const BANNER = 'Shop new and further reductions on Uniqlo U, down jackets, '
+    + 'barrel leg trousers and more!';
+  const fibras = [fibra('Algodão', 98), fibra('Elastano', 2)];
+
+  const CASOS = [
+    ['Women\'s Corduroy Culottes', 'a peça do retorno'],
+    ['Smart Culottes', 'outra culotte do mesmo carrossel'],
+    ['Cotton Culotte Trousers', 'a mesma peça com outro nome'],
+    ['Calças de bombazina', 'em português'],
+    ['Saia midi plissada', 'saia, que o veto já conhecia'],
+  ];
+
+  CASOS.forEach(([titulo, porque]) => {
+    const texto = BANNER + '\nComposição: 98% algodão, 2% elastano.';
+    const s = calcScores(fibras, texto, '', titulo);
+    const tipo = detectGarmentType(s, null, 'clothing');
+    checa('    "' + titulo + '" não vira casaco pelo banner (' + porque + ')',
+      tipo !== 'casaco' && !s.isPadded,
+      'tipo="' + tipo + '", acolchoado=' + !!s.isPadded
+        + ' — uma palavra do banner de saldos decidiu a construção da peça, '
+        + 'e ela vai receber as frases de agasalho acolchoado');
+  });
+
+  // E o contrário tem de continuar a funcionar: um agasalho acolchoado de
+  // verdade, cujo título não é peça de baixo, continua acolchoado.
+  const casaco = calcScores([fibra('Poliéster', 100)],
+    'Casaco acolchoado com enchimento de penas.', '', 'Casaco acolchoado de trekking');
+  checa('    o casaco acolchoado verdadeiro continua acolchoado',
+    casaco.isPadded === true && detectGarmentType(casaco, null, 'clothing') === 'casaco',
+    'o veto apanhou um agasalho a sério: acolchoado=' + !!casaco.isPadded);
 })();
 console.log('');
 

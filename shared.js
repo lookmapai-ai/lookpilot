@@ -338,7 +338,26 @@ function calcScores(fibers, pageText, certText, titleText) {
   // aplicados como se descrevessem a peça inteira — um casaco acolchoado
   // levíssimo virava "pesa na mala" porque a fórmula não sabe que a maior
   // parte da peça é enchimento, não tecido.
-  const isPadded = /acolchoad|quilted|puffer|puffect|\bpenas?\b|\bdown\b|duvet|plumas|recheio|enchimento/i.test(textoAmplo);
+  // O VETO DO TÍTULO. Vive aqui em cima porque manda em tudo o que decide
+  // que a peça é um agasalho: o acolchoado e o volume. Nenhuma peça de baixo
+  // — calças, saia, calções, culottes — é um casaco, e isso lê-se no TÍTULO,
+  // que é da peça, não no texto da página, que é da loja.
+  //
+  // Veio de umas culottes de bombazina da Uniqlo analisadas como casaco
+  // acolchoado, com a frase "aquece pelo recheio, não pelo tecido de fora.
+  // Em lugar aquecido, você abre o fecho" — dita de umas calças, sem fecho
+  // nenhum e sem recheio nenhum. A palavra que a desencadeou estava num
+  // BANNER DE SALDOS no topo da página: "Shop new and further reductions on
+  // Uniqlo U, down jackets, barrel leg trousers and more!". O "down" dos
+  // casacos em promoção decidiu a construção desta peça.
+  //
+  // O veto já existia para o volume (isBulkyGarment) e foi escrito para
+  // exactamente este perigo; faltava aplicá-lo também ao acolchoado, que
+  // tem um atalho próprio no detectGarmentType ("acolchoado é sempre
+  // casaco") e, por isso, passava à frente de tudo.
+  const ehParteDeBaixo = /\bcal[çc]as?\b|\bcal[çc][õo]es\b|\bsaia\b|\bshorts?\b|\bbermudas?\b|\bleggings?\b|\btrousers\b|\bpants\b|\bskirt\b|\bculottes?\b|\bjupe[-\s]?culotte\b|\bsaia[-\s]?cal[çc]a\b/i.test(titleText || '');
+  const isPadded = !ehParteDeBaixo
+    && /acolchoad|quilted|puffer|puffect|\bpenas?\b|\bdown\b|duvet|plumas|recheio|enchimento/i.test(textoAmplo);
 
   // ─── Ficha técnica: os números que a própria loja publica ──────────
   // Numa peça técnica a etiqueta de composição é a parte MENOS informativa.
@@ -575,7 +594,9 @@ function calcScores(fibers, pageText, certText, titleText) {
   // agasalho, e isso lê-se no TÍTULO do produto — não no texto da página, que
   // num casaco fala de calças na secção "complete o seu look". Por isso o
   // título manda aqui, e manda como veto.
-  const ehParteDeBaixo = /\bcal[çc]as?\b|\bcal[çc][õo]es\b|\bsaia\b|\bshorts?\b|\bbermudas?\b|\bleggings?\b|\btrousers\b|\bpants\b|\bskirt\b/i.test(titleText || '');
+  // (o ehParteDeBaixo é calculado lá em cima, junto do isPadded — os dois
+  // sinais de agasalho obedecem ao mesmo veto, e o veto tem de existir antes
+  // do primeiro deles)
   const isBulkyGarment = !ehParteDeBaixo
     && /casac|sobretudo|parka|trench|blaz[eê]r|jaquet|jacket|coats?\b|puffer|acolchoad|quilted|gabardin|trincheira|blus[ãa]o|blus[õo]es|anorak|bomber|corta[-\s]?vento|windbreaker|kispo|chaquet|cazadora|plum[ií]fero|manteau|doudoune|blouson/i.test(textoAmplo);
   const packability = typeof packabilityScore === 'function' ? packabilityScore(fibers, isKnitEarly, isBulkyGarment) : 65;
