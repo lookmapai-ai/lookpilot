@@ -791,26 +791,81 @@
     const compZone = findCompositionZone();
     if (compZone && indiceComposicao(compZone) >= 0) return cortaRecomendados(compZone);
 
-    // Fallback: texto da página mas sem as zonas de ruído, e sem duplicar aninhados
-    let text = '';
-    document.querySelectorAll('p,li,span,div,td,dd,dt').forEach(el => {
-      if (el.children.length > 0) return;       // só folhas, evita duplicar aninhados
-      if (inNoise(el)) return;                   // ignora produtos relacionados
-      const t = (el.textContent || '').trim();
-      if (t.length > 1 && t.length < 400) text += '\n' + t;
-    });
-    // Deteta composição REAL: "% fibra" ou "fibra %" — não descontos tipo "-46%"
-    // nem "50% de desconto" (Mango). Exclui palavras de desconto/poupança.
-    // (o leaf-scan ignora <p> com filhos, onde lojas como Pull&Bear metem a descrição)
-    // Último recurso: se o leaf-scan não apanhou composição, usa innerText completo
-    if (!hasComposition(text)) {
-      const bodyText = cortaRecomendados((document.body.innerText || '').trim());
-      if (hasComposition(bodyText)) return bodyText;
-      // Nada com percentagem em lado nenhum: agora sim, a zona fraca é a
-      // melhor pista que há (etiqueta de mala/sapato sem percentagem).
-      if (compZone) return cortaRecomendados(compZone);
+    // UMA ESCADA, DO TEXTO MAIS LIMPO AO MAIS SUJO. Cada degrau só é aceite
+    // se ainda trouxer a etiqueta; quando não traz, desce-se um degrau e
+    // admite-se mais lixo. Assim a página mais bem-comportada é lida sem
+    // nada do que a loja lhe põe à volta, e a mal-comportada continua a ser
+    // lida — só que com o lixo que foi preciso para encontrar a etiqueta.
+    //
+    // Porque é que isto existe: o último degrau (o innerText cru da página)
+    // não passava por filtro nenhum, e era ele que acabava a servir sempre
+    // que a etiqueta não caía no varrimento de folhas. Numas culottes da
+    // Uniqlo, o texto que decidiu a peça foi esse — trazia um banner de
+    // saldos ("down jackets") e um carrossel de recomendados ("100%
+    // Lambswool Knit Mini Dress"), e a peça foi lida como casaco acolchoado
+    // de malha. O filtro de ruído que teria apanhado o carrossel existia e
+    // funcionava; só não era aplicado neste caminho.
+    //
+    // O degrau sem links é o que apanha o banner: a prosa de um produto não
+    // vive dentro de <a>. Menus, promoções, migalhas e cartões de outros
+    // produtos vivem. Mas como há lojas que metem a etiqueta dentro de um
+    // link, esse degrau só vale se a etiqueta lá continuar — senão desce-se.
+    // Elementos que têm texto mas não são prosa da página: o código e os
+    // desenhos. Sem os excluir, o degrau "tudo" passava de 7 mil para 181
+    // mil caracteres — o conteúdo dos <script> inteiro, com percentagens e
+    // palavras que decidiriam a peça.
+    const MUDO = /^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE|LINK|META|TITLE|SVG|PATH|IFRAME|OPTION)$/;
+    const varre = ({ semLinks = false, soFolhas = false } = {}) => {
+      let t = '';
+      document.querySelectorAll(soFolhas ? 'p,li,span,div,td,dd,dt' : '*').forEach(el => {
+        if (el.children.length > 0) return;       // só folhas, evita duplicar aninhados
+        if (MUDO.test(el.tagName)) return;
+        try { if (el.closest('svg')) return; } catch (e) {}
+        if (inNoise(el)) return;                   // carrosséis, rodapé, menu, chat
+        if (semLinks) { try { if (el.tagName === 'A' || el.closest('a[href]')) return; } catch (e) {} }
+        const s = (el.textContent || '').trim();
+        if (!s) return;
+        if (soFolhas && (s.length <= 1 || s.length >= 400)) return;
+        t += '\n' + s;
+      });
+      return t;
+    };
+
+    // Quatro degraus, do mais limpo ao mais sujo. Cada um só é aceite se
+    // ainda trouxer a etiqueta; quando não traz, desce-se e admite-se mais
+    // lixo. A loja bem-comportada é lida sem nada do que lhe puseram à
+    // volta; a mal-comportada continua a ser lida.
+    //
+    // O degrau sem links é o que apanha o banner de saldos. Medido na página
+    // real das culottes da Uniqlo: o primeiro degrau traz a etiqueta
+    // verdadeira ("Body: 98% Cotton, 2% Elastane"), e deixa fora tanto o
+    // banner ("down jackets") como o carrossel ("Lambswool Knit Mini
+    // Dress") — as duas palavras que faziam umas calças ser lidas como
+    // casaco acolchoado de malha.
+    //
+    // A prosa de um produto não vive dentro de <a>: menus, promoções,
+    // migalhas e cartões de outros produtos vivem. Mas há lojas que metem a
+    // etiqueta dentro de um link, e por isso os degraus 3 e 4 voltam a
+    // admiti-los — só quando sem eles não há etiqueta nenhuma.
+    const degraus = [
+      { soFolhas: true,  semLinks: true  },
+      { soFolhas: false, semLinks: true  },
+      { soFolhas: true,  semLinks: false },
+      { soFolhas: false, semLinks: false },
+    ];
+    let maisLimpo = '';
+    for (const op of degraus) {
+      const t = cortaRecomendados(varre(op).trim());
+      if (!maisLimpo) maisLimpo = t;
+      if (hasComposition(t)) return t;
     }
-    return cortaRecomendados(text);
+    // Último recurso: o innerText cru, sem filtro nenhum.
+    const bodyText = cortaRecomendados((document.body.innerText || '').trim());
+    if (hasComposition(bodyText)) return bodyText;
+    // Nada com percentagem em lado nenhum: agora sim, a zona fraca é a
+    // melhor pista que há (etiqueta de mala/sapato sem percentagem).
+    if (compZone) return cortaRecomendados(compZone);
+    return maisLimpo;
   }
 
   // Procura a zona de composição: o bloco de texto à volta de um marcador

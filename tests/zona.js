@@ -91,6 +91,9 @@ function bate(el, sel) {
       return (el.attrs.role || '') === m[1];
     if ((m = /^\[([a-z-]+)\]$/.exec(p))) return m[1] in el.attrs;
     if ((m = /^#(.+)$/.exec(p))) return (el.attrs.id || '') === m[1];
+    // tag com atributo, como 'a[href]' — o degrau que ignora links usa-o
+    if ((m = /^([a-z0-9]+)\[([a-z-]+)\]$/i.exec(p)))
+      return el.tagName === m[1].toUpperCase() && m[2] in el.attrs;
     if (/^[a-z0-9]+$/i.test(p)) return el.tagName === p.toUpperCase();
     return false;
   });
@@ -121,7 +124,9 @@ function lerPagina(raizDom, { titulo = '', url = 'https://loja.com/peca-p1.html'
   for (const f of ['strings.js', 'shared.js', 'categories.js']) {
     vm.runInContext(fs.readFileSync(path.join(raiz, f), 'utf8'), ctx, { filename: f });
   }
-  const src = fs.readFileSync(path.join(raiz, 'content.js'), 'utf8')
+  // LP_CONTENT aponta a outra versão, para comparar sem trocar o ficheiro
+  // que o Chrome carrega.
+  const src = fs.readFileSync(process.env.LP_CONTENT || path.join(raiz, 'content.js'), 'utf8')
     .replace('(function() {', 'var _api = (function() {')
     .replace(/\}\)\(\);\s*$/, '  return { extractAllText, parseComposition, findCompositionZone };\n})();');
   vm.runInContext(src, ctx, { filename: 'content.js' });
@@ -283,6 +288,75 @@ teste('a mala sem percentagem nenhuma continua a ser lida pelo material', () => 
                no('span', 'Composição'), no('span', 'Pele')]),
   ]), { titulo: 'MALA DE OMBRO EM PELE | ZARA', categoria: 'bags' });
   return /pele|couro|leather/.test(nomes(fibras)) || 'deixou de ler a mala de pele verdadeira: ' + (nomes(fibras).trim() || 'nada lido');
+});
+
+/* ─── A ESCADA DO TEXTO: do mais limpo ao mais sujo ──────────────────
+ *
+ * Quando a etiqueta não cai no varrimento de folhas, havia um só degrau a
+ * seguir: o innerText cru da página, sem filtro nenhum. Era ele que servia
+ * nas culottes de bombazina da Uniqlo — e trazia com ele um banner de
+ * saldos ("down jackets") e um carrossel de recomendados ("100% Lambswool
+ * Knit Mini Dress"). A peça foi lida como casaco acolchoado de malha.
+ *
+ * O filtro de ruído que apanha carrosséis já existia e funcionava; só não
+ * era aplicado neste caminho. O banner escapa-lhe por outra razão: é um
+ * link, e não tem classe nenhuma que o denuncie.
+ *
+ * A escada tem agora quatro degraus, e cada um só é aceite se ainda trouxer
+ * a etiqueta. Assim a loja bem-comportada é lida limpa, e a mal-comportada
+ * continua a ser lida — com o lixo que foi preciso.
+ */
+function bannerDeSaldos() {
+  return no('a', [no('span', 'Shop new and further reductions on Uniqlo U, '
+    + 'down jackets, barrel leg trousers and more!')], { href: '/sale' });
+}
+function carrossel() {
+  return no('div', [no('span', '100% Lambswool Knit Mini Dress'),
+                    no('span', 'Smart Culottes')], { class: 'fr-ec-carousel' });
+}
+
+teste('o banner de saldos e o carrossel ficam fora da leitura', () => {
+  // A etiqueta está num <strong>, fora das tags do varrimento de folhas —
+  // é o que força a escada a descer, como na página real.
+  const { texto, fibras } = lerPagina(no('body', [
+    bannerDeSaldos(),
+    no('div', [no('h1', "Women's Corduroy Culottes"),
+               no('p', 'Made from corduroy fabric with a natural texture.'),
+               no('strong', '98% algodão, 2% elastano')]),
+    carrossel(),
+  ]), { titulo: "Women's Corduroy Culottes | UNIQLO PT" });
+  if (!/algod/.test(nomes(fibras))) return 'perdeu a etiqueta: ' + (nomes(fibras).trim() || 'nada lido');
+  if (/down jackets/i.test(texto)) return 'o banner de saldos entrou na leitura';
+  if (/Lambswool/i.test(texto)) return 'o carrossel de recomendados entrou na leitura';
+  return true;
+});
+
+teste('a loja que mete a etiqueta dentro de um link continua a ser lida', () => {
+  // O degrau sem links só vale se a etiqueta lá continuar. Aqui não
+  // continua, por isso tem de descer e admitir os links.
+  const { fibras } = lerPagina(no('body', [
+    bannerDeSaldos(),
+    no('div', [no('h1', 'Camisa de linho')]),
+    no('a', [no('strong', '100% linho')], { href: '/ficha' }),
+  ]), { titulo: 'Camisa de linho' });
+  return /linho/.test(nomes(fibras)) || 'perdeu a etiqueta por estar dentro de um link';
+});
+
+teste('o conteúdo dos <script> não entra na leitura', () => {
+  // Achado a medir, não a pensar: o degrau que varre tudo passou de 7 mil
+  // para 181 mil caracteres na página real — era o código das páginas a
+  // entrar como se fosse prosa. Um <script> tem percentagens e palavras
+  // que decidiriam a peça.
+  const { texto, fibras } = lerPagina(no('body', [
+    no('script', 'var promo = "down jackets"; var m = "100% poliéster";'),
+    no('style', '.a{width:100%}'),
+    no('div', [no('h1', 'Culote de bombazina'),
+               no('strong', '98% algodão, 2% elastano')]),
+  ]), { titulo: 'Culote de bombazina' });
+  if (/down jackets/i.test(texto)) return 'o código do <script> entrou na leitura';
+  const lidas = nomes(fibras);
+  if (/poli[ée]ster/.test(lidas)) return 'leu a composição que estava dentro do <script>: ' + lidas.trim();
+  return /algod/.test(lidas) || 'perdeu a etiqueta: ' + (lidas.trim() || 'nada lido');
 });
 
 console.log('\n──────────────────────────────────────');
