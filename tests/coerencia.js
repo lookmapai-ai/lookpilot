@@ -623,10 +623,16 @@ console.log('');
     + 'barrel leg trousers and more!';
   const fibras = [fibra('Algodão', 98), fibra('Elastano', 2)];
 
+  // "Culote é calça" — e a loja escreve-o de quatro maneiras. A primeira
+  // versão deste veto só sabia a grafia inglesa, e "Culote de bombazina"
+  // continuava a virar casaco acolchoado.
   const CASOS = [
     ['Women\'s Corduroy Culottes', 'a peça do retorno'],
     ['Smart Culottes', 'outra culotte do mesmo carrossel'],
     ['Cotton Culotte Trousers', 'a mesma peça com outro nome'],
+    ['Culote de bombazina', 'a grafia portuguesa, com um t'],
+    ['Culotes de ganga', 'a grafia portuguesa no plural'],
+    ['Jupe-culotte en velours', 'como a loja francesa lhe chama'],
     ['Calças de bombazina', 'em português'],
     ['Saia midi plissada', 'saia, que o veto já conhecia'],
   ];
@@ -640,6 +646,31 @@ console.log('');
       'tipo="' + tipo + '", acolchoado=' + !!s.isPadded
         + ' — uma palavra do banner de saldos decidiu a construção da peça, '
         + 'e ela vai receber as frases de agasalho acolchoado');
+  });
+
+  // O MESMO CARROSSEL, OUTRO ESTRAGO. A página trazia "100% Lambswool Knit
+  // Mini Dress" — outro produto — e o "Knit" desse vestido fazia a bombazina
+  // ser julgada como MALHA, com as frases de bolinhas e deformação. Quando o
+  // título da peça nomeia o tecido, a palavra apanhada no resto da página não
+  // manda: é de outra peça.
+  const CARROSSEL = BANNER + '\n100% Lambswool Knit Mini Dress\n'
+    + 'Composição: 98% algodão, 2% elastano.';
+  [['Women\'s Corduroy Culottes', 'bombazina em inglês'],
+   ['Culote de bombazina', 'bombazina em português'],
+   ['Calças de ganga', 'ganga'],
+   ['Saia de veludo', 'veludo']].forEach(([titulo, tecido]) => {
+    const s = calcScores(fibras, CARROSSEL, '', titulo);
+    checa('    "' + titulo + '" não vira malha pelo carrossel (' + tecido + ')',
+      s.isKnit === false,
+      'malha=true — o "Knit" do vestido recomendado decidiu a construção desta peça');
+  });
+
+  // E a malha a sério continua malha, venha do título ou da página.
+  [['Camisola de lã merino', 'o título diz'],
+   ['Top canelado', 'só a página diz']].forEach(([titulo, donde]) => {
+    const s = calcScores([fibra('Lã', 100)], 'Malha canelada. Composição: 100% lã.', '', titulo);
+    checa('    "' + titulo + '" continua malha (' + donde + ')', s.isKnit === true,
+      'o desempate do tecido apanhou uma peça de malha a sério');
   });
 
   // E o contrário tem de continuar a funcionar: um agasalho acolchoado de

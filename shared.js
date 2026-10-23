@@ -355,7 +355,11 @@ function calcScores(fibers, pageText, certText, titleText) {
   // exactamente este perigo; faltava aplicá-lo também ao acolchoado, que
   // tem um atalho próprio no detectGarmentType ("acolchoado é sempre
   // casaco") e, por isso, passava à frente de tudo.
-  const ehParteDeBaixo = /\bcal[çc]as?\b|\bcal[çc][õo]es\b|\bsaia\b|\bshorts?\b|\bbermudas?\b|\bleggings?\b|\btrousers\b|\bpants\b|\bskirt\b|\bculottes?\b|\bjupe[-\s]?culotte\b|\bsaia[-\s]?cal[çc]a\b/i.test(titleText || '');
+  // "culote" é calça. A loja escreve-o de quatro maneiras — culote e culotes
+  // em português, culotte e culottes no francês que o inglês adoptou — e o
+  // veto tem de conhecer as quatro: a primeira versão desta regra só sabia a
+  // grafia inglesa, e "Culote de bombazina" continuava a virar casaco.
+  const ehParteDeBaixo = /\bcal[çc]as?\b|\bcal[çc][õo]es\b|\bsaia\b|\bshorts?\b|\bbermudas?\b|\bleggings?\b|\btrousers\b|\bpants\b|\bskirt\b|\bculot(?:t)?es?\b|\bjupe[-\s]?culot(?:t)?e\b|\bsaia[-\s]?cal[çc]a\b/i.test(titleText || '');
   const isPadded = !ehParteDeBaixo
     && /acolchoad|quilted|puffer|puffect|\bpenas?\b|\bdown\b|duvet|plumas|recheio|enchimento/i.test(textoAmplo);
 
@@ -617,7 +621,22 @@ function calcScores(fibers, pageText, certText, titleText) {
   const durabilityFinal = Math.min(100, durability + (hasTechSpec ? 4 : 0));
   const overall     = Math.min(100, Math.round(qualityFinal * 0.25 + comfort * 0.15 + durabilityFinal * 0.20 + versatility * 0.15 + costBenefit * 0.15 + maintenance * 0.10) + (certBonus > 0 ? 2 : 0));
 
-  const isKnit = /tricot|tric[ôo]|knit|malha|jersey|jacquard|knitwear|croch[eê]|crochet|sweater|camisola|pullover|pul[oô]ver|cardigan|cardig[aã]|gola alta|tur(t|l)eneck|jumper|camisaco/i.test(textoAmplo);
+  const MALHA_RE = /tricot|tric[ôo]|knit|malha|jersey|jacquard|knitwear|croch[eê]|crochet|sweater|camisola|pullover|pul[oô]ver|cardigan|cardig[aã]|gola alta|tur(t|l)eneck|jumper|camisaco/i;
+  // Tecidos que são, por definição, TECIDOS — não malha. Quando o título da
+  // peça nomeia um deles, uma palavra de malha apanhada no resto da página
+  // não manda: a palavra é de outra peça.
+  //
+  // Veio das mesmas culottes de bombazina. O carrossel de recomendados da
+  // Uniqlo trazia "100% Lambswool Knit Mini Dress" — outro produto — e o
+  // "Knit" desse vestido fazia a bombazina ser julgada como malha, com as
+  // frases de bolinhas e deformação que não são desta peça.
+  //
+  // A regra é estreita de propósito: só desempata quando o título da peça
+  // diz o tecido. Se o título disser malha, malha é — e uma peça cujo título
+  // não diz nada continua a ser lida pela página, como antes.
+  const TECIDO_NO_TITULO = /bombazina|corduroy|cotel[êe]|veludo|sarja|twill|ganga\b|denim|gabardine|gabardina|canvas|\bbrim\b|popelina|poplin|oxford|chambray|tweed|cetim|satin/i;
+  const isKnit = MALHA_RE.test(titleText || '')
+    || (!TECIDO_NO_TITULO.test(titleText || '') && MALHA_RE.test(textoAmplo));
   // Tecido grosso e estruturado (sarja, gabardine, ganga/denim, canvas, brim,
   // corte "carpinteiro"/workwear) amarrota muito menos que o algodão fino
   // médio do banco — o mesmo raciocínio do isKnit, só que pro lado oposto do
