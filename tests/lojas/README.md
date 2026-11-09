@@ -26,10 +26,20 @@ url: <link>
 avaliacao: 4.8
 avaliacoes: 182
 capturado: 2026-08-03
+etiqueta: parcial          # só quando for o caso — ver abaixo
 nota_humana: <o julgamento de quem conhece a peça — ver abaixo>
 ---
 <o texto da página, colado>
 ```
+
+### `etiqueta: parcial`
+
+A página publica **só parte** da etiqueta, e isso é tudo o que há para ler.
+É a regra no Vinted: a composição é escrita à mão por quem vende, no título
+ou na descrição, e quase sempre só a fibra principal (*"Manteau court 80%
+laine"*). Sem esta linha o acervo acusa a leitura de invenção, porque a soma
+não fecha 100% — e tem razão em acusar todas as outras. Quem distingue uma
+etiqueta incompleta de um número solto na página é quem olhou a página.
 
 O texto deve incluir a descrição, a ficha técnica **e** a composição. Na
 Decathlon a composição está dentro do painel "Especificações", que vem

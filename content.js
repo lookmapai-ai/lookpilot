@@ -437,6 +437,38 @@
       }
     }
 
+    // ─── A etiqueta copiada à mão por quem vende (Vinted) ────────
+    // No Vinted a composição vive no título ou na descrição, escrita pela
+    // pessoa que vende, e quase sempre SÓ A PARTE PRINCIPAL: "Cappotto rosso
+    // Benetton - 60% lana". O guarda dos 70% abaixo — que existe para não
+    // confundir um selo de marketing com uma etiqueta — deitava isso fora, e
+    // a extensão dizia "não consegui ler a composição" numa página que
+    // publica 60% de lã duas vezes.
+    //
+    // A prova que falta ao guarda está na própria página: o campo "Material"
+    // do Vinted lista as fibras da peça (sem percentagens). Quando a fibra do
+    // "60% lana" é uma das que o Vinted lista, aquele número é etiqueta e não
+    // coincidência — e se faltar UMA fibra da lista, o resto da peça é ela:
+    // 60% lã + 40% poliéster, sem adivinhar.
+    const fichaVinted = (typeof lerFichaVinted === 'function') ? lerFichaVinted(text) : null;
+    let confirmadaPelaFicha = false;
+    if (fichaVinted && fichaVinted.materiais.length && results.length) {
+      const rotuloDe = (f) => ((f.data && f.data.label) || f.name || '').toLowerCase();
+      const listados = fichaVinted.materiais.map((m) => m.rotulo);
+      confirmadaPelaFicha = results.every((f) => listados.indexOf(rotuloDe(f)) >= 0);
+      if (confirmadaPelaFicha) {
+        const lidos = results.map(rotuloDe);
+        const faltam = fichaVinted.materiais.filter((m) => lidos.indexOf(m.rotulo) < 0);
+        const total = results.reduce((a, f) => a + (f.pct || 0), 0);
+        // Só com UMA fibra em falta a conta é única. Com duas, a divisão do
+        // resto seria inventedão: fica a leitura parcial, que é verdadeira.
+        if (faltam.length === 1 && total >= 5 && total <= 95) {
+          results.push({ pct: Math.round(100 - total), name: faltam[0].nome,
+                         data: faltam[0].data, inferida: true });
+        }
+      }
+    }
+
     // Uma etiqueta descreve a peça INTEIRA. Se o que sobrou não chega perto
     // de 100%, aquilo não era etiqueta — era outro número qualquer da página
     // com uma palavra de fibra por perto.
@@ -448,10 +480,10 @@
     // "não consegui ler" faz a pessoa conferir a etiqueta; um número
     // inventado ela leva para casa.
     //
-    // O limite é folgado de propósito. Etiquetas reais incompletas existem
-    // ("80% algodão", sem declarar o elastano), e essas continuam a passar;
-    // o que não passa é um número solto a fazer de composição.
-    if (category === 'clothing' && results.length) {
+    // A excepção é a etiqueta que a própria página confirma por outra via
+    // (o campo "Material" do Vinted, acima): aí a leitura parcial é a
+    // etiqueta que existe, e deitar fora é que seria perder informação.
+    if (category === 'clothing' && results.length && !confirmadaPelaFicha) {
       const total = results.reduce((a, f) => a + (f.pct || 0), 0);
       if (total < 70) results.length = 0;
     }
@@ -680,7 +712,7 @@
   // embaixo da página) continha a palavra "puffer". noiseSelectors filtra
   // por CSS e não pegou; isto pega pelo texto do próprio título da secção,
   // que varia menos entre sites do que o nome da classe.
-  const RECOMENDADOS_RE = /people also (viewed|bought|liked)|you may also like|customers? also (bought|viewed)|também compraram|também viu|também gostou|produtos relacionados|related products|complete o look|complete the look|produtos recomendados|produtos semelhantes|produtos similares|artigos relacionados|quem viu isto|outros clientes|recomendado para si|pode(?:rá)? também gostar|comprar conjunto/i;
+  const RECOMENDADOS_RE = /people also (viewed|bought|liked)|you may also like|customers? also (bought|viewed)|também compraram|também viu|também gostou|produtos relacionados|related products|complete o look|complete the look|produtos recomendados|produtos semelhantes|produtos similares|artigos relacionados|quem viu isto|outros clientes|recomendado para si|pode(?:rá)? também gostar|comprar conjunto|artigos do membro|artigos semelhantes|artigos do vendedor|artículos similares|articles similaires|artículos del miembro|member's items|similar items|more from this seller/i;
   // Onde começa a composição no texto (-1 se não houver). "25% OFF" e
   // "50% desconto" não contam — por isso o filtro de palavras.
   // `[^\S\n]` = espaço mas NÃO quebra de linha, senão "50%\nSelecione"
@@ -1176,7 +1208,10 @@
     const conf = typeof confidenceScore === 'function'
       ? confidenceScore({ hasComposition: fibers.length > 0, hasGarmentType: !!garmentType,
                           hasCertification: !!(scores.certs && scores.certs.length),
-                          hasBrand: !!productMeta.loja }).score
+                          hasBrand: !!productMeta.loja,
+                          // Vinted: a composição é a que quem vende copiou à mão,
+                          // não a etiqueta da marca — o selo de confiança tem de o dizer.
+                          etiquetaDeTerceiro: !!scores.vinted }).score
       : null;
 
     // Guarda só o resultado atual por URL (para o popup redirecionar à landing).

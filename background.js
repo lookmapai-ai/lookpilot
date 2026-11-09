@@ -3,7 +3,8 @@ const FASHION_DOMAINS = [
   'bershka.com','stradivarius.com','uniqlo.com','shein.com','primark.com',
   'reserved.com','weekday.com','cos.com','arket.com','stories.com','monki.com',
   'asos.com','net-a-porter.com','farfetch.com','zalando.com','zalando.pt','aboutyou.com',
-  'mangooutlet.com','shopify.com','zara.com'
+  'mangooutlet.com','shopify.com','zara.com',
+  'vinted.'   // cobre vinted.pt, .es, .fr, .it, .de… numa entrada só
 ];
 
 const PRODUCT_PATTERNS = [
@@ -39,6 +40,10 @@ function classifyUrl(url) {
       /[?&](q|query|search|cat|category)=/.test(path),
       /\/(cart|checkout|bag|cesto|wishlist|account|conta|login)/.test(path),
       /\/(lookbook|campaign|video|news|stores|lojas|magazine)/.test(path),
+      // Vitrine de quem vende no Vinted: dezenas de peças, etiqueta de
+      // nenhuma. Sem isto era lida como peça pelos 7 dígitos do id.
+      /\/member\/\d+/.test(path),
+      /\/catalog(\?|\/|$)/.test(path),
       // Zara/afins marcam LISTAGEM com "-l<dígitos>.html" (ex: -l1050.html) e
       // PRODUTO com "-p<dígitos>.html". Sem isto, a listagem era lida como
       // produto e o clique escaneava direto numa página sem peça única.
@@ -58,6 +63,8 @@ function classifyUrl(url) {
       /itemId=/.test(path),
       /\/p\/[a-z]/.test(path),
       /\/\d{7,}(\/|$)/.test(path),
+      // Vinted: /items/10732248062-nome-da-peca (id antes do nome).
+      /\/items?\/\d{4,}/.test(path),
     ].some(Boolean);
     return { isFashion, isProduct, isListing: nonProduct };
   } catch(e) {

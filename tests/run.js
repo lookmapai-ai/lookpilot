@@ -1590,8 +1590,10 @@ console.log('══════════════════════�
 //   acervo.js — o motor contra páginas reais guardadas de cada loja
 //   abrir-aba.js — os botões do card abrem mesmo (a Zara engolia o clique)
 //   acordeao.js — a etiqueta que está a um clique (painel fechado da loja)
+//   vinted.js — a segunda mão: etiqueta copiada à mão, parcial e noutra
+//               língua, e o estado da peça a pesar tanto como a fibra
 let extras = 0;
-for (const t of ['coerencia.js', 'acervo.js', 'pagina.js', 'entrega.js', 'abrir-aba.js', 'acordeao.js']) {
+for (const t of ['coerencia.js', 'acervo.js', 'pagina.js', 'entrega.js', 'abrir-aba.js', 'acordeao.js', 'vinted.js']) {
   try {
     require('child_process').execSync('node ' + require('path').join(__dirname, t),
       { stdio: 'inherit' });

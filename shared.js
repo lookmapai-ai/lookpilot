@@ -18,6 +18,10 @@ const URL_PRODUCT_SIGNALS = [
   url => /\/[a-z0-9-]+_\d{5,}/.test(url),
   url => /\/p\/[a-z]/.test(url),
   url => /\/\d{7,}(\/|$)/.test(url),
+  // Vinted: /items/10732248062-cappotto-rosso-benetton-60-lana. O id vem
+  // ANTES do nome, e nenhum dos sinais acima o apanhava — um anúncio do
+  // Vinted não era peça nem listagem, era nada.
+  url => /\/items?\/\d{4,}/.test(url),
 ];
 
 const URL_LISTING_SIGNALS = [
@@ -27,6 +31,11 @@ const URL_LISTING_SIGNALS = [
   url => /[?&](q|query|search|cat|category)=/.test(url),
   url => /\/(cart|checkout|bag|cesto|wishlist|account|conta|login)/.test(url),
   url => /\/(lookbook|campaign|video|news|stores|lojas|magazine)/.test(url),
+  // O perfil de quem vende no Vinted (/member/12345678) era lido como PEÇA,
+  // pelo sinal dos 7 dígitos seguidos — e é uma vitrine com dezenas de
+  // peças, exactamente a página onde não há etiqueta nenhuma para ler.
+  url => /\/member\/\d+/.test(url),
+  url => /\/catalog(\?|\/|$)/.test(url),
 ];
 
 const FASHION_DOMAINS = [
@@ -36,6 +45,9 @@ const FASHION_DOMAINS = [
   'reserved.com','weekday.com','cos.com','arket.com','stories.com',
   'monki.com','asos.com','net-a-porter.com','farfetch.com',
   'zalando.com','zalando.pt','aboutyou.com',
+  // Segunda mão. 'vinted.' sem TLD cobre as 20 e tantas lojas nacionais
+  // da plataforma (vinted.pt, .es, .fr, .it, .de…) numa entrada só.
+  'vinted.',
 ];
 
 function classifyUrl(href) {
@@ -51,6 +63,108 @@ function classifyUrl(href) {
   } catch(e) {
     return { isFashion: false, isProduct: false, isListing: false };
   }
+}
+
+// ─── A ficha do Vinted ───────────────────────────────────
+// NO VINTED NÃO HÁ LOJA: HÁ UMA PESSOA A DESCREVER A PEÇA QUE TEM EM CASA.
+// Isso muda três coisas que o resto do motor dá por garantidas, e todas as
+// três importam mais num casaco de inverno do que em qualquer outra peça:
+//
+//   1. A COMPOSIÇÃO VEM ESCRITA À MÃO, no título ou na descrição, e quase
+//      sempre PARCIAL: "Cappotto rosso Benetton - 60% lana". A outra metade
+//      da etiqueta não foi copiada. O motor tinha um guarda que deitava fora
+//      qualquer leitura abaixo de 70% — existe para não confundir um selo de
+//      marketing com uma etiqueta — e esse guarda apagava a leitura certa
+//      deste casaco: dizia "não consegui ler" numa página que publica 60% de
+//      lã duas vezes, no título e na descrição.
+//
+//   2. O VINTED PUBLICA UM CAMPO "MATERIAL" PRÓPRIO, com os nomes das fibras
+//      e sem percentagens ("Poliéster, Lã"). É isso que fecha o caso: quando
+//      a fibra de "60% lana" é uma das que o próprio Vinted lista, aquele
+//      número é etiqueta a sério e não um desconto apanhado por acaso. E se
+//      só falta UMA das fibras listadas, o resto da peça é essa — 60% lã
+//      mais 40% poliéster, a composição inteira, sem adivinhar nada.
+//
+//   3. A PEÇA É USADA, e o anúncio diz quanto. "Muito bom", "Satisfatório",
+//      "Novo com etiquetas": num casaco de lã ou caxemira é o estado que
+//      decide a compra, porque é onde aparece a bolinha e o brilho de uso —
+//      a fibra pode ser ótima e a peça estar gasta.
+//
+// Nada disto se adivinha a partir da fibra. Tem de se ler na página.
+
+// A ordem importa: "muito bom" tem de ser tentado antes de "bom", senão
+// "Muito bom" é lido como "bom" e a peça leva um aviso de desgaste que o
+// anúncio não dá.
+const VINTED_ESTADOS = [
+  { re: /novo com etiquetas/i,       chave: 'novo_etiqueta', rotulo: 'Novo com etiquetas', usado: false },
+  { re: /novo sem etiquetas/i,       chave: 'novo',          rotulo: 'Novo sem etiquetas', usado: false },
+  { re: /muito bom(?: estado)?/i,    chave: 'muito_bom',     rotulo: 'Muito bom',          usado: true  },
+  { re: /satisfat[\u00f3o]rio/i,          chave: 'satisfatorio',  rotulo: 'Satisfat\u00f3rio',       usado: true  },
+  { re: /\bbom(?: estado)?\b/i,      chave: 'bom',           rotulo: 'Bom',                usado: true  },
+];
+
+// Os rótulos dos outros campos da ficha. Servem de parede: o valor de
+// "Material" acaba onde começa o campo seguinte. Sem isto, no texto achatado
+// (sem quebras de linha) o material lido era "Poliéster, Lã Cor Vermelho
+// Carregado há 6 horas".
+const VINTED_CAMPOS_RE = /\b(cor|carregado|tamanho|marca|estado|material|portes|vistas|interessad\w*|localiza\w*|quantidade|envio)\b/i;
+
+function vintedEhPagina(texto) {
+  const t = texto || '';
+  // Duas provas, não uma: o nome da plataforma aparece em qualquer página que
+  // a mencione (um blogue, uma notícia), mas o campo "Estado" com um dos
+  // cinco valores do Vinted só existe num anúncio do Vinted.
+  if (!/\bvinted\b/i.test(t)) return false;
+  return /\bestado\b[\s:\u00b7|]*(novo com etiquetas|novo sem etiquetas|muito bom|satisfat[\u00f3o]rio|bom)\b/i.test(t);
+}
+
+function lerFichaVinted(texto) {
+  const t = texto || '';
+  if (!vintedEhPagina(t)) return null;
+
+  const estadoM = /\bestado\b[\s:\u00b7|]*(novo com etiquetas|novo sem etiquetas|muito bom|satisfat[\u00f3o]rio|bom)\b/i.exec(t);
+  const bruto = estadoM ? estadoM[1] : '';
+  const estado = VINTED_ESTADOS.find((e) => e.re.test(bruto)) || null;
+
+  // O campo "Material" do Vinted: nomes de fibra separados por vírgula, sem
+  // percentagem nenhuma. Corta-se no rótulo do campo seguinte e guarda-se
+  // só o que o banco de fibras reconhece como fibra.
+  let materiais = [];
+  const matM = /\bmaterial\b[\s:\u00b7|]*([^\n]{2,120})/i.exec(t);
+  if (matM) {
+    let chunk = matM[1];
+    const parede = VINTED_CAMPOS_RE.exec(chunk);
+    if (parede) chunk = chunk.slice(0, parede.index);
+    chunk.split(/[,;\/\u00b7|]|\se\s/).forEach((pedaco) => {
+      const nome = pedaco.trim().replace(/[.\s]+$/, '');
+      if (nome.length < 2 || nome.length > 30) return;
+      const data = (typeof getFiber === 'function') ? getFiber(nome) : null;
+      if (!data) return;
+      const rotulo = (data.label || nome).toLowerCase();
+      if (materiais.some((m) => m.rotulo === rotulo)) return;
+      materiais.push({ nome: nome.toLowerCase(), rotulo, data });
+    });
+  }
+
+  // "MarcaUnited Colors of Benetton": no texto que o Vinted entrega, o rótulo
+  // e o valor da marca vêm COLADOS, sem espaço nem quebra de linha. Um
+  // \b depois de "marca" nunca casava, e a marca ficava sempre vazia.
+  let marca = null;
+  const marcaM = /\bmarca[\s:\u00b7|]*([^\n]{2,60})/i.exec(t);
+  if (marcaM) {
+    let m = marcaM[1];
+    const parede = VINTED_CAMPOS_RE.exec(m);
+    if (parede) m = m.slice(0, parede.index);
+    marca = m.trim().slice(0, 60) || null;
+  }
+
+  return {
+    estado: estado ? estado.rotulo : null,
+    estadoChave: estado ? estado.chave : null,
+    usada: estado ? estado.usado : true,   // sem estado legível, assume-se usada
+    materiais,
+    marca,
+  };
 }
 
 // ─── Fiber Database ───────────────────────────────────────────────
@@ -669,10 +783,18 @@ function calcScores(fibers, pageText, certText, titleText) {
   // A tabela de calor por fibra vive mais abaixo neste ficheiro; o guarda
   // existe pelo mesmo motivo dos outros (`typeof warmthScore === 'function'`):
   // quem carrega só parte do shared.js não pode rebentar aqui.
-  const tabelaCalor = (typeof WARMTH !== 'undefined') ? WARMTH : {};
+  // calorDaFibra resolve o nome da fibra em qualquer língua ('laine', 'lana',
+  // 'wool') pelo rótulo canónico do banco. Sem isso, um sobretudo 80% laine
+  // era acusado de não aquecer — ver o comentário da função.
+  const calorDe = (f) => (typeof calorDaFibra === 'function'
+    ? calorDaFibra(f)
+    : ((typeof WARMTH !== 'undefined' ? WARMTH : {})[(f.name || '').toLowerCase()])) || 0;
   const fibraQuenteEmDose = (fibers || []).some((f) =>
-    (tabelaCalor[(f.name || '').toLowerCase()] || 0) >= 70 && (f.pct || 0) >= 20);
+    calorDe(f) >= 70 && (f.pct || 0) >= 20);
   const ehBlazer = /blaz[eê]r/i.test(textoAmplo);
+  // A ficha do anúncio de segunda mão (estado da peça, material declarado,
+  // marca). Em peça nova de loja isto é null e nada muda.
+  const vinted = (typeof lerFichaVinted === 'function') ? lerFichaVinted(textoAmplo) : null;
   const semProvaDeCalor = isBulkyGarment && !ehBlazer
     && !isPadded && !hasTechSpec && !fichaTecnica && !isKnit && !isHeavyWoven
     && !construcaoQuente && !fibraQuenteEmDose;
@@ -680,7 +802,7 @@ function calcScores(fibers, pageText, certText, titleText) {
   // Semente de variação: primeiro tipo de peça encontrado no texto → frases variam entre tipos de peça
   const garmentWords = (pageText || '').toLowerCase().match(/camisa|t-?shirt|camiseta|vestido|cal[çc]a|saia|blusa|top|casaco|blaz[eê]r|jaqueta|short|macac[ãa]o|sobretudo|cardigan|camisola|sweater|polo/);
   const productSeed = garmentWords ? garmentWords[0] : '';
-  return { quality: qualityFinal, comfort, durability: durabilityFinal, maintenance, versatility, costBenefit, travel, travelMaterial, packability, warmth, overall, natPct, synPct, certs, fibers, qualityModifier: qmod, isKnit, isHeavyWoven, isBulkyGarment, isPadded, semProvaDeCalor, fichaTecnica, hasTechSpec, brandTech, brandTechInfo, temperaturaMin, productSeed, colorInfo };
+  return { quality: qualityFinal, comfort, durability: durabilityFinal, maintenance, versatility, costBenefit, travel, travelMaterial, packability, warmth, overall, natPct, synPct, certs, fibers, qualityModifier: qmod, isKnit, isHeavyWoven, isBulkyGarment, isPadded, semProvaDeCalor, fichaTecnica, hasTechSpec, brandTech, brandTechInfo, temperaturaMin, productSeed, colorInfo, vinted };
 }
 
 // ─── Que tipo de peça é essa? ─────────────────────────────────────
@@ -811,7 +933,10 @@ function confidenceScore(data) {
   if (data.hasWeight)      { conf += 15; have.push('gramatura'); } else missing.push('gramatura');
   if (data.hasFinish)      { conf += 10; have.push('acabamento'); } else missing.push('acabamento');
   if (data.hasBrand)       { conf += 5;  have.push('marca'); }
-  return { score: Math.min(100, conf), have, missing };
+  // Etiqueta copiada à mão por um particular (Vinted) não é a etiqueta da
+  // marca: pode estar incompleta ou trocada, e quem lê tem de saber disso.
+  if (data.etiquetaDeTerceiro) { conf -= 10; missing.push('etiqueta da marca'); }
+  return { score: Math.max(0, Math.min(100, conf)), have, missing };
 }
 
 function toTen(v) { return Math.round((v || 0) / 10); }
@@ -885,6 +1010,49 @@ function fichaTecnicaTexto(s) {
 const SEM_CALOR_PT = 'Mas não aquece: sem enchimento, sem malha e sem membrana, '
   + 'a etiqueta descreve um tecido de meia-estação. Para o frio a sério é camada de '
   + 'fora, sobre uma peça que aqueça.';
+
+// O QUE O ESTADO DE UMA PEÇA USADA FAZ À ANÁLISE DA ETIQUETA.
+// A fibra diz o que a peça pode ser; o estado diz o que ela é hoje. Num
+// casaco de lã ou caxemira os dois pesam igual — a lã bola, e uma peça
+// "Satisfatório" pode estar com as axilas e os punhos cheios de bolinha sem
+// que a etiqueta deixe de ser ótima. Dar a nota da fibra e calar o estado
+// seria responder a meia pergunta.
+//
+// E há uma ressalva que não existe em loja nenhuma: aqui a composição foi
+// COPIADA À MÃO por quem vende. Pode estar incompleta ou trocada, e a prova
+// está nas fotos da etiqueta — por isso a frase manda lá olhar.
+function estadoUsadoTexto(vinted, fibers) {
+  if (!vinted) return '';
+  const sorted = [...(fibers || [])].sort((a, b) => (b.pct || 0) - (a.pct || 0));
+  const main = sorted[0];
+  const nome = (main && (main.data && main.data.label || main.name)) || 'a fibra';
+  // p.bol baixo = bola fácil (lã 5, caxemira 4, acrílico 2). É nessas que o
+  // estado decide a compra; num algodão ou linho a bolinha não é o tema.
+  const bola = !!(main && main.data && main.data.p && main.data.p.bol <= 5);
+  const onde = bola
+    ? ` Em ${nome.toLowerCase()} a bolinha mora nas axilas e nos punhos: é aí que as fotos têm de ser nítidas.`
+    : '';
+  switch (vinted.estadoChave) {
+    case 'novo_etiqueta':
+      return 'O anúncio diz nova com etiquetas — não há desgaste a descontar. '
+           + 'A composição acima foi copiada à mão por quem vende; confirme-a na foto da etiqueta.';
+    case 'novo':
+      return 'O anúncio diz nova, sem etiquetas — sem uso a descontar. '
+           + 'A composição acima foi copiada à mão por quem vende; confirme-a na foto da etiqueta.';
+    case 'muito_bom':
+      return 'Estado declarado "Muito bom": pouco uso, mas usado.' + onde
+           + ' A composição acima é a que quem vende escreveu — vale confirmar na foto da etiqueta.';
+    case 'bom':
+      return 'Estado declarado "Bom": a peça tem uso, e aqui o estado pesa tanto como a fibra.' + onde
+           + ' A composição acima é a que quem vende escreveu — confirme na foto da etiqueta.';
+    case 'satisfatorio':
+      return 'Estado declarado "Satisfatório", o degrau mais baixo do Vinted: a peça tem desgaste assumido.'
+           + onde + ' Peça fotos de perto antes de comprar — a etiqueta pode ser ótima e a peça estar gasta.';
+    default:
+      return 'Peça de segunda mão sem estado legível no anúncio: a composição acima foi escrita '
+           + 'por quem vende, e o desgaste só se vê nas fotos.';
+  }
+}
 
 function conclusionText(scores, fibers, garmentType) {
   const en = typeof LP_LANG !== 'undefined' && LP_LANG === 'en';
@@ -1164,6 +1332,14 @@ function conclusionText(scores, fibers, garmentType) {
     why = `${why} ${SEM_CALOR_PT}`;
   }
 
+  // Segunda mão: o estado da peça entra por último, porque é a última coisa
+  // a conferir antes de comprar — e porque sem ele a análise responde pela
+  // fibra uma pergunta que é da peça.
+  if (!en && s?.vinted) {
+    const usado = estadoUsadoTexto(s.vinted, s.fibers || fibers);
+    if (usado) why = `${why} ${usado}`;
+  }
+
   } // end PT branch
 
   return why;
@@ -1359,13 +1535,42 @@ const WARMTH = {
   'algodão': 40, 'algodão orgânico': 40, 'modal': 42, 'viscose': 38, 'lyocell': 40,
   'seda': 45, 'linho': 18, 'cânhamo': 22, 'rami': 20, 'elastano': 30,
 };
+// O CALOR DE UMA FIBRA NÃO DEPENDE DA LÍNGUA EM QUE A ETIQUETA ESTÁ ESCRITA.
+// A tabela WARMTH tem as chaves em português ('lã', 'caxemira'), mas o nome
+// que o motor guarda de cada fibra é a palavra TAL COMO ESTAVA NA PÁGINA:
+// 'laine' num anúncio francês, 'lana' num italiano, 'wool' na Uniqlo. Nenhuma
+// dessas está na tabela, e a consulta directa devolvia nada — como se a
+// fibra não aquecesse.
+//
+// O estrago não era um campo em branco. Num sobretudo 80% laine do Vinted:
+// o selo de calor desaparecia do card, a regra do "agasalho sem prova de
+// calor" acusava a peça, a nota levava 8 pontos de desconto e o texto
+// afirmava "não aquece: sem enchimento, sem malha e sem membrana, a etiqueta
+// descreve um tecido de meia-estação" — sobre 80% de lã. Não parece falha:
+// parece análise.
+//
+// A ponte é o rótulo canónico que o banco de fibras já traz ('laine' →
+// label "Lã"). Resolve a classe toda de uma vez: todas as línguas, todas as
+// fibras, aqui e em qualquer outro sítio que pergunte pelo calor.
+function calorDaFibra(f) {
+  const tabela = (typeof WARMTH !== 'undefined') ? WARMTH : {};
+  const nome = (f && f.name ? f.name : '').toLowerCase();
+  if (tabela[nome] != null) return tabela[nome];
+  const rotulo = (f && f.data && f.data.label ? f.data.label : '').toLowerCase();
+  if (tabela[rotulo] != null) return tabela[rotulo];
+  // "Poliamida (Nylon)", "Lyocell (TENCEL™)", "Elastano (Lycra/Spandex)":
+  // o rótulo do banco carrega o nome comercial entre parênteses, a tabela não.
+  const semParenteses = rotulo.replace(/\s*\(.*$/, '').trim();
+  if (tabela[semParenteses] != null) return tabela[semParenteses];
+  return null;
+}
+
 function warmthScore(fibers) {
   if (!fibers?.length) return null;
-  const total = fibers.reduce((s, f) => s + (f.pct || 0), 0) || 100;
   let weighted = 0, knownPct = 0;
   fibers.forEach(f => {
-    const n = (f.name || '').toLowerCase();
-    if (WARMTH[n] != null) { weighted += WARMTH[n] * (f.pct || 0); knownPct += (f.pct || 0); }
+    const c = calorDaFibra(f);
+    if (c != null) { weighted += c * (f.pct || 0); knownPct += (f.pct || 0); }
   });
   if (knownPct < 40) return null;          // fibra desconhecida domina → não arrisca
   return Math.round(weighted / knownPct);  // média ponderada só das fibras conhecidas

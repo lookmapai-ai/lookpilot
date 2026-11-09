@@ -190,8 +190,18 @@ const SUSPEITAS = [
   {
     id: 'composicao-nao-fecha-100',
     porque: 'uma etiqueta declara a peça inteira — ler só 25% e mais nada quer dizer que aquele número não era composição',
-    ve: (r) => {
+    // HÁ PÁGINAS ONDE A ETIQUETA PARCIAL É A ETIQUETA QUE EXISTE. Num anúncio
+    // de segunda mão a composição é copiada à mão por quem vende, e quase
+    // sempre só a parte principal: "Manteau court 80% laine". Ler 80% de lã
+    // ali é ler a única coisa que a página diz — não é invenção.
+    //
+    // Quem decide isso é quem olhou a página, no cabeçalho da peça
+    // (etiqueta: parcial), e não uma regra importada do motor: uma suspeita
+    // que repete a excepção do motor concorda sempre com ele e nunca apanha
+    // nada. A peça sem essa declaração continua a ser acusada.
+    ve: (r, p) => {
       if (!r.fibras.length) return false;
+      if ((p.meta.etiqueta || '').trim() === 'parcial') return false;
       const soma = r.fibras.reduce((a, f) => a + (f.pct || 0), 0);
       return soma < 90;
     }
@@ -202,8 +212,14 @@ const SUSPEITAS = [
     // "Composição" não é a única palavra: a C&A nunca a escreve, e põe a
     // etiqueta em "Informacoes gerais: Material: 65% poliéster". Exigir só
     // aquela palavra transformava uma leitura certa em suspeita.
+    //
+    // E há páginas onde o rótulo vem SOZINHO numa linha, sem dois-pontos: o
+    // Vinted escreve "Material" numa linha e "Poliéster, Lã" na seguinte.
+    // Sem o `material` seguido de fim de linha, a suspeita acusava de invenção
+    // uma página que rótula o material — e uma suspeita que acusa resultado
+    // certo ensina quem a lê a ignorar o alarme.
     ve: (r, p) => r.fibras.length > 0
-      && !/composi[çc][ãa]o|composici[óo]n|composition|material\s*:|materiais|materials?\s*:|informa[çc][õo]es gerais|material principal|tecido principal|tejido|\bfabric\b/i.test(p.texto)
+      && !/composi[çc][ãa]o|composici[óo]n|composition|material\s*[:\n·|]|materiais|materials?\s*[:\n]|informa[çc][õo]es gerais|material principal|tecido principal|tejido|\bfabric\b/i.test(p.texto)
   },
   {
     id: 'fibra-de-inverno-em-peca-de-verao',
