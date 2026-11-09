@@ -821,17 +821,42 @@
     }).join(' + ');
   }
 
-  // Um nome curto para a peça, para caber nas frases e nos rótulos das
-  // barras. Os títulos reais são compridos ("Cappotto rosso Benetton - 60%
-  // lana | Vinted") e cortar a meio de uma palavra fica pior que cortar
-  // cedo.
+  /* O NOME DA PEÇA. Cortar em 22 letras deixava "Manteau court 80%…" —
+     ficava com a parte que não identifica nada e perdia a marca, que é
+     justamente como a pessoa chama a peça ("o Comptoir", "o Benetton").
+
+     Antes de cortar, tira-se o ruído que o título carrega e que a página
+     já mostra noutro sítio: a composição ("- 60% lana", "80% laine", e a
+     etiqueta tem linha própria) e o tamanho no fim ("T34", "XL"). Só o que
+     sobrar é que precisa de caber — e muitas vezes passa a caber inteiro. */
+  // palavras que não podem ficar a segurar as reticências sozinhas. Em
+  // várias línguas porque os títulos vêm em várias: "Comptoir des…" é tão
+  // mau como "Sobretudo de…".
+  var LIGACOES = ['de', 'da', 'do', 'com', 'e', 'em', 'para', 'pra', 'a', 'o',
+                  'des', 'du', 'la', 'le', 'les', 'del', 'di', 'y', 'the', 'of', 'and'];
+  function limpaNome(txt) {
+    return String(txt || 'Peça')
+      .split('|')[0]
+      .replace(/\s*[-–—]\s*\d{1,3}\s*%[^,;]*/g, '')      // "- 60% lana"
+      .replace(/\b\d{1,3}\s*%\s*[a-zà-ÿ]+/gi, '')        // "80% laine"
+      .replace(/\s*\b(T\d{1,2}|XXS|XS|S|M|L|XL|XXL)\s*$/i, '')  // tamanho no fim
+      .replace(/\s+/g, ' ')
+      .replace(/[\s,;·\-–]+$/, '')
+      .trim() || 'Peça';
+  }
   function nomeCurto(txt, max) {
-    var t = String(txt || 'Peça').split('|')[0].replace(/\s+/g, ' ').trim();
-    max = max || 22;
+    var t = limpaNome(txt);
+    max = max || 34;
     if (t.length <= max) return t;
     var corte = t.slice(0, max);
     var esp = corte.lastIndexOf(' ');
-    return (esp > 8 ? corte.slice(0, esp) : corte).replace(/[\s,\-–]+$/, '') + '…';
+    var curto = (esp > 8 ? corte.slice(0, esp) : corte);
+    // não terminar numa palavra de ligação ("Sobretudo de lã Manteco com…")
+    var partes = curto.split(' ');
+    while (partes.length > 1 && LIGACOES.indexOf(partes[partes.length - 1].toLowerCase()) >= 0) {
+      partes.pop();
+    }
+    return partes.join(' ').replace(/[\s,;·\-–]+$/, '') + '…';
   }
 
   function pecaComparavel(busca, extra) {
@@ -918,8 +943,8 @@
      escolher. Uma comparação que só diz quem ganha esconde a troca. */
   function respostaDaComparacao(a, b, r) {
     if (!r.linhas.length) {
-      return 'As duas medem igual em tudo o que a etiqueta deixa ver. '
-           + 'Decida pelo preço, pelo caimento ou pelo estado da peça.';
+      return 'As duas medem igual em tudo que a etiqueta mostra. '
+           + 'Aí decide pelo preço, pelo caimento ou pelo estado da peça.';
     }
     var nA = r.linhas.filter(function (l) { return l.ganhaA; }).length;
     var nB = r.linhas.length - nA;
@@ -931,6 +956,12 @@
     var baixo = function (l) { return l.rotulo.toLowerCase(); };
     var frases = [];
 
+    /* QUEM FOI NOMEADO HÁ POUCO NÃO SE VOLTA A NOMEAR.
+       Com o nome inteiro de cada peça, repeti-lo em cada frase dava um
+       parágrafo onde o mesmo título aparecia quatro vezes — ninguém fala
+       assim. Diz-se o nome uma vez e depois "ela", "a outra". Para isso
+       basta guardar quem foi a última nomeada. */
+    var ultima = lider;
     frases.push('A ' + lider.curto + ' ganha em ' + listaPt(ganhosLider.map(baixo)) + '.');
 
     // O calor é a dimensão que decide um agasalho, e não é negociável como
@@ -938,13 +969,15 @@
     var calor = r.linhas.filter(function (l) { return l.chave === 'calor'; })[0];
     if (calor) {
       var quente = calor.ganhaA ? a : b;
-      frases.push('No calor são ' + Math.max(calor.a, calor.b) + ' contra '
-        + Math.min(calor.a, calor.b) + ': para frio a sério, a ' + quente.curto + '.');
+      frases.push('No calor, ' + Math.max(calor.a, calor.b) + ' contra '
+        + Math.min(calor.a, calor.b) + ': pra frio de verdade, '
+        + (quente === ultima ? 'é ela.' : 'é a outra.'));
     }
 
     if (ganhosOutra.length) {
       frases.push('Em troca, a ' + outra.curto + ' ganha em '
         + listaPt(ganhosOutra.map(baixo)) + '.');
+      ultima = outra;
     }
 
     // O preço não é uma dimensão da etiqueta, mas é metade da decisão — e no
@@ -953,18 +986,20 @@
       var barata = a.precoNum < b.precoNum ? a : b;
       var cara = barata === a ? b : a;
       var vezes = cara.precoNum / barata.precoNum;
-      frases.push('E a ' + barata.curto + ' custa ' + (vezes >= 1.8
-        ? arredondaVezes(vezes) + ' menos'
-        : 'menos ' + formataPreco(cara.precoNum - barata.precoNum, barata.moeda)) + '.');
+      // "custa o dobro ou mais menos" era o que saía daqui: duas maneiras de
+      // dizer a mesma coisa coladas uma na outra. Cada faixa tem a sua frase.
+      var quem = barata === ultima ? 'E ainda ' : 'E a ' + barata.curto + ' ';
+      frases.push(vezes >= 2.75
+        ? quem + 'sai por um terço do preço.'
+        : vezes >= 1.8
+          ? quem + 'custa menos da metade.'
+          : quem + 'custa ' + formataPreco(cara.precoNum - barata.precoNum, barata.moeda) + ' a menos.');
     }
-    return frases.join(' ');
+    // "Comptoir…." — o ponto final a seguir às reticências de um nome
+    // cortado. As reticências já fecham a frase.
+    return frases.join(' ').replace(/…\./g, '…');
   }
 
-  function arredondaVezes(v) {
-    if (v >= 2.75) return 'três vezes';
-    if (v >= 1.8)  return 'o dobro ou mais';
-    return 'menos';
-  }
   function formataPreco(n, moeda) {
     var s = (Math.round(n * 100) / 100).toFixed(2).replace('.', ',').replace(/,00$/, '');
     return s + ' ' + (moeda || '€');
@@ -1304,13 +1339,13 @@
          No modo de escolha a lista deixa de ser "as minhas peças" e passa a
          ser "as peças que podem entrar na comparação". O título diz isso, e
          conta o que está desenhado. */
-      listaTitulo: (modoSelecao ? 'Para comparar · ' : 'Minhas peças · ')
+      listaTitulo: (modoSelecao ? 'Pra comparar · ' : 'Minhas peças · ')
         + guardadas.length + (guardadas.length === 1 ? ' peça' : ' peças'),
       historicoSub: modoSelecao
         ? (candidatos().some(function (p) { return p.estaAberta; })
-            ? 'Escolha duas para comparar — a peça aberta entra na lista sem precisar ser salva.'
-            : 'Escolha duas peças para comparar lado a lado.')
-        : 'As peças que você marcou para manter à vista — salvas neste navegador.',
+            ? 'Toque em duas pra ver lado a lado. A que você acabou de analisar já entra aqui, mesmo sem salvar.'
+            : 'Toque em duas pra ver lado a lado.')
+        : 'Tudo que você salvou fica aqui, só neste navegador.',
 
       /* ---- comparar duas peças ---- */
       isComparar: view === 'comparar' && !!par,
@@ -1319,9 +1354,12 @@
       // Só faz sentido oferecer a comparação quando há duas peças para
       // comparar. Com uma só, o botão levaria a um ecrã vazio.
       podeComparar: candidatos().length >= 2,
-      selecaoLabel: selecao.length === 0 ? 'Escolha duas peças'
-                  : selecao.length === 1 ? 'Escolha a segunda peça'
-                  : 'Duas peças escolhidas',
+      // A barra é um aviso de estado (role="status"), não a instrução: essa
+      // está na frase acima dela. Repetir "toque em duas" nas duas linhas,
+      // uma debaixo da outra, era a página a mandar duas vezes a mesma coisa.
+      selecaoLabel: selecao.length === 0 ? 'Nenhuma escolhida ainda'
+                  : selecao.length === 1 ? 'Falta escolher a segunda'
+                  : 'Prontas — é só comparar',
       selecaoCompleta: selecao.length === 2,
       selecaoIncompleta: selecao.length < 2,
       onComparar: function () {
@@ -1367,11 +1405,11 @@
       cmpLinhas: cmpLinhas,
       cmpTemLinhas: cmpLinhas.length > 0,
       cmpEmpate: cmpEmpatadas.length
-        ? 'Empatam em ' + listaPt(cmpEmpatadas) + ' — menos de ' + EMPATE + ' pontos de diferença.'
+        ? 'Empatam em ' + listaPt(cmpEmpatadas) + ': menos de ' + EMPATE + ' pontos separam as duas.'
         : '',
       cmpTemEmpate: cmpEmpatadas.length > 0,
       cmpSemMedida: cmpSemMedida.length
-        ? 'Sem ' + listaPt(cmpSemMedida) + ': uma das peças foi guardada por uma versão anterior, que ainda não media isso.'
+        ? 'Sem ' + listaPt(cmpSemMedida) + ': uma das peças foi salva por uma versão antiga da extensão, que ainda não media isso.'
         : '',
       cmpTemSemMedida: cmpSemMedida.length > 0,
       cmpAComposicao: par ? (par.a.composicao || 'não lida') : '',

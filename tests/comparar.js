@@ -133,6 +133,13 @@ function compararGuardadas(lista, quais) {
 }
 const num = (s) => parseInt(String(s).replace(/[^\d]/g, ''), 10);
 
+// A mesma peça com outro preço, para exercitar as faixas da frase do preço.
+function precoDe(p, preco) {
+  const q = new URLSearchParams(p.busca);
+  q.set('preco', preco);
+  return Object.assign(guardada(p), { id: 'preco-' + preco, url: '?' + q.toString() });
+}
+
 // A MESMA peça declarada como outro tipo. Serve para separar duas regras
 // que de outro modo se confundem: a ordem geral (pelo tamanho da
 // diferença) e a excepção do agasalho (o calor lidera).
@@ -161,14 +168,48 @@ teste('a comparação abre e responde em prosa antes de qualquer barra', () => {
   return /ganha em/.test(resp) || 'a resposta não diz quem ganha em quê: "' + resp + '"';
 });
 
-teste('a frase do calor dá os dois números e nomeia a peça para frio a sério', () => {
+teste('a frase do calor dá os dois números e nomeia a peça pra frio de verdade', () => {
   const r = compararGuardadas([guardada(A), guardada(B)]);
   const resp = r.txt.cmpResposta;
   const cA = num(A.dims.get('calor')), cB = num(B.dims.get('calor'));
   if (resp.indexOf(Math.max(cA, cB) + ' contra ' + Math.min(cA, cB)) < 0) {
     return 'sem os dois números do calor: "' + resp + '"';
   }
-  return /para frio a sério, a /.test(resp) || 'sem a frase do frio: "' + resp + '"';
+  return /pra frio de verdade, é (ela|a outra)\./.test(resp)
+    || 'sem a frase do frio: "' + resp + '"';
+});
+
+/* A frase do frio deixou de repetir o nome inteiro (quatro vezes num
+   parágrafo — ninguém fala assim) e passou a apontar com "ela" / "a outra".
+   Só que um pronome que aponte para a peça errada é pior do que o nome
+   repetido: inverte a resposta sem parecer avariado. */
+teste('o pronome aponta para a peça certa quando quem aquece não é quem lidera', () => {
+  const maisQuente = (p) => {
+    const q = new URLSearchParams(p.busca);
+    q.set('calor', '95');
+    return Object.assign(guardada(p), { id: 'quente', url: '?' + q.toString() });
+  };
+  const r = compararGuardadas([maisQuente(A), guardada(B)]);
+  const resp = r.txt.cmpResposta;
+  // quem lidera é nomeada na primeira frase; o calor agora é da outra
+  const lidera = (/^A ([^.]+?) ganha em/.exec(resp) || [, ''])[1];
+  const quenteEhLider = /pra frio de verdade, é ela\./.test(resp);
+  if (!lidera) return 'a resposta não nomeia quem ganha: "' + resp + '"';
+  // a peça com calor 95 é a A (Benetton); se ela não é a líder, tem de ser "a outra"
+  const lideraEhBenetton = /Benetton/.test(lidera);
+  if (quenteEhLider !== lideraEhBenetton) {
+    return 'o pronome aponta ao contrário: lidera "' + lidera + '" e diz '
+      + (quenteEhLider ? '"é ela"' : '"é a outra"');
+  }
+  return true;
+});
+
+teste('nenhum nome cortado fica com reticências e ponto final colados', () => {
+  const r = compararGuardadas([guardada(A), guardada(B)]);
+  const textos = [r.txt.cmpResposta, r.txt.cmpEmpate, r.txt.cmpSemMedida]
+    .concat(r.itens('cmpLinhas').map((l) => l['l.melhor']));
+  const maus = textos.filter((t) => /…\./.test(String(t || '')));
+  return !maus.length || 'pontuação a dobrar: "' + maus[0] + '"';
 });
 
 teste('a resposta diz O QUE SE PERDE, não só quem ganha', () => {
@@ -179,7 +220,7 @@ teste('a resposta diz O QUE SE PERDE, não só quem ganha', () => {
 
 teste('o preço entra na resposta quando a diferença é grande (10 € contra 30 €)', () => {
   const r = compararGuardadas([guardada(A), guardada(B)]);
-  return /custa .*(menos|dobro|vezes)/.test(r.txt.cmpResposta)
+  return /(custa|sai por).*(menos|metade|terço)/.test(r.txt.cmpResposta)
     || 'o triplo do preço não apareceu: "' + r.txt.cmpResposta + '"';
 });
 
@@ -278,13 +319,13 @@ teste('e diz-se porquê, em vez de a dimensão desaparecer em silêncio', () => 
   const r = compararGuardadas([semCalor(A), guardada(B)]);
   const aviso = (r.txt.cmpSemMedida || '').toLowerCase();
   if (!aviso) return 'o calor sumiu sem explicação';
-  return aviso.indexOf('calor') >= 0 && /vers[ãa]o anterior/.test(aviso)
+  return aviso.indexOf('calor') >= 0 && /vers[ãa]o antiga/.test(aviso)
     || 'aviso não explica: "' + aviso + '"';
 });
 
 teste('sem calor, a resposta não inventa a frase do frio', () => {
   const r = compararGuardadas([semCalor(A), guardada(B)]);
-  return !/para frio a sério/.test(r.txt.cmpResposta)
+  return !/pra frio de verdade/.test(r.txt.cmpResposta)
     || 'afirmou qual aquece mais sem ter medido as duas: "' + r.txt.cmpResposta + '"';
 });
 
@@ -319,7 +360,7 @@ teste('uma peça sozinha não oferece comparação (não há com quê)', () => {
 teste('comparar a partir do relatório já traz a peça aberta escolhida', () => {
   const r = montar(A.busca, { guardadas: [guardada(B)] });
   r.clicar('onComparar');
-  return r.txt.selecaoLabel === 'Escolha a segunda peça'
+  return r.txt.selecaoLabel === 'Falta escolher a segunda'
     || 'não pré-escolheu a peça aberta: "' + r.txt.selecaoLabel + '"';
 });
 
@@ -356,7 +397,7 @@ teste('o modo de escolha tem saída visível', () => {
 teste('a terceira escolha empurra a primeira para fora (o toque nunca é ignorado)', () => {
   const r = montar('', { guardadas: [guardada(A), guardada(B), Object.assign(guardada(A), { id: 'terceira', tipo: 'Terceira peça' })], hash: '#comparar' });
   [0, 1, 2].forEach((i) => r.clicarItem('guardadas', i, 'h.abrir'));
-  if (r.txt.selecaoLabel !== 'Duas peças escolhidas') {
+  if (r.txt.selecaoLabel !== 'Prontas — é só comparar') {
     return 'ficou com outro número de peças: "' + r.txt.selecaoLabel + '"';
   }
   r.clicar('onCompararAgora');
@@ -367,7 +408,7 @@ teste('voltar da comparação devolve a lista com a escolha intacta', () => {
   const r = compararGuardadas([guardada(A), guardada(B)]);
   r.clicar('onTrocarPecas');
   if (r.display.isComparar === 'contents') return 'continuou no ecrã de comparação';
-  return r.txt.selecaoLabel === 'Duas peças escolhidas'
+  return r.txt.selecaoLabel === 'Prontas — é só comparar'
     || 'perdeu a escolha ao voltar: "' + r.txt.selecaoLabel + '"';
 });
 
@@ -435,7 +476,7 @@ teste('nomes compridos são cortados sem partir palavras ao meio', () => {
   const r = compararGuardadas([guardada(A), guardada(B)]);
   [r.txt.cmpANome, r.txt.cmpBNome].forEach((n) => {
     if (!n) throw new Error('nome vazio');
-    if (n.length > 26) throw new Error('nome comprido demais para a coluna: "' + n + '"');
+    if (n.length > 36) throw new Error('nome comprido demais para a coluna: "' + n + '"');
   });
   // o original tem 57 caracteres: tem de ter sido cortado, e com reticências
   return /…$/.test(r.txt.cmpBNome)
@@ -500,16 +541,85 @@ teste('no modo de escolha a frase não afirma que a peça aberta está salva', (
   const r = montar(A.busca, { guardadas: [guardada(B)] });
   r.clicar('onComparar');
   const sub = r.txt.historicoSub || '';
-  if (/salvas neste navegador/.test(sub)) {
+  if (/só neste navegador/.test(sub)) {
     return 'a peça aberta não está salva e a frase diz que sim: "' + sub + '"';
   }
-  return /sem precisar ser salva/.test(sub) || 'a frase não explica a peça aberta: "' + sub + '"';
+  return /mesmo sem salvar/.test(sub) || 'a frase não explica a peça aberta: "' + sub + '"';
 });
 
 teste('fora do modo de escolha, a frase continua a ser a das peças salvas', () => {
   const r = montar('', { guardadas: [guardada(A), guardada(B)], hash: '#minhas-pecas' });
-  return /salvas neste navegador/.test(r.txt.historicoSub || '')
+  return /só neste navegador/.test(r.txt.historicoSub || '')
     || 'frase trocada na lista normal: "' + r.txt.historicoSub + '"';
+});
+
+/* ════════════════════════════════════════════════════════════════════ */
+console.log('\n── 10. O nome da peça e o jeito de falar ────────────\n');
+
+/* "Não resuma tanto o nome da peça." Cortar às 22 letras dava "Manteau
+   court 80%…": ficava com a parte que não identifica nada e perdia a marca,
+   que é justamente como a pessoa chama a peça — "o Comptoir", "o Benetton". */
+teste('a marca sobrevive ao corte', () => {
+  const r = compararGuardadas([guardada(A), guardada(B)]);
+  const nomes = [r.txt.cmpANome, r.txt.cmpBNome].join(' | ');
+  if (!/Benetton/.test(nomes)) return 'perdeu "Benetton": ' + nomes;
+  return /Comptoir/.test(nomes) || 'perdeu "Comptoir": ' + nomes;
+});
+
+teste('o nome não acaba pendurado numa palavra de ligação', () => {
+  const r = compararGuardadas([guardada(A), guardada(B)]);
+  const presos = [r.txt.cmpANome, r.txt.cmpBNome]
+    .filter((n) => /\b(de|da|do|com|e|em|para|pra|des|du|la|le|les|del|di|y|the|of|and)…$/i.test(String(n)));
+  return !presos.length || 'nome a terminar em ligação: ' + presos.join(', ');
+});
+
+teste('o nome não repete a composição, que tem linha própria', () => {
+  const r = compararGuardadas([guardada(A), guardada(B)]);
+  const comPct = [r.txt.cmpANome, r.txt.cmpBNome].filter((n) => /\d{1,3}\s*%/.test(String(n)));
+  return !comPct.length || 'percentagem no nome: ' + comPct.join(', ');
+});
+
+/* Saía daqui "custa o dobro ou mais menos": duas maneiras de dizer a mesma
+   coisa coladas uma na outra, porque uma expressão já inteira ("o dobro ou
+   mais") ia receber um "menos" no fim. */
+teste('nenhuma frase junta duas maneiras de dizer a mesma coisa', () => {
+  const casos = [
+    compararGuardadas([guardada(A), guardada(B)]),                         // 10 € contra 30 €
+    compararGuardadas([guardada(A), precoDe(B, '18,00')]),                 // menos de o dobro
+    compararGuardadas([guardada(A), precoDe(B, '25,00')])                  // o dobro e meio
+  ];
+  for (const r of casos) {
+    const t = r.txt.cmpResposta || '';
+    if (/(dobro|terço|vezes) ou mais menos|ou mais menos|menos menos/.test(t)) {
+      return 'frase impossivel: "' + t + '"';
+    }
+    if (/custa .*\bmenos\b.*\bmenos\b/.test(t)) return 'dois "menos" na mesma frase: "' + t + '"';
+  }
+  return true;
+});
+
+/* O produto fala português do Brasil ("você", "salvar", "pra"). Os textos
+   novos saíram em português de Portugal e por isso soavam a outro produto:
+   "guardada", "ecrã", "pesa tanto como". Isto varre as três telas. */
+teste('a interface fala uma língua só', () => {
+  const PORTUGAL = /\becr[ãa]s?\b|\bguardad[ao]s?\b|\btelem[oó]vel\b|tanto como\b|\bdeitar fora\b|\bap[oó]s o\b/i;
+  const telas = [];
+  const r1 = montar(A.busca, { guardadas: [guardada(B)] });
+  telas.push(['relatório', r1.todos.join(' · ')]);
+  r1.clicar('onHistorico');
+  telas.push(['minhas peças', r1.todos.join(' · ')]);
+  const r2 = compararGuardadas([guardada(A), guardada(B)]);
+  telas.push(['comparação', r2.todos.join(' · ')]);
+  const r3 = compararGuardadas([semCalor(A), guardada(B)]);
+  telas.push(['comparação sem medida', r3.todos.join(' · ')]);
+  for (const [nome, texto] of telas) {
+    const m = PORTUGAL.exec(texto);
+    if (m) {
+      const i = Math.max(0, m.index - 40);
+      return nome + ': "' + texto.slice(i, m.index + 50).trim() + '"';
+    }
+  }
+  return true;
 });
 
 console.log(`\n${ok} ok · ${falhas} falha(s)\n`);
