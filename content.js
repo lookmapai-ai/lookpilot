@@ -240,6 +240,18 @@
       params.set('manutencao',    Math.round(scores.maintenance || 0));
       params.set('custo',         Math.round(scores.costBenefit || 0));
       params.set('viagem',        Math.round(scores.travel      || 0));
+      // O CALOR TEM DE VIAJAR COM A PEÇA. A página de análise derivava-o dos
+      // selos da fibra, o que bastava para um rótulo; para comparar duas
+      // peças não basta — e numa comparação de agasalhos é a linha que
+      // decide. É a mesma conta do card (warmthScore), enviada como número.
+      const calorDaPeca = (typeof warmthScore === 'function')
+        ? warmthScore(scores.fibers || fibers) : null;
+      if (calorDaPeca != null) params.set('calor', Math.round(calorDaPeca));
+      // Estado da peça usada (Vinted). Numa peça de loja não vai nada, e a
+      // comparação trata a ausência como "nova, de loja".
+      if (scores.vinted && scores.vinted.estado) {
+        params.set('estado', String(scores.vinted.estado).slice(0, 40));
+      }
     }
     // Fibras: "Poliéster:99,Elastano:1"
     const fibersParam = (scores?.fibers || fibers)

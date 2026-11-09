@@ -248,6 +248,10 @@
       var done = function () { img.style.opacity = '1'; sk.style.opacity = '0'; sk.style.animation = 'none'; };
       if (img.complete && img.naturalWidth) done(); else { img.onload = done; img.onerror = function () { sk.style.animation = 'none'; }; }
       frag.appendChild(img);
+    } else {
+      // Sem foto nenhuma não há nada a carregar, e um brilho que corre para
+      // sempre promete uma imagem que nunca vem. Fica uma caixa calma.
+      sk.style.animation = 'none';
     }
     return frag;
   }
@@ -757,28 +761,336 @@
     if (window.metrica) window.metrica.registar('salvou', { noHistorico: l.length });
   }
 
+  /* ---------- COMPARAR DUAS PEÇAS ----------------------------------
+     PORQUE É AQUI E NÃO NO CARD DA LOJA. A comparação precisa de TODAS as
+     medidas das DUAS peças. As peças guardadas vivem no localStorage deste
+     site (com a query string inteira da análise, por isso dá para recuperar
+     cada número); o card da extensão vive na página da loja e só tem a peça
+     que está a ler, no chrome.storage. São dois armazéns em origens
+     diferentes, sem ponte — logo a comparação só pode viver aqui. O
+     "esta peça fica em 3º das 7 que guardou" dentro do card é bom, e fica
+     para quando houver um armazém partilhado.
+
+     PORQUE DUAS, E NÃO UMA TABELA DE TODAS. A tabela parece mais poderosa e
+     é pior onde isto se usa: a decidir, com o telefone na mão. Cinco colunas
+     de números a 375px dão scroll horizontal ou letra de 10px — as duas
+     coisas que uma página não deve fazer. E a pergunta real não é "como está
+     o meu armário": é "qual destas duas levo". Duas peças, lado a lado,
+     cabem no ecrã pequeno e respondem a essa.
+
+     A ORDEM DAS LINHAS É A INFORMAÇÃO. Mostrar as oito dimensões pela ordem
+     de sempre obriga a varrer oito barras à procura de onde as peças
+     diferem. Por isso as linhas vêm ordenadas pela DIFERENÇA, maior
+     primeiro, e as que empatam (menos de 5 pontos) saem da lista e juntam-se
+     numa linha só. O que fica à vista é só onde a escolha se decide.
+
+     E A RESPOSTA VEM ANTES DAS BARRAS. Uma comparação que obriga a somar
+     barras de cabeça não respondeu nada.                            */
+  var DIMENSOES = [
+    { k: 'calor',         rotulo: 'Calor' },
+    { k: 'qualidade',     rotulo: 'Qualidade' },
+    { k: 'durabilidade',  rotulo: 'Durabilidade' },
+    { k: 'conforto',      rotulo: 'Conforto' },
+    { k: 'custo',         rotulo: 'Custo-benefício' },
+    { k: 'versatilidade', rotulo: 'Versatilidade' },
+    { k: 'manutencao',    rotulo: 'Manutenção' },
+    { k: 'viagem',        rotulo: 'Viagem' }
+  ];
+  // Abaixo disto as duas peças empatam. 5 pontos em 100 não é diferença que
+  // se sinta a vestir, e tratá-la como diferença enche o ecrã de ruído.
+  var EMPATE = 5;
+
+  function precoNumero(txt) {
+    if (!txt) return null;
+    var limpo = String(txt).replace(/[^\d,.]/g, '').replace(/\.(?=\d{3}\b)/g, '').replace(',', '.');
+    var n = parseFloat(limpo);
+    return isNaN(n) ? null : n;
+  }
+
+  // "Lã:60,Poliéster:40" -> "60% lã + 40% poliéster". É o dado que o
+  // LookPilot existe para ler: numa comparação é linha, não nota de pé.
+  function composicaoDeQuery(q) {
+    var lista = (q.get('fibras') || '').split(',').map(function (p) {
+      var s = p.split(':');
+      return { nome: limpaFibra(s[0]), pct: parseInt(s[1], 10) || 0 };
+    }).filter(function (f) { return f.nome; });
+    if (!lista.length) return '';
+    lista.sort(function (a, b) { return b.pct - a.pct; });
+    return lista.map(function (f) {
+      return (f.pct ? f.pct + '% ' : '') + f.nome.toLowerCase();
+    }).join(' + ');
+  }
+
+  // Um nome curto para a peça, para caber nas frases e nos rótulos das
+  // barras. Os títulos reais são compridos ("Cappotto rosso Benetton - 60%
+  // lana | Vinted") e cortar a meio de uma palavra fica pior que cortar
+  // cedo.
+  function nomeCurto(txt, max) {
+    var t = String(txt || 'Peça').split('|')[0].replace(/\s+/g, ' ').trim();
+    max = max || 22;
+    if (t.length <= max) return t;
+    var corte = t.slice(0, max);
+    var esp = corte.lastIndexOf(' ');
+    return (esp > 8 ? corte.slice(0, esp) : corte).replace(/[\s,\-–]+$/, '') + '…';
+  }
+
+  function pecaComparavel(busca, extra) {
+    var q = new URLSearchParams(busca || '');
+    var num = function (k) {
+      var n = parseInt(q.get(k), 10);
+      return isNaN(n) ? null : clamp(n, 0, 100);
+    };
+    var dims = {};
+    DIMENSOES.forEach(function (d) { dims[d.k] = num(d.k); });
+    var nomeCompleto = q.get('nome') || (extra && extra.tipo) || 'Peça';
+    return {
+      busca: busca || '',
+      id: (extra && extra.id) || q.get('origem') || (nomeCompleto + '|' + (q.get('loja') || '')),
+      nome: nomeCompleto,
+      curto: nomeCurto(nomeCompleto),
+      loja: q.get('loja') || '',
+      preco: q.get('preco') || '',
+      moeda: q.get('moeda') || '€',
+      precoNum: precoNumero(q.get('preco')),
+      thumb: q.get('imagem') || (extra && extra.thumb) || '',
+      nota: num('score') != null ? num('score') : ((extra && extra.nota) || 0),
+      verdict: q.get('verdict') || (extra && extra.verdict) || '',
+      // o estado da peça usada (Vinted). Vazio numa peça de loja.
+      estado: q.get('estado') || '',
+      // que tipo de peça é. Entra na comparação por um motivo só: num
+      // agasalho o calor não é uma dimensão entre oito (ver `comparar`).
+      tipo: q.get('tipo') || '',
+      composicao: composicaoDeQuery(q),
+      dims: dims
+    };
+  }
+
+  function listaPt(itens) {
+    if (!itens.length) return '';
+    if (itens.length === 1) return itens[0];
+    return itens.slice(0, -1).join(', ') + ' e ' + itens[itens.length - 1];
+  }
+
+  function comparar(a, b) {
+    var linhas = [], empatadas = [], semMedida = [];
+    DIMENSOES.forEach(function (d) {
+      var va = a.dims[d.k], vb = b.dims[d.k];
+      // Peça guardada por uma versão antiga da extensão não traz esta
+      // medida. A linha não entra — inventar 0 diria que a peça é má
+      // naquilo, que é diferente de não ter sido medida.
+      if (va == null || vb == null) { semMedida.push(d.rotulo.toLowerCase()); return; }
+      var dif = va - vb;
+      var l = {
+        chave: d.k, rotulo: d.rotulo, a: va, b: vb,
+        dif: Math.abs(dif),
+        ganhaA: dif >= EMPATE,
+        ganhaB: -dif >= EMPATE
+      };
+      (l.ganhaA || l.ganhaB ? linhas : empatadas).push(l);
+    });
+    linhas.sort(function (x, y) { return y.dif - x.dif; });
+
+    /* UMA EXCEPÇÃO À ORDEM, e é a que faz a lista concordar com a resposta.
+       Ordenar só pelo tamanho da diferença assume que as oito dimensões
+       pesam o mesmo. Num agasalho não pesam: estes dois sobretudos de lã
+       diferem 17 pontos em manutenção e 12 em calor, e a ordem por tamanho
+       punha "como se lava" acima de "se aquece" — com o calor em quarto
+       lugar, abaixo da dobra num telefone.
+
+       Num agasalho o calor não é uma troca, é a condição: um casaco que não
+       aquece falhou no que foi feito para fazer, por muito bem que se
+       comporte no resto. A prosa já o tratava assim (tem uma frase própria);
+       as barras é que diziam outra coisa. Fora dos agasalhos a excepção não
+       se aplica: numa camisa de algodão o calor é só mais uma linha. */
+    var AGASALHOS = ['casaco', 'blazer', 'malha'];
+    var ehAgasalho = AGASALHOS.indexOf(a.tipo) >= 0 || AGASALHOS.indexOf(b.tipo) >= 0;
+    if (ehAgasalho) {
+      var iCalor = -1;
+      linhas.forEach(function (l, i) { if (l.chave === 'calor') iCalor = i; });
+      if (iCalor > 0) linhas.unshift(linhas.splice(iCalor, 1)[0]);
+    }
+    return { linhas: linhas, empatadas: empatadas, semMedida: semMedida };
+  }
+
+  /* A resposta, em prosa, antes de qualquer barra.
+     Três movimentos, e o terceiro é o que falta na maioria das comparações:
+     quem leva, onde o calor decide (se for agasalho), e O QUE SE PERDE ao
+     escolher. Uma comparação que só diz quem ganha esconde a troca. */
+  function respostaDaComparacao(a, b, r) {
+    if (!r.linhas.length) {
+      return 'As duas medem igual em tudo o que a etiqueta deixa ver. '
+           + 'Decida pelo preço, pelo caimento ou pelo estado da peça.';
+    }
+    var nA = r.linhas.filter(function (l) { return l.ganhaA; }).length;
+    var nB = r.linhas.length - nA;
+    var lider = nA === nB ? (a.nota >= b.nota ? a : b) : (nA > nB ? a : b);
+    var outra = lider === a ? b : a;
+    var liderEhA = lider === a;
+    var ganhosLider = r.linhas.filter(function (l) { return liderEhA ? l.ganhaA : l.ganhaB; });
+    var ganhosOutra = r.linhas.filter(function (l) { return liderEhA ? l.ganhaB : l.ganhaA; });
+    var baixo = function (l) { return l.rotulo.toLowerCase(); };
+    var frases = [];
+
+    frases.push('A ' + lider.curto + ' ganha em ' + listaPt(ganhosLider.map(baixo)) + '.');
+
+    // O calor é a dimensão que decide um agasalho, e não é negociável como
+    // as outras: uma peça que não aquece não aquece mais por ser versátil.
+    var calor = r.linhas.filter(function (l) { return l.chave === 'calor'; })[0];
+    if (calor) {
+      var quente = calor.ganhaA ? a : b;
+      frases.push('No calor são ' + Math.max(calor.a, calor.b) + ' contra '
+        + Math.min(calor.a, calor.b) + ': para frio a sério, a ' + quente.curto + '.');
+    }
+
+    if (ganhosOutra.length) {
+      frases.push('Em troca, a ' + outra.curto + ' ganha em '
+        + listaPt(ganhosOutra.map(baixo)) + '.');
+    }
+
+    // O preço não é uma dimensão da etiqueta, mas é metade da decisão — e no
+    // usado a diferença costuma ser grande o suficiente para virar a escolha.
+    if (a.precoNum && b.precoNum && a.precoNum !== b.precoNum) {
+      var barata = a.precoNum < b.precoNum ? a : b;
+      var cara = barata === a ? b : a;
+      var vezes = cara.precoNum / barata.precoNum;
+      frases.push('E a ' + barata.curto + ' custa ' + (vezes >= 1.8
+        ? arredondaVezes(vezes) + ' menos'
+        : 'menos ' + formataPreco(cara.precoNum - barata.precoNum, barata.moeda)) + '.');
+    }
+    return frases.join(' ');
+  }
+
+  function arredondaVezes(v) {
+    if (v >= 2.75) return 'três vezes';
+    if (v >= 1.8)  return 'o dobro ou mais';
+    return 'menos';
+  }
+  function formataPreco(n, moeda) {
+    var s = (Math.round(n * 100) / 100).toFixed(2).replace('.', ',').replace(/,00$/, '');
+    return s + ' ' + (moeda || '€');
+  }
+
   var view = 'detalhe';
   var guardado = estaGuardada();
+  // ids das (no máximo) duas peças escolhidas para comparar, e o modo de
+  // escolha. Modo explícito, e não um "comparar" escondido em cada cartão:
+  // o cartão já tem um alvo de toque que abre a análise, e dois alvos no
+  // mesmo cartão a 375px é toque errado garantido.
+  var selecao = [];
+  var modoSelecao = false;
 
-  function vals() {
-    // cartões da vista "Minhas peças" — cada um reabre a análise guardada
-    var guardadas = lerGuardadas().map(function (h) {
-      var cor = h.nota >= 75 ? '#E8E3DA' : h.nota >= 50 ? '#EDE9E2' : '#E6E6E9';
+  /* As peças que podem entrar numa comparação: as guardadas e — isto é o que
+     poupa um passo inteiro — A QUE ESTÁ ABERTA. Obrigar a guardar antes de
+     comparar seria pedir um compromisso ("guardo isto") para responder a uma
+     pergunta anterior a ele ("vale mais que a outra?"). */
+  function candidatos() {
+    var lista = lerGuardadas().map(function (h) {
+      return pecaComparavel(h.url, {
+        id: h.id, tipo: h.tipo, nota: h.nota, thumb: h.thumb, verdict: h.verdict
+      });
+    });
+    if (has('score') && !estaGuardada()) {
+      var atual = pecaComparavel(location.search, {
+        id: pecaId, tipo: nome || 'Esta peça', nota: score, thumb: imagem, verdict: verdictParam
+      });
+      atual.estaAberta = true;
+      lista.unshift(atual);
+    }
+    return lista;
+  }
+  function pecaPorId(id) {
+    var achou = null;
+    candidatos().forEach(function (p) { if (p.id === id && !achou) achou = p; });
+    return achou;
+  }
+  function parSelecionado() {
+    if (selecao.length !== 2) return null;
+    var a = pecaPorId(selecao[0]), b = pecaPorId(selecao[1]);
+    return (a && b) ? { a: a, b: b } : null;
+  }
+  function alternaSelecao(id) {
+    var i = selecao.indexOf(id);
+    if (i >= 0) { selecao.splice(i, 1); return; }
+    // Duas, e não mais: a terceira empurra a primeira para fora, em vez de
+    // ignorar o toque em silêncio (toque sem resposta parece avaria).
+    if (selecao.length >= 2) selecao.shift();
+    selecao.push(id);
+  }
+
+  // As barras da comparação. O vencedor leva a cor de marca, o outro fica no
+  // cinza de texto do design — os dois com contraste suficiente sobre o
+  // painel (a cor não é o único sinal: há o rótulo "melhor" ao lado).
+  var COR_GANHA = '#FF009D', COR_PERDE = '#6E6E73';
+  function linhasView(r, a, b) {
+    return r.linhas.map(function (l) {
+      var melhorA = l.ganhaA;
       return {
-        tipo: h.tipo || 'Peça', nota: h.nota, cor: cor,
-        role: 'button', tabIx: 0, cursor: 'pointer',
-        ariaLabel: (h.tipo || 'Peça') + ', nota ' + h.nota + ' de 100' + (h.verdict ? ' — ' + h.verdict : ''),
-        cardOutline: '1px solid rgba(0,0,0,.05)',
-        cardShadow: '0 8px 22px rgba(0,0,0,.06)',
-        badgeBg: '#FFFFFF', badgeColor: '#1D1D1F',
-        mediaEl: mediaEl(h.thumb, h.tipo || '',
-          'width:100%;height:100%;object-fit:cover;object-position:50% 30%;filter:saturate(1.06) sepia(.06)'),
-        // location.search mantinha o #minhas-pecas, por isso a página
-        // recarregava DE VOLTA na lista em vez de abrir a análise
-        abrir: function () { location.assign(location.pathname + (h.url || '')); },
-        abrirKey: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); location.assign(location.pathname + (h.url || '')); } }
+        rotulo: l.rotulo,
+        aNum: l.a, bNum: l.b,
+        aLarg: l.a + '%', bLarg: l.b + '%',
+        aCor: melhorA ? COR_GANHA : COR_PERDE,
+        bCor: melhorA ? COR_PERDE : COR_GANHA,
+        aPeso: melhorA ? '700' : '400',
+        bPeso: melhorA ? '400' : '700',
+        melhor: melhorA ? a.curto : b.curto,
+        diferenca: l.dif + (l.dif === 1 ? ' ponto' : ' pontos'),
+        // O leitor de ecrã não vê barras: a linha tem de se ler inteira.
+        aria: l.rotulo + ': ' + a.curto + ' ' + l.a + ' de 100, '
+            + b.curto + ' ' + l.b + ' de 100. Melhor: '
+            + (melhorA ? a.curto : b.curto) + ', por ' + l.dif + ' pontos.'
       };
     });
+  }
+
+  function vals() {
+    // cartões da vista "Minhas peças" — cada um reabre a análise guardada;
+    // no modo de escolha, cada um passa a ser uma caixa de selecção, e a
+    // peça que está aberta entra na lista sem precisar de ser guardada.
+    var nGuardadasReal = lerGuardadas().length;
+    var guardadas = candidatos().filter(function (p) {
+      return modoSelecao || !p.estaAberta;
+    }).map(function (p) {
+      var cor = p.nota >= 75 ? '#E8E3DA' : p.nota >= 50 ? '#EDE9E2' : '#E6E6E9';
+      var ordem = selecao.indexOf(p.id) + 1;
+      var escolhida = ordem > 0;
+      var rotulo = p.curto || 'Peça';
+      var abrir = function () {
+        if (modoSelecao) { alternaSelecao(p.id); render(); return; }
+        // location.search mantinha o #minhas-pecas, por isso a página
+        // recarregava DE VOLTA na lista em vez de abrir a análise
+        location.assign(location.pathname + (p.busca || ''));
+      };
+      return {
+        tipo: rotulo, nota: p.nota, cor: cor,
+        role: modoSelecao ? 'checkbox' : 'button',
+        ariaChecked: modoSelecao ? (escolhida ? 'true' : 'false') : '',
+        tabIx: 0, cursor: 'pointer',
+        ariaLabel: modoSelecao
+          ? rotulo + ', nota ' + p.nota + ' de 100. ' + (escolhida
+              ? 'Escolhida para comparar, ' + ordem + ' de 2.'
+              : 'Escolher para comparar.')
+          : rotulo + ', nota ' + p.nota + ' de 100' + (p.verdict ? ' — ' + p.verdict : ''),
+        // A cor não pode ser o único sinal de que o cartão está escolhido:
+        // o número da ordem (1 ou 2) diz o mesmo sem depender da vista.
+        selMostra: escolhida,
+        selNum: escolhida ? String(ordem) : '',
+        estaAberta: !!p.estaAberta,
+        cardOutline: escolhida ? '3px solid ' + COR_GANHA : '1px solid rgba(0,0,0,.05)',
+        cardShadow: escolhida ? '0 18px 44px rgba(255,0,157,.22)' : '0 8px 22px rgba(0,0,0,.06)',
+        badgeBg: '#FFFFFF', badgeColor: '#1D1D1F',
+        mediaEl: mediaEl(p.thumb, rotulo,
+          'width:100%;height:100%;object-fit:cover;object-position:50% 30%;filter:saturate(1.06) sepia(.06)'),
+        abrir: abrir,
+        abrirKey: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } }
+      };
+    });
+
+    /* ---- a comparação, quando há duas peças escolhidas ---- */
+    var par = parSelecionado();
+    var cmp = par ? comparar(par.a, par.b) : null;
+    var cmpLinhas = cmp ? linhasView(cmp, par.a, par.b) : [];
+    var cmpEmpatadas = cmp ? cmp.empatadas.map(function (l) { return l.rotulo.toLowerCase(); }) : [];
+    var cmpSemMedida = cmp ? cmp.semMedida : [];
     return {
       // hero
       heroFibra: nome,
@@ -947,7 +1259,11 @@
       onSalvar: function () { salvarPeca(); guardado = true; render(); },
       // vistas: relatório desta peça <-> "Minhas peças"
       isDetalhe: view === 'detalhe',
-      isHistorico: view === 'historico',
+      // RECARREGAR A PÁGINA EM #comparar PERDE A ESCOLHA (as duas peças
+      // vivem em memória, não na URL). Sem este reencaminhamento, a vista
+      // 'comparar' sem par deixava as três secções escondidas — página
+      // branca, sem erro nenhum na consola.
+      isHistorico: view === 'historico' || (view === 'comparar' && !par),
       voltarPecas: false,
       // Abrir "Minhas peças" empurra uma entrada no histórico, para que o
       // Voltar do navegador (e o da página) funcionem naturalmente.
@@ -972,10 +1288,79 @@
         render(); window.scrollTo(0, 0);
       },
       guardadas: guardadas,
-      nGuardadas: guardadas.length,
-      nGuardadasLabel: guardadas.length + (guardadas.length === 1 ? ' peça' : ' peças'),
+      nGuardadas: nGuardadasReal,
+      nGuardadasLabel: nGuardadasReal + (nGuardadasReal === 1 ? ' peça' : ' peças'),
       temGuardadas: guardadas.length > 0,
-      semGuardadas: guardadas.length === 0
+      semGuardadas: guardadas.length === 0,
+
+      /* ---- comparar duas peças ---- */
+      isComparar: view === 'comparar' && !!par,
+      modoSelecao: modoSelecao,
+      naoModoSelecao: !modoSelecao,
+      // Só faz sentido oferecer a comparação quando há duas peças para
+      // comparar. Com uma só, o botão levaria a um ecrã vazio.
+      podeComparar: candidatos().length >= 2,
+      selecaoLabel: selecao.length === 0 ? 'Escolha duas peças'
+                  : selecao.length === 1 ? 'Escolha a segunda peça'
+                  : 'Duas peças escolhidas',
+      selecaoCompleta: selecao.length === 2,
+      selecaoIncompleta: selecao.length < 2,
+      onComparar: function () {
+        // Vem do relatório: a peça aberta já entra escolhida, porque é a
+        // pergunta que a pessoa tem na cabeça ao carregar no botão.
+        modoSelecao = true;
+        selecao = has('score') ? [pecaId] : [];
+        view = 'historico';
+        try { history.pushState({ lpView: 'historico' }, '', '#minhas-pecas'); } catch (e) {}
+        render(); window.scrollTo(0, 0);
+      },
+      onModoSelecao: function () { modoSelecao = true; selecao = []; render(); },
+      // Sair da escolha é obrigatório: um modo sem saída visível é uma
+      // armadilha (a pessoa só tem o Voltar do navegador para fugir).
+      onSairSelecao: function () { modoSelecao = false; selecao = []; render(); },
+      onCompararAgora: function () {
+        if (selecao.length !== 2) return;
+        evento('comparou_pecas');
+        view = 'comparar';
+        try { history.pushState({ lpView: 'comparar' }, '', '#comparar'); } catch (e) {}
+        render(); window.scrollTo(0, 0);
+      },
+      onTrocarPecas: function () {
+        view = 'historico';
+        modoSelecao = true;
+        try { history.pushState({ lpView: 'historico' }, '', '#minhas-pecas'); } catch (e) {}
+        render(); window.scrollTo(0, 0);
+      },
+      cmpAFoto: par ? mediaEl(par.a.thumb, par.a.curto, 'width:100%;height:100%;object-fit:cover;object-position:50% 30%') : null,
+      cmpBFoto: par ? mediaEl(par.b.thumb, par.b.curto, 'width:100%;height:100%;object-fit:cover;object-position:50% 30%') : null,
+      cmpANome: par ? par.a.curto : '',
+      cmpBNome: par ? par.b.curto : '',
+      cmpANomeCompleto: par ? par.a.nome : '',
+      cmpBNomeCompleto: par ? par.b.nome : '',
+      cmpAMeta: par ? [par.a.loja, par.a.preco ? par.a.preco + ' ' + par.a.moeda : ''].filter(Boolean).join(' · ') : '',
+      cmpBMeta: par ? [par.b.loja, par.b.preco ? par.b.preco + ' ' + par.b.moeda : ''].filter(Boolean).join(' · ') : '',
+      cmpANota: par ? par.a.nota : 0,
+      cmpBNota: par ? par.b.nota : 0,
+      // a mesma regra de cor do relatório: vira em 70, com a extensão
+      cmpANotaCor: par ? (par.a.nota >= 70 ? COR_GANHA : '#A67C3B') : '#1D1D1F',
+      cmpBNotaCor: par ? (par.b.nota >= 70 ? COR_GANHA : '#A67C3B') : '#1D1D1F',
+      cmpResposta: par ? respostaDaComparacao(par.a, par.b, cmp) : '',
+      cmpLinhas: cmpLinhas,
+      cmpTemLinhas: cmpLinhas.length > 0,
+      cmpEmpate: cmpEmpatadas.length
+        ? 'Empatam em ' + listaPt(cmpEmpatadas) + ' — menos de ' + EMPATE + ' pontos de diferença.'
+        : '',
+      cmpTemEmpate: cmpEmpatadas.length > 0,
+      cmpSemMedida: cmpSemMedida.length
+        ? 'Sem ' + listaPt(cmpSemMedida) + ': uma das peças foi guardada por uma versão anterior, que ainda não media isso.'
+        : '',
+      cmpTemSemMedida: cmpSemMedida.length > 0,
+      cmpAComposicao: par ? (par.a.composicao || 'não lida') : '',
+      cmpBComposicao: par ? (par.b.composicao || 'não lida') : '',
+      // o estado só aparece quando ALGUMA das duas é de segunda mão
+      cmpTemEstado: !!(par && (par.a.estado || par.b.estado)),
+      cmpAEstado: par ? (par.a.estado || 'nova, de loja') : '',
+      cmpBEstado: par ? (par.b.estado || 'nova, de loja') : ''
     };
   }
 
@@ -1159,13 +1544,39 @@
     });
   }
 
+  /* A BARRA DE ESCOLHA TEM DE PARAR ABAIXO DO CABEÇALHO.
+     Os dois são sticky no topo; o cabeçalho é opaco e tem z-index maior,
+     por isso uma barra colada a `top:0` desaparecia por baixo dele ao
+     rolar — e com ela o botão "Comparar", justamente enquanto se rola
+     para escolher a segunda peça. A altura do cabeçalho não é fixa (ele
+     quebra em duas linhas em ecrãs estreitos), por isso mede-se. */
+  function medeCabecalho() {
+    try {
+      var h = document.querySelector('header');
+      if (!h || !document.documentElement) return;
+      document.documentElement.style.setProperty(
+        '--cab', Math.round(h.getBoundingClientRect().height) + 'px');
+    } catch (e) {}
+  }
+  medeCabecalho();
+  window.addEventListener('resize', medeCabecalho);
+
   // o Voltar do navegador sincroniza a vista (e a âncora #minhas-pecas
   // permite abrir "Minhas peças" diretamente por link)
   window.addEventListener('popstate', function (e) {
-    var v = (e.state && e.state.lpView) || (location.hash === '#minhas-pecas' ? 'historico' : 'detalhe');
-    if (v !== view) { view = v; render(); window.scrollTo(0, 0); }
+    var v = (e.state && e.state.lpView)
+      || (location.hash === '#comparar' ? 'comparar'
+        : location.hash === '#minhas-pecas' ? 'historico' : 'detalhe');
+    // #comparar sem par escolhido (avançar para um estado que já não
+    // existe) não pode dar ecrã vazio: vale a mesma regra do arranque,
+    // que é abrir a lista no modo de escolha.
+    if (v === 'comparar' && !parSelecionado()) { v = 'historico'; modoSelecao = true; }
+    if (v !== view || modoSelecao) { view = v; render(); window.scrollTo(0, 0); }
   });
   if (location.hash === '#minhas-pecas') view = 'historico';
+  // #comparar vindo de fora (um atalho colado, um recarregamento) não traz
+  // par nenhum: abre a lista no modo de escolha, que é o passo anterior.
+  if (location.hash === '#comparar') { view = 'historico'; modoSelecao = true; }
 
   // só conta como análise vista quando veio da extensão (tem score) — a
   // página de demonstração não polui a medição

@@ -117,6 +117,64 @@ checa('o veredito nunca fica vazio', () => {
   }
 });
 
+/* ---------- A MOLDURA QUE DEIXA FUGIR O QUE ESTÁ DENTRO ----------
+   Encontrado num print, e de um jeito que nenhum teste de DOM simulado
+   apanha: o ecrã de comparação abriu CINZENTO, do cabeçalho ao rodapé.
+   Estava tudo lá — títulos, resposta, barras, números — e tudo invisível.
+
+   A causa: o espaço reservado da foto (`mediaEl`) é um `position:absolute;
+   inset:0`, que se agarra ao primeiro antepassado POSICIONADO. A moldura
+   nova não era posicionada, por isso ele agarrou-se à página e esticou-se
+   por cima dela toda. O `overflow:hidden` da moldura não o segura: só
+   corta o que está dentro do seu próprio sistema de coordenadas.
+
+   A CLASSE, e é por isso que este teste é automático: qualquer moldura
+   futura que receba uma foto e se esqueça de `position:relative` pinta a
+   página inteira de cinzento — e a página continua a "funcionar", o que a
+   torna pior de encontrar do que um erro de JavaScript. */
+checa('toda moldura de foto é o quadro de referência da própria foto', () => {
+  const runtime = fs.readFileSync(path.join(raiz, 'landing', 'runtime.js'), 'utf8');
+  const html = fs.readFileSync(path.join(raiz, 'landing', 'analise.html'), 'utf8');
+
+  // 1. que bindings recebem uma foto? (quem é atribuído a mediaEl)
+  const fotos = new Set();
+  const re = /([A-Za-z_$][\w$]*)\s*:\s*[^,;\n]*?mediaEl\(/g;
+  let m;
+  while ((m = re.exec(runtime))) fotos.add(m[1]);
+  if (!fotos.size) throw new Error('nenhum binding de foto encontrado — o teste deixou de ver o que devia vigiar');
+
+  // 2. percorrer o HTML gerado mantendo a pilha de antepassados abertos
+  const POSICIONADO = /position\s*:\s*(relative|absolute|fixed|sticky)/;
+  const VAZIAS = new Set(['img', 'br', 'hr', 'input', 'meta', 'link', 'source', 'use', 'path', 'circle', 'rect', 'stop']);
+  const pilha = [];
+  const soltas = [];
+  const tags = /<(\/?)([a-zA-Z][\w-]*)([^>]*?)(\/?)>/g;
+  let t;
+  while ((t = tags.exec(html))) {
+    const fecha = t[1] === '/', nome = t[2].toLowerCase(), attrs = t[3], auto = t[4] === '/';
+    if (fecha) { for (let i = pilha.length - 1; i >= 0; i--) { if (pilha[i].nome === nome) { pilha.length = i; break; } } continue; }
+    const est = (/style="([^"]*)"/.exec(attrs) || [, ''])[1];
+    const txt = (/data-txt="([^"]*)"/.exec(attrs) || [, ''])[1];
+    if (fotos.has(txt)) {
+      // A MOLDURA É A CAIXA QUE RECEBE A FOTO: o próprio elemento, ou o
+      // que o contém (o build gera `<span data-txt=…>` dentro da moldura).
+      // Aceitar QUALQUER antepassado posicionado não serviria de nada: foi
+      // exactamente isso que aconteceu — o espaço reservado agarrou-se a um
+      // antepassado lá em cima e esticou-se por cima da página inteira.
+      const pai = pilha[pilha.length - 1];
+      if (!POSICIONADO.test(est) && !(pai && POSICIONADO.test(pai.est))) soltas.push(txt);
+    }
+    if (!auto && !VAZIAS.has(nome)) pilha.push({ nome, est });
+  }
+  if (soltas.length) {
+    throw new Error('foto sem moldura posicionada (vai cobrir a página inteira): ' + soltas.join(', '));
+  }
+  // e o teste tem de estar mesmo a olhar para as molduras da comparação
+  if (!fotos.has('cmpAFoto') || !fotos.has('cmpBFoto')) {
+    throw new Error('as fotos da comparação saíram do radar: ' + [...fotos].join(', '));
+  }
+});
+
 console.log('\n────────────────────────────────────────────────────────');
 console.log(`${ok} ok · ${falhas} falha(s)`);
 if (falhas) console.log('\nA página quebra. Isto derruba a tela inteira, não só um pedaço.');

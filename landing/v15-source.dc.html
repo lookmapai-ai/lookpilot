@@ -209,6 +209,9 @@ a:hover{color:#000000}
           </div>
         </sc-if>
       </div>
+      <sc-if value="{{ podeComparar }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ onComparar }}" style="margin-top:14px;display:inline-flex;align-items:center;gap:6px;background:none;border:none;min-height:44px;padding:8px 0;font-family:inherit;font-size:15px;font-weight:500;letter-spacing:-.01em;color:#FF009D;cursor:pointer;touch-action:manipulation;transition:opacity .2s ease" style-hover="opacity:.7">Comparar com outra peça <span aria-hidden="true" style="font-size:16px;line-height:1">›</span></button>
+      </sc-if>
       <p style="margin:14px 0 0;display:inline-flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:center;font-size:14px;line-height:1.5;color:#6E6E73;text-wrap:pretty">Um dia, esse histórico vira o <img src="images/lookmap-wordmark.svg" alt="LookMap" style="height:14px;width:auto;opacity:.5;vertical-align:middle"></img> — o mapa do seu guarda-roupa inteiro.</p>
     </div>
   </section>
@@ -223,6 +226,23 @@ a:hover{color:#000000}
         <h1 style="margin:0;font-size:clamp(30px,4.5vw,46px);font-weight:700;letter-spacing:-.026em;line-height:1.05">Minhas peças</h1>
         <p style="margin:0;font-size:15px;line-height:1.5;color:#6E6E73;text-wrap:pretty">As peças que você marcou para manter à vista — salvas neste navegador.</p>
       </div>
+      <sc-if value="{{ modoSelecao }}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="position:sticky;top:calc(var(--cab, 68px) + 8px);z-index:40;display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:-6px 0 0;padding:14px 18px;border-radius:999px;background:rgba(255,255,255,.86);backdrop-filter:blur(18px) saturate(1.8);-webkit-backdrop-filter:blur(18px) saturate(1.8);box-shadow:0 10px 30px rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.7)">
+          <span style="flex:1 1 auto;min-width:140px;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#1D1D1F">{{ selecaoLabel }}</span>
+          <button onClick="{{ onSairSelecao }}" style="display:inline-flex;align-items:center;min-height:44px;padding:8px 14px;background:none;border:none;font-family:inherit;font-size:14px;letter-spacing:-.005em;color:#6E6E73;cursor:pointer;touch-action:manipulation;transition:color .2s ease" style-hover="color:#FF009D !important">Cancelar</button>
+          <sc-if value="{{ selecaoCompleta }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ onCompararAgora }}" style="display:inline-flex;align-items:center;min-height:44px;padding:12px 24px;border-radius:999px;background:#1D1D1F;border:none;color:#FFFFFF;font-family:inherit;font-size:15px;font-weight:500;letter-spacing:-.01em;cursor:pointer;touch-action:manipulation;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .3s ease" style-hover="transform:scale(1.03);opacity:.9" style-active="transform:scale(.97)"><span style="white-space:nowrap">Comparar</span></button>
+          </sc-if>
+          <sc-if value="{{ selecaoIncompleta }}" hint-placeholder-val="{{ false }}">
+            <button disabled="disabled" aria-disabled="true" style="display:inline-flex;align-items:center;min-height:44px;padding:12px 24px;border-radius:999px;background:#E6E6E9;border:none;color:#8E8E93;font-family:inherit;font-size:15px;font-weight:500;letter-spacing:-.01em;cursor:not-allowed;opacity:.72"><span style="white-space:nowrap">Comparar</span></button>
+          </sc-if>
+        </div>
+      </sc-if>
+      <sc-if value="{{ naoModoSelecao }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ podeComparar }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ onModoSelecao }}" style="align-self:flex-start;display:inline-flex;align-items:center;gap:7px;min-height:48px;padding:12px 22px;border-radius:999px;background:#FFFFFF;border:1px solid rgba(0,0,0,.1);font-family:inherit;font-size:15px;font-weight:500;letter-spacing:-.01em;color:#1D1D1F;cursor:pointer;touch-action:manipulation;transition:transform .3s cubic-bezier(.16,1,.3,1),box-shadow .3s ease" style-hover="transform:translateY(-1px);box-shadow:0 10px 24px rgba(0,0,0,.08)" style-active="transform:scale(.98)">Comparar duas peças</button>
+        </sc-if>
+      </sc-if>
       <sc-if value="{{ semGuardadas }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:56px 20px;border:1px dashed rgba(0,0,0,.12);border-radius:20px;text-align:center">
           <div style="width:52px;height:66px;border-radius:10px;border:1px dashed rgba(0,0,0,.14);background:rgba(0,0,0,.01)"></div>
@@ -235,8 +255,11 @@ a:hover{color:#000000}
           <p style="margin:0 0 clamp(16px,2.4vw,26px);font-size:13px;font-weight:600;letter-spacing:.13em;color:#57575C;text-transform:uppercase">Minhas peças · {{ nGuardadas }} peças</p>
           <div style="display:flex;flex-wrap:wrap;gap:clamp(16px,2.4vw,26px)">
             <sc-for list="{{ guardadas }}" as="h" hint-placeholder-count="4">
-              <div role="{{ h.role }}" tabIndex="{{ h.tabIx }}" aria-label="{{ h.ariaLabel }}" onClick="{{ h.abrir }}" onKeyDown="{{ h.abrirKey }}" title="{{ h.tipo }}" style="position:relative;flex:0 1 clamp(280px,32vw,380px);aspect-ratio:3/4;border-radius:26px;overflow:hidden;background:{{ h.cor }};cursor:{{ h.cursor }};touch-action:manipulation;box-shadow:{{ h.cardShadow }};outline:{{ h.cardOutline }};outline-offset:-1px;transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s cubic-bezier(.16,1,.3,1)" style-hover="transform:scale(1.028) translateY(-5px);box-shadow:0 34px 70px rgba(0,0,0,.16)" style-active="transform:scale(.985)">
+              <div role="{{ h.role }}" tabIndex="{{ h.tabIx }}" aria-label="{{ h.ariaLabel }}" aria-checked="{{ h.ariaChecked }}" onClick="{{ h.abrir }}" onKeyDown="{{ h.abrirKey }}" title="{{ h.tipo }}" style="position:relative;flex:0 1 clamp(280px,32vw,380px);aspect-ratio:3/4;border-radius:26px;overflow:hidden;background:{{ h.cor }};cursor:{{ h.cursor }};touch-action:manipulation;box-shadow:{{ h.cardShadow }};outline:{{ h.cardOutline }};outline-offset:-1px;transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s cubic-bezier(.16,1,.3,1)" style-hover="transform:scale(1.028) translateY(-5px);box-shadow:0 34px 70px rgba(0,0,0,.16)" style-active="transform:scale(.985)">
                 {{ h.mediaEl }}
+                <sc-if value="{{ h.selMostra }}" hint-placeholder-val="{{ false }}">
+                  <span style="position:absolute;top:14px;right:14px;z-index:3;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:999px;background:#FF009D;color:#FFFFFF;font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;box-shadow:0 6px 18px rgba(255,0,157,.45)">{{ h.selNum }}</span>
+                </sc-if>
                 <div style="position:absolute;left:14px;bottom:14px;max-width:calc(100% - 28px);display:inline-flex;align-items:center;gap:10px;padding:7px 16px 7px 7px;border-radius:999px;background:rgba(255,255,255,.78);backdrop-filter:blur(18px) saturate(1.8);-webkit-backdrop-filter:blur(18px) saturate(1.8);box-shadow:0 8px 24px rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.7)">
                   <span style="flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:38px;padding:0 12px;border-radius:999px;background:{{ h.badgeBg }};color:{{ h.badgeColor }};font-size:19px;font-weight:700;font-variant-numeric:tabular-nums">{{ h.nota }}</span>
                   <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:600;letter-spacing:-.008em;color:#1D1D1F">{{ h.tipo }}</span>
@@ -245,6 +268,95 @@ a:hover{color:#000000}
             </sc-for>
           </div>
         </div>
+      </sc-if>
+    </section>
+  </sc-if>
+
+  <!-- ===== comparar duas peças (MVP · storage local) ===== -->
+  <sc-if value="{{ isComparar }}" hint-placeholder-val="{{ false }}">
+    <section data-screen-label="Comparar" style="flex:1;width:100%;max-width:980px;margin:0 auto;box-sizing:border-box;padding:clamp(16px,2.5vh,28px) clamp(20px,5vw,64px) clamp(56px,9vh,110px);display:flex;flex-direction:column;gap:clamp(22px,3vw,30px);animation:apFade .4s ease">
+      <button onClick="{{ onTrocarPecas }}" style="align-self:flex-start;display:inline-flex;align-items:center;gap:5px;background:none;border:none;min-height:44px;padding:8px 0;font-family:inherit;font-size:14px;letter-spacing:-.005em;color:#6E6E73;cursor:pointer;touch-action:manipulation;transition:color .2s ease" style-hover="color:#FF009D !important"><span aria-hidden="true" style="font-size:16px;line-height:1">‹</span> Trocar peças</button>
+
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <h1 style="margin:0;font-size:clamp(30px,4.5vw,46px);font-weight:700;letter-spacing:-.026em;line-height:1.05">Comparar</h1>
+        <p style="margin:0;font-size:15px;line-height:1.5;color:#6E6E73;text-wrap:pretty">Duas peças, lado a lado — pelo que a etiqueta diz de cada uma.</p>
+      </div>
+
+      <!-- as duas peças -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2.5vw,24px)">
+        <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+          <div style="position:relative;aspect-ratio:3/4;border-radius:clamp(16px,2.5vw,24px);overflow:hidden;background:#EDE9E2;box-shadow:0 8px 22px rgba(0,0,0,.06)">{{ cmpAFoto }}</div>
+          <p title="{{ cmpANomeCompleto }}" style="margin:0;font-size:clamp(14px,1.6vw,17px);font-weight:600;letter-spacing:-.01em;color:#1D1D1F;text-wrap:pretty">{{ cmpANome }}</p>
+          <p style="margin:0;font-size:12px;line-height:1.4;color:#6E6E73">{{ cmpAMeta }}</p>
+          <p style="margin:0;font-size:clamp(28px,4vw,38px);font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums;color:{{ cmpANotaCor }}">{{ cmpANota }}<span style="font-size:14px;font-weight:500;color:#6E6E73">/100</span></p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+          <div style="position:relative;aspect-ratio:3/4;border-radius:clamp(16px,2.5vw,24px);overflow:hidden;background:#EDE9E2;box-shadow:0 8px 22px rgba(0,0,0,.06)">{{ cmpBFoto }}</div>
+          <p title="{{ cmpBNomeCompleto }}" style="margin:0;font-size:clamp(14px,1.6vw,17px);font-weight:600;letter-spacing:-.01em;color:#1D1D1F;text-wrap:pretty">{{ cmpBNome }}</p>
+          <p style="margin:0;font-size:12px;line-height:1.4;color:#6E6E73">{{ cmpBMeta }}</p>
+          <p style="margin:0;font-size:clamp(28px,4vw,38px);font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums;color:{{ cmpBNotaCor }}">{{ cmpBNota }}<span style="font-size:14px;font-weight:500;color:#6E6E73">/100</span></p>
+        </div>
+      </div>
+
+      <!-- a resposta vem ANTES das barras: uma comparação que obriga a somar
+           barras de cabeça não respondeu nada -->
+      <div style="background:#F5F5F7;border-radius:clamp(20px,3vw,28px);padding:clamp(20px,3vw,32px);display:flex;flex-direction:column;gap:12px">
+        <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:.13em;color:#57575C;text-transform:uppercase">A resposta</p>
+        <p style="margin:0;max-width:52ch;font-size:clamp(16px,1.9vw,20px);line-height:1.5;letter-spacing:-.01em;color:#1D1D1F;text-wrap:pretty">{{ cmpResposta }}</p>
+      </div>
+
+      <!-- onde diferem, da maior diferença para a menor -->
+      <sc-if value="{{ cmpTemLinhas }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:clamp(16px,2.2vw,22px)">
+          <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:.13em;color:#57575C;text-transform:uppercase">Onde diferem</p>
+          <sc-for list="{{ cmpLinhas }}" as="l" hint-placeholder-count="4">
+            <div role="group" aria-label="{{ l.aria }}" style="display:flex;flex-direction:column;gap:7px">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px">
+                <span style="font-size:14px;font-weight:600;letter-spacing:-.008em;color:#1D1D1F">{{ l.rotulo }}</span>
+                <span style="flex:0 0 auto;font-size:12px;font-weight:600;letter-spacing:-.005em;color:#FF009D"><span aria-hidden="true">✓</span> {{ l.melhor }} <span style="font-weight:400;color:#6E6E73">· +{{ l.diferenca }}</span></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span aria-hidden="true" style="flex:0 0 clamp(68px,18%,96px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#6E6E73">{{ cmpANome }}</span>
+                <span aria-hidden="true" style="flex:1 1 auto;height:10px;border-radius:999px;background:#E6E6E9;overflow:hidden"><span style="display:block;height:100%;width:{{ l.aLarg }};border-radius:999px;background:{{ l.aCor }}"></span></span>
+                <span aria-hidden="true" style="flex:0 0 30px;text-align:right;font-size:13px;font-weight:{{ l.aPeso }};font-variant-numeric:tabular-nums;color:#1D1D1F">{{ l.aNum }}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span aria-hidden="true" style="flex:0 0 clamp(68px,18%,96px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#6E6E73">{{ cmpBNome }}</span>
+                <span aria-hidden="true" style="flex:1 1 auto;height:10px;border-radius:999px;background:#E6E6E9;overflow:hidden"><span style="display:block;height:100%;width:{{ l.bLarg }};border-radius:999px;background:{{ l.bCor }}"></span></span>
+                <span aria-hidden="true" style="flex:0 0 30px;text-align:right;font-size:13px;font-weight:{{ l.bPeso }};font-variant-numeric:tabular-nums;color:#1D1D1F">{{ l.bNum }}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ cmpTemEmpate }}" hint-placeholder-val="{{ true }}">
+        <p style="margin:0;font-size:14px;line-height:1.5;color:#6E6E73;text-wrap:pretty">{{ cmpEmpate }}</p>
+      </sc-if>
+
+      <!-- a etiqueta: é o que o LookPilot existe para ler, por isso é linha
+           e não nota de pé -->
+      <div style="display:flex;flex-direction:column;gap:12px;padding-top:clamp(16px,2.2vw,22px);border-top:1px solid rgba(0,0,0,.08)">
+        <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:.13em;color:#57575C;text-transform:uppercase">A etiqueta</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2.5vw,24px)">
+          <p style="margin:0;font-size:14px;line-height:1.5;color:#1D1D1F;text-wrap:pretty">{{ cmpAComposicao }}</p>
+          <p style="margin:0;font-size:14px;line-height:1.5;color:#1D1D1F;text-wrap:pretty">{{ cmpBComposicao }}</p>
+        </div>
+      </div>
+
+      <sc-if value="{{ cmpTemEstado }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:12px;padding-top:clamp(16px,2.2vw,22px);border-top:1px solid rgba(0,0,0,.08)">
+          <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:.13em;color:#57575C;text-transform:uppercase">Estado da peça</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2.5vw,24px)">
+            <p style="margin:0;font-size:14px;line-height:1.5;color:#1D1D1F;text-wrap:pretty">{{ cmpAEstado }}</p>
+            <p style="margin:0;font-size:14px;line-height:1.5;color:#1D1D1F;text-wrap:pretty">{{ cmpBEstado }}</p>
+          </div>
+          <p style="margin:0;max-width:52ch;font-size:13px;line-height:1.5;color:#6E6E73;text-wrap:pretty">Numa peça usada o estado pesa tanto como a fibra: a etiqueta pode ser ótima e a peça estar gasta.</p>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ cmpTemSemMedida }}" hint-placeholder-val="{{ false }}">
+        <p style="margin:0;font-size:13px;line-height:1.5;color:#6E6E73;text-wrap:pretty">{{ cmpSemMedida }}</p>
       </sc-if>
     </section>
   </sc-if>

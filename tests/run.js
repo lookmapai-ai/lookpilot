@@ -1592,8 +1592,10 @@ console.log('══════════════════════�
 //   acordeao.js — a etiqueta que está a um clique (painel fechado da loja)
 //   vinted.js — a segunda mão: etiqueta copiada à mão, parcial e noutra
 //               língua, e o estado da peça a pesar tanto como a fibra
+//   comparar.js — duas peças lado a lado: a ordem das linhas, o que empata,
+//                 a medida que não existe e o que se perde ao escolher
 let extras = 0;
-for (const t of ['coerencia.js', 'acervo.js', 'pagina.js', 'entrega.js', 'abrir-aba.js', 'acordeao.js', 'vinted.js']) {
+for (const t of ['coerencia.js', 'acervo.js', 'pagina.js', 'entrega.js', 'abrir-aba.js', 'acordeao.js', 'vinted.js', 'comparar.js']) {
   try {
     require('child_process').execSync('node ' + require('path').join(__dirname, t),
       { stdio: 'inherit' });
