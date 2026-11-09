@@ -224,7 +224,7 @@ a:hover{color:#000000}
       <a href="LookMap%20Landing%20Extensao.dc.html" style="align-self:flex-start;display:inline-flex;align-items:center;gap:5px;text-decoration:none;min-height:44px;padding:8px 0;font-family:inherit;font-size:14px;letter-spacing:-.005em;color:#6E6E73;cursor:pointer;touch-action:manipulation;transition:color .2s ease" style-hover="color:#FF009D !important"><span aria-hidden="true" style="font-size:16px;line-height:1">‹</span> Voltar</a>
       <div style="display:flex;flex-direction:column;gap:6px">
         <h1 style="margin:0;font-size:clamp(30px,4.5vw,46px);font-weight:700;letter-spacing:-.026em;line-height:1.05">Minhas peças</h1>
-        <p style="margin:0;font-size:15px;line-height:1.5;color:#6E6E73;text-wrap:pretty">As peças que você marcou para manter à vista — salvas neste navegador.</p>
+        <p style="margin:0;font-size:15px;line-height:1.5;color:#6E6E73;text-wrap:pretty">{{ historicoSub }}</p>
       </div>
       <sc-if value="{{ modoSelecao }}" hint-placeholder-val="{{ false }}">
         <div role="status" style="position:sticky;top:calc(var(--cab, 68px) + 8px);z-index:40;display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:-6px 0 0;padding:14px 18px;border-radius:999px;background:rgba(255,255,255,.86);backdrop-filter:blur(18px) saturate(1.8);-webkit-backdrop-filter:blur(18px) saturate(1.8);box-shadow:0 10px 30px rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.7)">
@@ -252,7 +252,7 @@ a:hover{color:#000000}
       </sc-if>
       <sc-if value="{{ temGuardadas }}" hint-placeholder-val="{{ true }}">
         <div style="background:#F5F5F7;border-radius:28px;padding:clamp(20px,3vw,34px)">
-          <p style="margin:0 0 clamp(16px,2.4vw,26px);font-size:13px;font-weight:600;letter-spacing:.13em;color:#57575C;text-transform:uppercase">Minhas peças · {{ nGuardadas }} peças</p>
+          <p style="margin:0 0 clamp(16px,2.4vw,26px);font-size:13px;font-weight:600;letter-spacing:.13em;color:#57575C;text-transform:uppercase">{{ listaTitulo }}</p>
           <div style="display:flex;flex-wrap:wrap;gap:clamp(16px,2.4vw,26px)">
             <sc-for list="{{ guardadas }}" as="h" hint-placeholder-count="4">
               <div role="{{ h.role }}" tabIndex="{{ h.tabIx }}" aria-label="{{ h.ariaLabel }}" aria-checked="{{ h.ariaChecked }}" onClick="{{ h.abrir }}" onKeyDown="{{ h.abrirKey }}" title="{{ h.tipo }}" style="position:relative;flex:0 1 clamp(280px,32vw,380px);aspect-ratio:3/4;border-radius:26px;overflow:hidden;background:{{ h.cor }};cursor:{{ h.cursor }};touch-action:manipulation;box-shadow:{{ h.cardShadow }};outline:{{ h.cardOutline }};outline-offset:-1px;transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s cubic-bezier(.16,1,.3,1)" style-hover="transform:scale(1.028) translateY(-5px);box-shadow:0 34px 70px rgba(0,0,0,.16)" style-active="transform:scale(.985)">

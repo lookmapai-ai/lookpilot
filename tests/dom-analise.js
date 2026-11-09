@@ -38,6 +38,32 @@ const CLICK = bindings('data-on-click');
 // Atributos interpolados (data-tpl-aria-label, data-tpl-style…). É onde
 // vive o que o leitor de ecrã ouve e a largura das barras — ou seja, tudo
 // o que não é texto visível mas decide se a tela se entende.
+/* QUE ECRÃ É QUE CONTÉM CADA TEXTO.
+   A página tem três ecrãs no mesmo ficheiro (relatório, minhas peças,
+   comparação) e o runtime escreve TODOS os bindings a cada desenho — até os
+   dos ecrãs escondidos. O simulador anotava tudo como se estivesse à vista,
+   e isso fez um teste acusar de "assinatura de template" uma frase que vive
+   no ecrã das peças salvas e nunca aparece ao lado da análise. Qualquer
+   frase fixa que saia do HTML para o runtime cai na mesma armadilha.
+   Guardar o ecrã de cada binding resolve a classe: o que está escondido não
+   conta como texto que a pessoa leu. */
+const DONO = (() => {
+  const mapa = {};
+  const pilha = [];
+  const tags = /<(\/?)([a-zA-Z][\w-]*)([^>]*?)(\/?)>/g;
+  const VAZIAS = new Set(['img', 'br', 'hr', 'input', 'meta', 'link', 'source', 'use', 'path', 'circle', 'rect', 'stop']);
+  let t;
+  while ((t = tags.exec(html))) {
+    const fecha = t[1] === '/', nome = t[2].toLowerCase(), attrs = t[3], auto = t[4] === '/';
+    if (fecha) { for (let i = pilha.length - 1; i >= 0; i--) { if (pilha[i].nome === nome) { pilha.length = i; break; } } continue; }
+    const seIf = (/data-if="([^"]*)"/.exec(attrs) || [, ''])[1];
+    const txt = (/data-txt="([^"]*)"/.exec(attrs) || [, ''])[1];
+    if (txt) mapa[txt] = pilha.filter((x) => x.seIf).map((x) => x.seIf).concat(seIf ? [seIf] : []);
+    if (!auto && !VAZIAS.has(nome)) pilha.push({ nome, seIf });
+  }
+  return mapa;
+})();
+
 const ATTR = (() => {
   const fora = [];
   const re = /data-tpl-([a-z-]+)="([^"]*)"/g;
@@ -59,8 +85,12 @@ function criarDom() {
   // apanhado, o teste de coerência olhava para a metade errada da página.
   const registo = { txt: {}, display: {}, todos: [] };
 
-  const anota = (s) => {
-    if (typeof s === 'string' && s.trim()) registo.todos.push(s);
+  // `marca` é o nome do binding, quando se sabe: serve para não anotar
+  // texto de um ecrã que está escondido (ver DONO, acima).
+  const aVista = (marca) => !marca || (DONO[marca] || [])
+    .every((k) => registo.display[k] !== 'none');
+  const anota = (s, marca) => {
+    if (typeof s === 'string' && s.trim() && aVista(marca)) registo.todos.push(s);
   };
 
   const texto = (s) => {
@@ -125,7 +155,7 @@ function criarDom() {
     return new Proxy(el, {
       set(alvo, prop, valor) {
         alvo[prop] = valor;
-        if (prop === 'textContent') anota(valor);
+        if (prop === 'textContent') anota(valor, alvo._marca);
         if (prop === 'textContent' && alvo._marca) registo.txt[alvo._marca] = valor;
         if (prop === 'style' && alvo._marca) registo.display[alvo._marca] = valor.display;
         return true;

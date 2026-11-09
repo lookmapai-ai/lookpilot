@@ -1293,6 +1293,25 @@
       temGuardadas: guardadas.length > 0,
       semGuardadas: guardadas.length === 0,
 
+      /* O TÍTULO E A FRASE TÊM DE FALAR DO QUE ESTÁ NO ECRÃ.
+         Foram escritos quando esta lista só mostrava peças guardadas. Desde
+         que a peça aberta passou a entrar nela (para se poder comparar sem
+         guardar primeiro), o contador contava uma coisa e o olho via outra:
+         "MINHAS PEÇAS · 0 PEÇAS" com um cartão à frente, debaixo de uma
+         frase a dizer que aquilo estava "salvo neste navegador" — sobre uma
+         peça que não estava salva nenhuma.
+
+         No modo de escolha a lista deixa de ser "as minhas peças" e passa a
+         ser "as peças que podem entrar na comparação". O título diz isso, e
+         conta o que está desenhado. */
+      listaTitulo: (modoSelecao ? 'Para comparar · ' : 'Minhas peças · ')
+        + guardadas.length + (guardadas.length === 1 ? ' peça' : ' peças'),
+      historicoSub: modoSelecao
+        ? (candidatos().some(function (p) { return p.estaAberta; })
+            ? 'Escolha duas para comparar — a peça aberta entra na lista sem precisar ser salva.'
+            : 'Escolha duas peças para comparar lado a lado.')
+        : 'As peças que você marcou para manter à vista — salvas neste navegador.',
+
       /* ---- comparar duas peças ---- */
       isComparar: view === 'comparar' && !!par,
       modoSelecao: modoSelecao,
@@ -1570,13 +1589,22 @@
     // #comparar sem par escolhido (avançar para um estado que já não
     // existe) não pode dar ecrã vazio: vale a mesma regra do arranque,
     // que é abrir a lista no modo de escolha.
-    if (v === 'comparar' && !parSelecionado()) { v = 'historico'; modoSelecao = true; }
+    if (v === 'comparar' && !parSelecionado()) { v = 'historico'; modoSelecao = candidatos().length >= 2; }
     if (v !== view || modoSelecao) { view = v; render(); window.scrollTo(0, 0); }
   });
   if (location.hash === '#minhas-pecas') view = 'historico';
-  // #comparar vindo de fora (um atalho colado, um recarregamento) não traz
-  // par nenhum: abre a lista no modo de escolha, que é o passo anterior.
-  if (location.hash === '#comparar') { view = 'historico'; modoSelecao = true; }
+  /* #comparar vindo de fora (um atalho colado, um recarregamento) não traz
+     par nenhum: abre a lista no modo de escolha, que é o passo anterior.
+
+     A menos que não haja com quê comparar. Um link assim aberto com uma
+     peça só punha no ecrã um modo de escolha a pedir "Escolha duas peças"
+     onde só existia uma — um beco, e logo a seguir ao botão que a própria
+     página esconde quando não há duas. Sem par possível, abre a lista
+     normal, que já sabe dizer o que falta. */
+  if (location.hash === '#comparar') {
+    view = 'historico';
+    modoSelecao = candidatos().length >= 2;
+  }
 
   // só conta como análise vista quando veio da extensão (tem score) — a
   // página de demonstração não polui a medição

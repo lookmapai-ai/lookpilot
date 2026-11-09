@@ -442,5 +442,75 @@ teste('nomes compridos são cortados sem partir palavras ao meio', () => {
     || 'cortou sem avisar que cortou: "' + r.txt.cmpBNome + '"';
 });
 
+/* ════════════════════════════════════════════════════════════════════ */
+console.log('\n── 9. O ecrã não pode dizer uma coisa e mostrar outra ───\n');
+
+/* Apanhado num link real: uma análise do Mango aberta em #comparar, sem
+   nada guardado. O ecrã dizia "MINHAS PEÇAS · 0 PEÇAS" com um cartão à
+   frente, debaixo de "As peças que você marcou para manter à vista —
+   salvas neste navegador" (a peça não estava salva) e de um "Escolha duas
+   peças" onde só existia uma.
+
+   A CLASSE: a prosa desta lista foi escrita quando ela só mostrava peças
+   guardadas. Desde que a peça aberta passou a entrar — que é o que poupa o
+   passo de guardar antes de comparar — contador, frase e modo deixaram de
+   bater com o que está no ecrã. Não é uma linha errada: são três, pelo mesmo
+   motivo. */
+teste('o contador diz o número de cartões que estão mesmo desenhados', () => {
+  const casos = [
+    ['lista normal, 2 guardadas', montar('', { guardadas: [guardada(A), guardada(B)] , hash: '#minhas-pecas' })],
+    ['lista vazia', montar('', { guardadas: [], hash: '#minhas-pecas' })],
+    ['modo de escolha', montar('', { guardadas: [guardada(A), guardada(B)], hash: '#comparar' })],
+    ['peça aberta na escolha', (() => {
+      const r = montar(A.busca, { guardadas: [guardada(B)] });
+      r.clicar('onComparar');
+      return r;
+    })()]
+  ];
+  for (const [nome, r] of casos) {
+    const desenhados = r.nItens('guardadas');
+    const dito = num(r.txt.listaTitulo);
+    if (desenhados === 0) continue;            // aí o título nem aparece
+    if (dito !== desenhados) {
+      return nome + ': o título diz "' + r.txt.listaTitulo + '" e há ' + desenhados + ' cartão(ões)';
+    }
+  }
+  return true;
+});
+
+teste('nunca "1 peças"', () => {
+  const r = montar(A.busca, { guardadas: [guardada(B)] });
+  r.clicar('onComparar');
+  const mau = [r.txt.listaTitulo, r.txt.nGuardadasLabel]
+    .filter((t) => /\b1 peças\b/.test(String(t)));
+  return !mau.length || 'plural errado: ' + mau.join(' / ');
+});
+
+teste('#comparar com uma peça só não abre um modo de escolha sem saída', () => {
+  const r = montar(A.busca, { guardadas: [], hash: '#comparar' });
+  if (r.display.modoSelecao === 'contents') {
+    return 'pediu "' + r.txt.selecaoLabel + '" com uma peça só no ecrã';
+  }
+  // e o ecrã diz o que falta, em vez de ficar mudo
+  return r.display.semGuardadas === 'contents' || r.display.temGuardadas === 'contents'
+    || 'a lista ficou sem dizer nada';
+});
+
+teste('no modo de escolha a frase não afirma que a peça aberta está salva', () => {
+  const r = montar(A.busca, { guardadas: [guardada(B)] });
+  r.clicar('onComparar');
+  const sub = r.txt.historicoSub || '';
+  if (/salvas neste navegador/.test(sub)) {
+    return 'a peça aberta não está salva e a frase diz que sim: "' + sub + '"';
+  }
+  return /sem precisar ser salva/.test(sub) || 'a frase não explica a peça aberta: "' + sub + '"';
+});
+
+teste('fora do modo de escolha, a frase continua a ser a das peças salvas', () => {
+  const r = montar('', { guardadas: [guardada(A), guardada(B)], hash: '#minhas-pecas' });
+  return /salvas neste navegador/.test(r.txt.historicoSub || '')
+    || 'frase trocada na lista normal: "' + r.txt.historicoSub + '"';
+});
+
 console.log(`\n${ok} ok · ${falhas} falha(s)\n`);
 process.exit(falhas ? 1 : 0);
