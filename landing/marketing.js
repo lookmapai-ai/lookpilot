@@ -204,9 +204,43 @@
           scrollTrigger: { trigger: el, start: 'top 90%', once: true } });
       });
 
-      g.utils.toArray('[data-plx]').forEach(function (el, i) {
+      // A paralaxe move os cartoes 90px para cima e para baixo. Num ecra estreito
+      // isso punha o cartao da nota por cima do rotulo "02 - A nota" da seccao
+      // seguinte. Em ecras ate 960px (o mesmo limite dos chips do hero) fica parada.
+      var ecraLargo = window.innerWidth > 960;
+      if (ecraLargo) g.utils.toArray('[data-plx]').forEach(function (el, i) {
         g.fromTo(el, { y: 90, rotate: i % 2 ? 2.5 : -2.5 }, { y: -90, rotate: i % 2 ? -1.5 : 1.5, ease: 'none',
           scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 0.8 } });
+      });
+
+      // Rede de seguranca. Os blocos [data-ap] comecam invisiveis e so aparecem
+      // quando o ScrollTrigger os ve. Se esse gatilho falhar, o texto ficava
+      // invisivel na pagina e ninguem percebia porque. Esta rede mostra qualquer
+      // bloco que ja devia estar a ler-se: ao fim de 3s, a cada rolagem, e quando
+      // o teclado la chega. Com o ScrollTrigger a funcionar nunca chega a agir,
+      // porque ele revela os blocos antes (a 90% do ecra, esta rede so a 70%).
+      function resgataEscondidos() {
+        g.utils.toArray('[data-ap]').forEach(function (el) {
+          var r = el.getBoundingClientRect();
+          var jaDeviaVerSe = r.top < window.innerHeight * 0.7 && r.bottom > 0;
+          if (jaDeviaVerSe && parseFloat(getComputedStyle(el).opacity) < 0.05) {
+            g.set(el, { clearProps: 'opacity,transform' });
+          }
+        });
+      }
+      setTimeout(resgataEscondidos, 3000);
+      var resgateMarcado = false;
+      window.addEventListener('scroll', function () {
+        if (resgateMarcado) return;
+        resgateMarcado = true;
+        requestAnimationFrame(function () { resgateMarcado = false; resgataEscondidos(); });
+      }, { passive: true });
+      // o teclado pode chegar a um bloco antes de a rolagem o revelar
+      document.addEventListener('focusin', function (ev) {
+        var bloco = ev.target && ev.target.closest && ev.target.closest('[data-ap]');
+        if (bloco && parseFloat(getComputedStyle(bloco).opacity) < 0.95) {
+          g.set(bloco, { clearProps: 'opacity,transform' });
+        }
       });
 
       g.utils.toArray('[data-hl]').forEach(function (el) {

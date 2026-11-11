@@ -9,6 +9,25 @@
 <x-dc>
 <helmet>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="O LookPilot lê a etiqueta de composição por si em qualquer loja online e diz, em segundos, se a peça vale mesmo a pena. Extensão grátis para Chrome, Edge e Brave.">
+<link rel="canonical" href="https://www.lookpilotapp.com/">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="icon" href="images/lookpilot-mini.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="images/icone-128.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="LookPilot">
+<meta property="og:locale" content="pt_PT">
+<meta property="og:url" content="https://www.lookpilotapp.com/">
+<meta property="og:title" content="LookPilot — a etiqueta, lida por você">
+<meta property="og:description" content="Saiba do que a roupa é feita, antes de comprar. O LookPilot lê a etiqueta em qualquer loja online e diz se a peça vale a pena.">
+<meta property="og:image" content="https://www.lookpilotapp.com/loja-captura-1280x800.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="800">
+<meta property="og:image:alt" content="O LookPilot a mostrar a nota de uma peça numa loja online">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="LookPilot — a etiqueta, lida por você">
+<meta name="twitter:description" content="Saiba do que a roupa é feita, antes de comprar.">
+<meta name="twitter:image" content="https://www.lookpilotapp.com/loja-captura-1280x800.png">
 <style>
 html{scroll-behavior:smooth}
 html,body{margin:0;padding:0;background:#FFFFFF}
@@ -24,6 +43,13 @@ a:hover{color:#000000}
 @keyframes lmFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
 @media (max-width:960px){[data-hero-chip]{display:none!important}}
+/* link de salto: primeira paragem do Tab, invisível até receber foco */
+.lp-salto{position:absolute;left:-9999px;top:0;z-index:200;padding:12px 18px;border-radius:0 0 14px 0;background:#1D1D1F;color:#FFFFFF;text-decoration:none;font-size:15px}
+.lp-salto:focus{left:0}
+/* no telemóvel, todo o link fora de texto corrido com 44px de altura */
+@media (max-width:600px){
+  header a,footer a{display:inline-flex;align-items:center;min-height:44px}
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
@@ -49,6 +75,8 @@ a:hover{color:#000000}
   <div aria-hidden="true" style="position:absolute;top:0;left:0;right:0;height:72vh;z-index:0;pointer-events:none;background:radial-gradient(ellipse 70% 55% at 50% -10%,rgba(200,170,120,.12) 0%,rgba(200,170,120,0) 70%),radial-gradient(ellipse 50% 40% at 78% -6%,rgba(255,0,157,.06) 0%,rgba(255,0,157,0) 70%)"></div>
 
   <!-- ===== cabeçalho ===== -->
+  <a class="skip-link lp-salto" href="#conteudo">Saltar para o conteúdo</a>
+
   <header data-screen-label="Cabeçalho" style="position:sticky;top:0;z-index:70;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:12px clamp(20px,5vw,64px);background:rgba(255,255,255,.8);backdrop-filter:blur(20px) saturate(1.8);-webkit-backdrop-filter:blur(20px) saturate(1.8);border-bottom:1px solid rgba(0,0,0,.06)">
     <a href="LookMap%20Landing%20Extensao.dc.html" title="Início" style="display:inline-flex;align-items:center;text-decoration:none;transition:opacity .2s ease" style-hover="opacity:.7"><img src="images/lookpilot-wordmark.svg" alt="LookPilot" style="display:block;height:34px;width:auto"></img></a>
     <div style="display:flex;align-items:center;gap:14px">
@@ -82,6 +110,7 @@ a:hover{color:#000000}
   </sc-if>
 
   <!-- ===== hero ===== -->
+  <main id="conteudo" style="display:contents">
   <section id="topo" data-screen-label="Hero" style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:calc(100dvh - 70px);padding:clamp(48px,8vh,96px) clamp(20px,5vw,64px)">
     <h1 style="margin:0;max-width:16ch;font-size:clamp(44px,7.2vw,96px);font-weight:700;letter-spacing:-.028em;line-height:1.03;text-wrap:balance" data-hero="1">Saiba do que a roupa é feita, <span data-hero-hl="1" style="background-image:linear-gradient(rgba(255,0,157,.26),rgba(255,0,157,.26));background-repeat:no-repeat;background-size:100% .62em;background-position:0 56%;padding:0 .06em;border-radius:2px;-webkit-box-decoration-break:clone;box-decoration-break:clone">antes de comprar.</span></h1>
     <p style="margin:20px 0 0;max-width:56ch;font-size:clamp(18px,2vw,22px);font-weight:400;letter-spacing:-.012em;line-height:1.45;color:#6E6E73;text-wrap:pretty" data-hero="1">{{ heroSubEl }}</p>
@@ -167,6 +196,8 @@ a:hover{color:#000000}
       <p style="margin:0;font-size:13px;letter-spacing:.01em;color:#6E6E73">Chrome · Edge · Brave — 100% grátis, sem conta. A etiqueta é lida no seu navegador, e as peças que você salva ficam só nele.</p>
     </div>
   </section>
+
+  </main>
 
   <!-- ===== rodapé ===== -->
   <footer data-screen-label="Rodapé" style="position:relative;z-index:1;margin-top:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:22px clamp(20px,5vw,64px);border-top:1px solid rgba(0,0,0,.06)">

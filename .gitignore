@@ -14,3 +14,6 @@ LookPilot*.html
 
 # o pacote da loja gera-se na hora do envio (empacotar.sh), nunca se versiona
 dist/
+
+# pasta de trabalho da taste skill (relatorios e capturas)
+.taste-skill/
