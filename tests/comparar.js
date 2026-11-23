@@ -149,6 +149,16 @@ function comoTipo(p, tipoKey, id) {
   return Object.assign(guardada(p), { id: id || tipoKey, url: '?' + q.toString() });
 }
 
+// A mesma peça com OUTRO nome (e, se quiser, outro preço). Serve para forçar
+// o caso em que duas peças chegam com o mesmo nome — dois sobretudos de lã da
+// mesma loja — e o nome deixa de dizer qual é qual.
+function comNome(p, nome, id, preco) {
+  const q = new URLSearchParams(p.busca);
+  q.set('nome', nome);
+  if (preco) q.set('preco', preco);
+  return Object.assign(guardada(p), { id: id, tipo: nome, url: '?' + q.toString() });
+}
+
 /* ═══════════════════════════════════════════════════════════════════ */
 console.log('\n── 1. Dois sobretudos de lã, do texto da página à resposta ──\n');
 
@@ -620,6 +630,69 @@ teste('a interface fala uma língua só', () => {
     }
   }
   return true;
+});
+
+/* ═══════════════════════════════════════════════════════════════════
+   DOIS NOMES IGUAIS NÃO PODEM VIRAR A MESMA PEÇA. Dois sobretudos de lã
+   da mesma loja chegam com o mesmo nome curto ("Sobretudo de lã Manteco…").
+   Com o nome a identificar as duas, a resposta ("A Sobretudo… ganha em
+   calor"), o selo do vencedor e a etiqueta à esquerda de cada barra ficam
+   todos iguais — não dá para saber de QUAL peça a frase fala. Nesse caso a
+   referência passa a ser a posição: Peça 1 à esquerda, Peça 2 à direita. */
+console.log('\n── 11. Dois nomes iguais não viram a mesma peça ─────\n');
+
+const NOME_IGUAL = 'Sobretudo de lã Manteco com capuz destacável';
+function parAmbiguo() {
+  return compararGuardadas([
+    comNome(A, NOME_IGUAL, 'esq', '179,99'),
+    comNome(B, NOME_IGUAL, 'dir', '149,99')
+  ]);
+}
+
+teste('com o nome igual, a resposta nomeia por posição, não repete o nome', () => {
+  const resp = parAmbiguo().txt.cmpResposta || '';
+  if (!/\bPeça [12]\b/.test(resp)) return 'a resposta não usa a posição: "' + resp + '"';
+  // e não arrasta o nome repetido para dentro da frase
+  return resp.indexOf(NOME_IGUAL) < 0
+    || 'o nome repetido ainda entra na resposta: "' + resp + '"';
+});
+
+teste('com o nome igual, o selo do vencedor de cada barra é Peça 1 ou Peça 2', () => {
+  const melhores = parAmbiguo().itens('cmpLinhas').map((l) => l['l.melhor']);
+  if (!melhores.length) return 'nenhuma linha desenhada';
+  const fora = melhores.filter((m) => !/^Peça [12]$/.test(String(m)));
+  return !fora.length || 'barra com rótulo que não distingue: ' + fora.join(', ');
+});
+
+teste('cada coluna tem o índice Peça 1 / Peça 2 e a loja·preço que diz qual é qual', () => {
+  const r = parAmbiguo();
+  if (r.txt.cmpAPos !== 'Peça 1' || r.txt.cmpBPos !== 'Peça 2') {
+    return 'faltou o índice de coluna: "' + r.txt.cmpAPos + '" / "' + r.txt.cmpBPos + '"';
+  }
+  // a loja·preço (diferente) continua no cabeçalho — é onde se lê qual peça é
+  if (String(r.txt.cmpAMeta || '').indexOf('179,99') < 0
+   || String(r.txt.cmpBMeta || '').indexOf('149,99') < 0) {
+    return 'a loja·preço não distingue as colunas: "' + r.txt.cmpAMeta + '" / "' + r.txt.cmpBMeta + '"';
+  }
+  // e o nome completo de cada peça continua lá (a "descrição")
+  return (r.txt.cmpANome || '').length > 0
+    || 'o cabeçalho perdeu o nome da peça: "' + r.txt.cmpANome + '"';
+});
+
+teste('o leitor de ecrã ouve a posição, não dois nomes iguais, em cada linha', () => {
+  const arias = parAmbiguo().itens('cmpLinhas').map((l) => String(l['@aria-label'] || ''));
+  if (!arias.length) return 'nenhuma linha desenhada';
+  // cada linha lida tem de referir Peça 1 e Peça 2 (os dois lados da barra)
+  const incompletas = arias.filter((a) => a.indexOf('Peça 1') < 0 || a.indexOf('Peça 2') < 0);
+  return !incompletas.length
+    || 'linha que o leitor de ecrã ouve sem distinguir as duas: "' + incompletas[0] + '"';
+});
+
+teste('nomes que DE FACTO distinguem continuam pelo nome, não por posição', () => {
+  const melhores = compararGuardadas([guardada(A), guardada(B)])
+    .itens('cmpLinhas').map((l) => l['l.melhor']);
+  return !melhores.some((m) => /^Peça [12]$/.test(String(m)))
+    || 'passou a nomear por posição mesmo com Benetton ≠ Comptoir: ' + melhores.join(', ');
 });
 
 console.log(`\n${ok} ok · ${falhas} falha(s)\n`);

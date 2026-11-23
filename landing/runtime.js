@@ -859,6 +859,20 @@
     return partes.join(' ').replace(/[\s,;·\-–]+$/, '') + '…';
   }
 
+  /* DOIS NOMES QUE NÃO DISTINGUEM. Dois sobretudos de lã da mesma loja, ou
+     duas versões da mesma peça, caem no mesmo nome curto ("Sobretudo de lã
+     Manteco…") — e aí o nome deixa de dizer qual é qual na resposta e nas
+     barras. Quando os curtos normalizados batem, a comparação troca o nome
+     pela POSIÇÃO ("Peça 1"/"Peça 2"), que é sempre inequívoca. */
+  function mesmaEtiqueta(a, b) {
+    var norm = function (s) {
+      return String(s || '').toLowerCase()
+        .replace(/…$/, '').replace(/[\s.,;·\-–—]+$/, '').trim();
+    };
+    var na = norm(a.curto), nb = norm(b.curto);
+    return !!na && na === nb;
+  }
+
   function pecaComparavel(busca, extra) {
     var q = new URLSearchParams(busca || '');
     var num = function (k) {
@@ -941,7 +955,12 @@
      Três movimentos, e o terceiro é o que falta na maioria das comparações:
      quem leva, onde o calor decide (se for agasalho), e O QUE SE PERDE ao
      escolher. Uma comparação que só diz quem ganha esconde a troca. */
-  function respostaDaComparacao(a, b, r) {
+  function respostaDaComparacao(a, b, r, rotA, rotB) {
+    // Por omissão a prosa chama cada peça pelo nome curto (é assim nos
+    // testes). Quando os nomes não distinguem, quem chama passa "Peça 1"/
+    // "Peça 2", e a prosa nomeia por posição em vez de repetir o mesmo nome.
+    rotA = rotA || a.curto; rotB = rotB || b.curto;
+    var rot = function (p) { return p === a ? rotA : rotB; };
     if (!r.linhas.length) {
       return 'As duas medem igual em tudo que a etiqueta mostra. '
            + 'Aí decide pelo preço, pelo caimento ou pelo estado da peça.';
@@ -962,7 +981,7 @@
        assim. Diz-se o nome uma vez e depois "ela", "a outra". Para isso
        basta guardar quem foi a última nomeada. */
     var ultima = lider;
-    frases.push('A ' + lider.curto + ' ganha em ' + listaPt(ganhosLider.map(baixo)) + '.');
+    frases.push('A ' + rot(lider) + ' ganha em ' + listaPt(ganhosLider.map(baixo)) + '.');
 
     // O calor é a dimensão que decide um agasalho, e não é negociável como
     // as outras: uma peça que não aquece não aquece mais por ser versátil.
@@ -975,7 +994,7 @@
     }
 
     if (ganhosOutra.length) {
-      frases.push('Em troca, a ' + outra.curto + ' ganha em '
+      frases.push('Em troca, a ' + rot(outra) + ' ganha em '
         + listaPt(ganhosOutra.map(baixo)) + '.');
       ultima = outra;
     }
@@ -988,7 +1007,7 @@
       var vezes = cara.precoNum / barata.precoNum;
       // "custa o dobro ou mais menos" era o que saía daqui: duas maneiras de
       // dizer a mesma coisa coladas uma na outra. Cada faixa tem a sua frase.
-      var quem = barata === ultima ? 'E ainda ' : 'E a ' + barata.curto + ' ';
+      var quem = barata === ultima ? 'E ainda ' : 'E a ' + rot(barata) + ' ';
       frases.push(vezes >= 2.75
         ? quem + 'sai por um terço do preço.'
         : vezes >= 1.8
@@ -1056,7 +1075,11 @@
   // cinza de texto do design — os dois com contraste suficiente sobre o
   // painel (a cor não é o único sinal: há o rótulo "melhor" ao lado).
   var COR_GANHA = '#FF009D', COR_PERDE = '#6E6E73';
-  function linhasView(r, a, b) {
+  function linhasView(r, a, b, rotA, rotB) {
+    // Os mesmos rótulos da resposta: nome quando distingue, "Peça 1"/"Peça 2"
+    // quando não. Vale para o selo do vencedor, para a etiqueta à esquerda de
+    // cada barra e para o texto que o leitor de ecrã ouve.
+    rotA = rotA || a.curto; rotB = rotB || b.curto;
     return r.linhas.map(function (l) {
       var melhorA = l.ganhaA;
       return {
@@ -1067,12 +1090,12 @@
         bCor: melhorA ? COR_PERDE : COR_GANHA,
         aPeso: melhorA ? '700' : '400',
         bPeso: melhorA ? '400' : '700',
-        melhor: melhorA ? a.curto : b.curto,
+        melhor: melhorA ? rotA : rotB,
         diferenca: l.dif + (l.dif === 1 ? ' ponto' : ' pontos'),
         // O leitor de ecrã não vê barras: a linha tem de se ler inteira.
-        aria: l.rotulo + ': ' + a.curto + ' ' + l.a + ' de 100, '
-            + b.curto + ' ' + l.b + ' de 100. Melhor: '
-            + (melhorA ? a.curto : b.curto) + ', por ' + l.dif + ' pontos.'
+        aria: l.rotulo + ': ' + rotA + ' ' + l.a + ' de 100, '
+            + rotB + ' ' + l.b + ' de 100. Melhor: '
+            + (melhorA ? rotA : rotB) + ', por ' + l.dif + ' pontos.'
       };
     });
   }
@@ -1123,7 +1146,14 @@
     /* ---- a comparação, quando há duas peças escolhidas ---- */
     var par = parSelecionado();
     var cmp = par ? comparar(par.a, par.b) : null;
-    var cmpLinhas = cmp ? linhasView(cmp, par.a, par.b) : [];
+    // Quando o nome não distingue as duas (dois sobretudos de lã iguais), a
+    // referência cruzada — resposta, barras, selo do vencedor — passa a ser a
+    // posição. O cabeçalho de cada coluna guarda o nome e a loja·preço, que é
+    // onde a pessoa lê QUAL peça é cada uma.
+    var cmpAmbiguo = par ? mesmaEtiqueta(par.a, par.b) : false;
+    var rotuloA = par ? (cmpAmbiguo ? 'Peça 1' : par.a.curto) : '';
+    var rotuloB = par ? (cmpAmbiguo ? 'Peça 2' : par.b.curto) : '';
+    var cmpLinhas = cmp ? linhasView(cmp, par.a, par.b, rotuloA, rotuloB) : [];
     var cmpEmpatadas = cmp ? cmp.empatadas.map(function (l) { return l.rotulo.toLowerCase(); }) : [];
     var cmpSemMedida = cmp ? cmp.semMedida : [];
     return {
@@ -1392,6 +1422,14 @@
       cmpBFoto: par ? mediaEl(par.b.thumb, par.b.curto, 'width:100%;height:100%;object-fit:cover;object-position:50% 30%') : null,
       cmpANome: par ? par.a.curto : '',
       cmpBNome: par ? par.b.curto : '',
+      // índice de coluna, sempre visível, para a resposta e as barras terem a
+      // que apontar quando os nomes coincidem
+      cmpAPos: 'Peça 1',
+      cmpBPos: 'Peça 2',
+      // o que nomeia cada peça na resposta e à esquerda de cada barra: nome
+      // quando distingue, posição quando não
+      cmpARotulo: rotuloA,
+      cmpBRotulo: rotuloB,
       cmpANomeCompleto: par ? par.a.nome : '',
       cmpBNomeCompleto: par ? par.b.nome : '',
       cmpAMeta: par ? [par.a.loja, par.a.preco ? par.a.preco + ' ' + par.a.moeda : ''].filter(Boolean).join(' · ') : '',
@@ -1401,7 +1439,7 @@
       // a mesma regra de cor do relatório: vira em 70, com a extensão
       cmpANotaCor: par ? (par.a.nota >= 70 ? COR_GANHA : '#A67C3B') : '#1D1D1F',
       cmpBNotaCor: par ? (par.b.nota >= 70 ? COR_GANHA : '#A67C3B') : '#1D1D1F',
-      cmpResposta: par ? respostaDaComparacao(par.a, par.b, cmp) : '',
+      cmpResposta: par ? respostaDaComparacao(par.a, par.b, cmp, rotuloA, rotuloB) : '',
       cmpLinhas: cmpLinhas,
       cmpTemLinhas: cmpLinhas.length > 0,
       cmpEmpate: cmpEmpatadas.length
