@@ -377,18 +377,18 @@ a:hover{color:#000000}
       
       <div style="display:flex;flex-direction:column;gap:12px;padding-top:clamp(16px,2.2vw,22px);border-top:1px solid rgba(0,0,0,.08)">
         <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:.13em;color:#57575C;text-transform:uppercase">A etiqueta</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2.5vw,24px)">
-          <p style="margin:0;font-size:14px;line-height:1.5;color:#1D1D1F;text-wrap:pretty"><span data-txt="cmpAComposicao"></span></p>
-          <p style="margin:0;font-size:14px;line-height:1.5;color:#1D1D1F;text-wrap:pretty"><span data-txt="cmpBComposicao"></span></p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:clamp(12px,2.5vw,24px)">
+          <div style="display:flex;flex-direction:column;gap:3px;min-width:0"><p style="margin:0;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#6E6E73"><span data-txt="cmpAPos"></span></p><p style="margin:0;font-size:14px;line-height:1.5;color:#1D1D1F;text-wrap:pretty"><span data-txt="cmpAComposicao"></span></p></div>
+          <div style="display:flex;flex-direction:column;gap:3px;min-width:0"><p style="margin:0;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#6E6E73"><span data-txt="cmpBPos"></span></p><p style="margin:0;font-size:14px;line-height:1.5;color:#1D1D1F;text-wrap:pretty"><span data-txt="cmpBComposicao"></span></p></div>
         </div>
       </div>
 
       <div data-if="cmpTemEstado" style="display:contents">
         <div style="display:flex;flex-direction:column;gap:12px;padding-top:clamp(16px,2.2vw,22px);border-top:1px solid rgba(0,0,0,.08)">
           <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:.13em;color:#57575C;text-transform:uppercase">Estado da peça</p>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2.5vw,24px)">
-            <p style="margin:0;font-size:14px;line-height:1.5;color:#1D1D1F;text-wrap:pretty"><span data-txt="cmpAEstado"></span></p>
-            <p style="margin:0;font-size:14px;line-height:1.5;color:#1D1D1F;text-wrap:pretty"><span data-txt="cmpBEstado"></span></p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:clamp(12px,2.5vw,24px)">
+            <div style="display:flex;flex-direction:column;gap:3px;min-width:0"><p style="margin:0;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#6E6E73"><span data-txt="cmpAPos"></span></p><p style="margin:0;font-size:14px;line-height:1.5;color:#1D1D1F;text-wrap:pretty"><span data-txt="cmpAEstado"></span></p></div>
+            <div style="display:flex;flex-direction:column;gap:3px;min-width:0"><p style="margin:0;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#6E6E73"><span data-txt="cmpBPos"></span></p><p style="margin:0;font-size:14px;line-height:1.5;color:#1D1D1F;text-wrap:pretty"><span data-txt="cmpBEstado"></span></p></div>
           </div>
           <p style="margin:0;max-width:52ch;font-size:13px;line-height:1.5;color:#6E6E73;text-wrap:pretty">Em peça usada, o estado pesa tanto quanto a fibra: a etiqueta pode ser ótima e a peça estar gasta.</p>
         </div>
