@@ -990,6 +990,39 @@
     roupa_esportiva: 'funcional', roupa_intima: 'funcional',
     shoes: 'calcado', bags: 'bolsa'
   };
+  /* REENQUADRAR POR CATEGORIA. As barras seguem a diferença (é o desenho do
+     produto: a ordem é a informação). O reenquadramento vive nos chips: para
+     cada tipo, a dimensão que mais decide sobe à frente e ganha uma dica. Num
+     agasalho é o calor (igual à regra das barras); nos outros, a dimensão que
+     o próprio score mais pesa (BUY_WEIGHTS). Tocar no chip reordena as barras
+     (Fase 1). Só sugere quando as duas peças são do MESMO tipo conhecido — se
+     divergem, quem fala é o aviso de tipos diferentes. */
+  var DECISOR_TIPO = {
+    casaco: 'calor', blazer: 'calor', malha: 'calor',
+    camiseta: 'conforto', camisa: 'qualidade', calca: 'durabilidade',
+    vestido: 'qualidade', roupa_esportiva: 'durabilidade',
+    roupa_intima: 'conforto', shoes: 'durabilidade', bags: 'durabilidade'
+  };
+  var ARTIGO_TIPO = {
+    casaco: 'Num', blazer: 'Num', malha: 'Numa', camiseta: 'Numa',
+    camisa: 'Numa', calca: 'Numa', vestido: 'Num', roupa_esportiva: 'Numa',
+    roupa_intima: 'Numa', shoes: 'Num', bags: 'Numa'
+  };
+  var ART_DIM = {
+    calor: 'o calor', qualidade: 'a qualidade', durabilidade: 'a durabilidade',
+    conforto: 'o conforto', custo: 'o custo-benefício',
+    versatilidade: 'a versatilidade', manutencao: 'a manutenção', viagem: 'a viagem'
+  };
+  function decisorTipo(a, b) {
+    if (a.tipo !== b.tipo) return null;
+    return DECISOR_TIPO[a.tipo] || null;
+  }
+  function dicaCategoria(tipo, decisor) {
+    var artT = ARTIGO_TIPO[tipo], labT = LABEL_TIPO[tipo], artD = ART_DIM[decisor];
+    if (!artT || !labT || !artD) return '';
+    return artT + ' ' + labT + ', costuma decidir ' + artD + '.';
+  }
+
   function avisoTipos(a, b) {
     var la = LABEL_TIPO[a.tipo], lb = LABEL_TIPO[b.tipo];
     var fa = FAMILIA_TIPO[a.tipo], fb = FAMILIA_TIPO[b.tipo];
@@ -1257,6 +1290,7 @@
         render();
       };
       return {
+        chave: d.k,
         rotulo: d.rotulo,
         ativo: ativo,
         ariaPressed: ativo ? 'true' : 'false',
@@ -1269,6 +1303,16 @@
         escolher: escolher
       };
     }) : [];
+    // Reenquadrar por categoria: a dimensão que decide neste tipo sobe à frente
+    // dos chips e vira dica. Só quando as duas são do mesmo tipo conhecido.
+    var sugerido = par ? decisorTipo(par.a, par.b) : null;
+    var sugeridoMedido = sugerido && cmpCriterios.some(function (c) { return c.chave === sugerido; });
+    if (sugeridoMedido) {
+      var iSug = -1;
+      cmpCriterios.forEach(function (c, i) { if (c.chave === sugerido) iSug = i; });
+      if (iSug > 0) cmpCriterios.unshift(cmpCriterios.splice(iSug, 1)[0]);
+    }
+    var dicaCategoriaTxt = sugeridoMedido ? dicaCategoria(par.a.tipo, sugerido) : '';
     // "A escolha": a peça recomendada, marcada no ecrã. Segue o critério — se a
     // escolha muda ao marcar "viagem", o selo salta de coluna. Null = empatam,
     // e aí nenhuma é marcada.
@@ -1576,6 +1620,9 @@
       cmpCriterios: cmpCriterios,
       cmpTemCriterios: cmpCriterios.length > 0,
       cmpCriterioAtivo: !!criterioSelecionado,
+      // dica da categoria: o que costuma decidir neste tipo
+      cmpDicaCategoria: dicaCategoriaTxt,
+      cmpTemDicaCategoria: !!dicaCategoriaTxt,
       // aviso de tipos diferentes (não bloqueia, só contextualiza)
       cmpTiposDiferentes: !!avisoTiposTxt,
       cmpAvisoTipos: avisoTiposTxt,

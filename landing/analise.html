@@ -329,6 +329,9 @@ a:hover{color:#000000}
       <div data-if="cmpTemCriterios" style="display:contents">
         <div style="display:flex;flex-direction:column;gap:12px">
           <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:.13em;color:#57575C;text-transform:uppercase">O que mais importa pra você?</p>
+          <div data-if="cmpTemDicaCategoria" style="display:contents">
+            <p style="margin:-6px 0 0;font-size:13px;line-height:1.4;color:#6E6E73;text-wrap:pretty"><span data-txt="cmpDicaCategoria"></span></p>
+          </div>
           <div style="display:flex;flex-wrap:wrap;gap:10px">
             <template data-for="cmpCriterios" data-as="cr">
               <button type="button" data-on-click="cr.escolher" data-tpl-aria-pressed="{{ cr.ariaPressed }}" data-tpl-aria-label="{{ cr.ariaLabel }}" data-tpl-style="min-height:44px;padding:9px 16px;border-radius:999px;border:1px solid {{ cr.borda }};background:{{ cr.bg }};color:{{ cr.cor }};font-family:inherit;font-size:14px;font-weight:600;letter-spacing:-.005em;cursor:pointer;touch-action:manipulation;transition:background .2s ease,color .2s ease,border-color .2s ease" data-hovercls="h13" style-active="transform:scale(.97)"><span data-txt="cr.rotulo"></span></button>
@@ -411,7 +414,7 @@ a:hover{color:#000000}
 
 
   <script src="metrica.js"></script>
-<script src="runtime.js?v=1795468218"></script>
+<script src="runtime.js?v=1795468743"></script>
   </body>
   </html>
   

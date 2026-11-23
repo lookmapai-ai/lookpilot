@@ -313,6 +313,9 @@ a:hover{color:#000000}
       <sc-if value="{{ cmpTemCriterios }}" hint-placeholder-val="{{ true }}">
         <div style="display:flex;flex-direction:column;gap:12px">
           <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:.13em;color:#57575C;text-transform:uppercase">O que mais importa pra você?</p>
+          <sc-if value="{{ cmpTemDicaCategoria }}">
+            <p style="margin:-6px 0 0;font-size:13px;line-height:1.4;color:#6E6E73;text-wrap:pretty">{{ cmpDicaCategoria }}</p>
+          </sc-if>
           <div style="display:flex;flex-wrap:wrap;gap:10px">
             <sc-for list="{{ cmpCriterios }}" as="cr" hint-placeholder-count="6">
               <button type="button" onClick="{{ cr.escolher }}" aria-pressed="{{ cr.ariaPressed }}" aria-label="{{ cr.ariaLabel }}" style="min-height:44px;padding:9px 16px;border-radius:999px;border:1px solid {{ cr.borda }};background:{{ cr.bg }};color:{{ cr.cor }};font-family:inherit;font-size:14px;font-weight:600;letter-spacing:-.005em;cursor:pointer;touch-action:manipulation;transition:background .2s ease,color .2s ease,border-color .2s ease" style-hover="border-color:#1D1D1F" style-active="transform:scale(.97)">{{ cr.rotulo }}</button>

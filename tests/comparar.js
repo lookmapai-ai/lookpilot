@@ -843,5 +843,52 @@ teste('o aviso NÃO bloqueia: a resposta e as barras continuam a aparecer', () =
     || 'o aviso escondeu a comparação';
 });
 
+/* ═══════════════════════════════════════════════════════════════════
+   REENQUADRAR POR CATEGORIA. As barras seguem a diferença; o reenquadramento
+   vive nos chips — a dimensão que decide neste tipo sobe à frente e ganha uma
+   dica ("Num casaco, costuma decidir o calor"). Só quando as duas peças são do
+   MESMO tipo conhecido; se divergem, fala o aviso de tipos diferentes. */
+console.log('\n── 15. Reenquadrar as dimensões por categoria ──────\n');
+
+const chipRotulos = (r) => r.itens('cmpCriterios').map((c) => c['cr.rotulo']);
+
+teste('num casaco, a dica aponta o calor', () => {
+  const r = compararGuardadas([
+    pecaSintetica('Casaco A', 'c1', '120', DIMS_OK, 'casaco'),
+    pecaSintetica('Casaco B', 'c2', '150', Object.assign({}, DIMS_OK, { calor:85 }), 'casaco')
+  ]);
+  if (r.display.cmpTemDicaCategoria !== 'contents') return 'não mostrou a dica da categoria';
+  return /calor/.test(r.txt.cmpDicaCategoria || '')
+    || 'a dica não aponta o calor: "' + r.txt.cmpDicaCategoria + '"';
+});
+
+teste('numa calça, o decisor (durabilidade) sobe para o 1º chip e a dica o nomeia', () => {
+  const r = compararGuardadas([
+    pecaSintetica('Calça A', 'c3', '80', DIMS_OK, 'calca'),
+    pecaSintetica('Calça B', 'c4', '90', Object.assign({}, DIMS_OK, { durabilidade:85 }), 'calca')
+  ]);
+  const primeiro = chipRotulos(r)[0];
+  if (primeiro !== 'Durabilidade') return 'o 1º chip não é Durabilidade: ' + primeiro;
+  return /durabilidade/.test(r.txt.cmpDicaCategoria || '')
+    || 'a dica não nomeia a durabilidade: "' + r.txt.cmpDicaCategoria + '"';
+});
+
+teste('tipos diferentes NÃO ganham dica de categoria (quem fala é o aviso)', () => {
+  const r = compararGuardadas([
+    pecaSintetica('Casaco', 'c5', '120', DIMS_OK, 'casaco'),
+    pecaSintetica('Camiseta', 'c6', '30', DIMS_OK, 'camiseta')
+  ]);
+  return r.display.cmpTemDicaCategoria !== 'contents'
+    || 'sugeriu categoria com tipos diferentes';
+});
+
+teste('tipo desconhecido NÃO ganha dica', () => {
+  const r = compararGuardadas([
+    pecaSintetica('X', 'c7', '50', DIMS_OK, 'clothing'),
+    pecaSintetica('Y', 'c8', '60', DIMS_OK, 'clothing')
+  ]);
+  return r.display.cmpTemDicaCategoria !== 'contents' || 'sugeriu categoria p/ tipo desconhecido';
+});
+
 console.log(`\n${ok} ok · ${falhas} falha(s)\n`);
 process.exit(falhas ? 1 : 0);
