@@ -695,5 +695,72 @@ teste('nomes que DE FACTO distinguem continuam pelo nome, não por posição', (
     || 'passou a nomear por posição mesmo com Benetton ≠ Comptoir: ' + melhores.join(', ');
 });
 
+/* ═══════════════════════════════════════════════════════════════════
+   O QUE MAIS IMPORTA PRA VOCÊ (escolher critério, Fase 1 grátis). A
+   comparação decide por uma ordem fixa; quando a pessoa diz o que mais
+   importa nela, a resposta abre por isso e a barra daquele critério sobe
+   ao topo. Nunca mexe no score /100 — só na história e na ordem. */
+console.log('\n── 12. O que mais importa pra você (escolher critério) ─\n');
+
+function pecaSintetica(nome, id, preco, dims) {
+  const q = new URLSearchParams();
+  q.set('nome', nome); q.set('loja', 'MANGO'); q.set('preco', preco);
+  q.set('moeda', '€'); q.set('tipo', 'casaco');
+  Object.keys(dims).forEach((k) => q.set(k, dims[k]));
+  return { id, tipo: nome, nota: dims.score, loja: 'MANGO', thumb: '',
+           verdict: '', quando: Date.now(), aptidoes: [], url: '?' + q.toString() };
+}
+// A valoriza manutenção/viagem; B valoriza calor — a troca fica visível.
+const PA = pecaSintetica('Casaco A', 'cka', '120',
+  { calor:70, qualidade:72, durabilidade:74, conforto:70, custo:70, versatilidade:72, manutencao:85, viagem:80, score:72 });
+const PB = pecaSintetica('Casaco B', 'ckb', '150',
+  { calor:88, qualidade:71, durabilidade:70, conforto:72, custo:60, versatilidade:68, manutencao:63, viagem:62, score:70 });
+// índices em DIMENSOES (todas medidas): calor0 qual1 dur2 conf3 custo4 versa5 manut6 viagem7
+const I_MANUT = 6, I_QUAL = 1, I_CUSTO = 4;
+
+teste('os chips oferecem só as dimensões medidas nas duas peças', () => {
+  const chips = compararGuardadas([PA, PB]).itens('cmpCriterios').map((c) => c['cr.rotulo']);
+  return chips.length === 8 || 'esperava 8 critérios, veio ' + chips.length + ': ' + chips.join(', ');
+});
+
+teste('escolher um critério faz a resposta LIDERAR por ele', () => {
+  const r = compararGuardadas([PA, PB]);
+  r.clicarItem('cmpCriterios', I_MANUT, 'cr.escolher');
+  return /^Pra manutenção, a /.test(r.txt.cmpResposta)
+    || 'a resposta não lidera por manutenção: "' + r.txt.cmpResposta + '"';
+});
+
+teste('escolher um critério põe a BARRA dele no topo', () => {
+  const r = compararGuardadas([PA, PB]);
+  r.clicarItem('cmpCriterios', I_MANUT, 'cr.escolher');
+  const primeira = r.itens('cmpLinhas')[0];
+  return (primeira && primeira['l.rotulo'] === 'Manutenção')
+    || 'a primeira barra não é Manutenção: ' + (primeira && primeira['l.rotulo']);
+});
+
+teste('critério empatado: a resposta diz que empatam NELE', () => {
+  const r = compararGuardadas([PA, PB]);
+  r.clicarItem('cmpCriterios', I_QUAL, 'cr.escolher'); // 72 vs 71 = empate
+  return /^Em qualidade, as duas empatam/.test(r.txt.cmpResposta)
+    || 'não reconheceu o empate em qualidade: "' + r.txt.cmpResposta + '"';
+});
+
+teste('marcar de novo DESMARCA e volta à resposta padrão', () => {
+  const r = compararGuardadas([PA, PB]);
+  const padrao = r.txt.cmpResposta;
+  r.clicarItem('cmpCriterios', I_MANUT, 'cr.escolher');
+  r.clicarItem('cmpCriterios', I_MANUT, 'cr.escolher');
+  return r.txt.cmpResposta === padrao
+    || 'não voltou ao padrão ao desmarcar: "' + r.txt.cmpResposta + '"';
+});
+
+teste('o score /100 de cada peça NÃO muda com o critério', () => {
+  const r = compararGuardadas([PA, PB]);
+  const a0 = r.txt.cmpANota, b0 = r.txt.cmpBNota;
+  r.clicarItem('cmpCriterios', I_CUSTO, 'cr.escolher');
+  return (r.txt.cmpANota === a0 && r.txt.cmpBNota === b0)
+    || 'o score mudou com o critério: A ' + a0 + '→' + r.txt.cmpANota + ', B ' + b0 + '→' + r.txt.cmpBNota;
+});
+
 console.log(`\n${ok} ok · ${falhas} falha(s)\n`);
 process.exit(falhas ? 1 : 0);

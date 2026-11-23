@@ -955,14 +955,37 @@
      Três movimentos, e o terceiro é o que falta na maioria das comparações:
      quem leva, onde o calor decide (se for agasalho), e O QUE SE PERDE ao
      escolher. Uma comparação que só diz quem ganha esconde a troca. */
-  function respostaDaComparacao(a, b, r, rotA, rotB) {
+  function respostaDaComparacao(a, b, r, rotA, rotB, criterio) {
     // Por omissão a prosa chama cada peça pelo nome curto (é assim nos
     // testes). Quando os nomes não distinguem, quem chama passa "Peça 1"/
     // "Peça 2", e a prosa nomeia por posição em vez de repetir o mesmo nome.
     rotA = rotA || a.curto; rotB = rotB || b.curto;
     var rot = function (p) { return p === a ? rotA : rotB; };
+
+    /* O CRITÉRIO QUE A PESSOA MARCOU LIDERA A RESPOSTA (Fase 1).
+       A comparação padrão decide por uma ordem fixa (maior diferença, calor
+       num agasalho). Quando a pessoa diz o que mais importa nela, a resposta
+       abre por isso: quem ganha nesse critério, ou que empatam nele. O resto
+       da prosa (o panorama, a troca, o preço) continua logo a seguir. */
+    var lead = '';
+    if (criterio) {
+      var dimC = null;
+      DIMENSOES.forEach(function (d) { if (d.k === criterio) dimC = d; });
+      var vca = a.dims[criterio], vcb = b.dims[criterio];
+      if (dimC && vca != null && vcb != null) {
+        var rotDim = dimC.rotulo.toLowerCase();
+        if (Math.abs(vca - vcb) < EMPATE) {
+          lead = 'Em ' + rotDim + ', as duas empatam — ' + Math.max(vca, vcb)
+               + ' e ' + Math.min(vca, vcb) + '. ';
+        } else {
+          lead = 'Pra ' + rotDim + ', a ' + rot(vca > vcb ? a : b) + ' ganha: '
+               + Math.max(vca, vcb) + ' contra ' + Math.min(vca, vcb) + '. ';
+        }
+      }
+    }
+
     if (!r.linhas.length) {
-      return 'As duas medem igual em tudo que a etiqueta mostra. '
+      return lead + 'As duas medem igual em tudo que a etiqueta mostra. '
            + 'Aí decide pelo preço, pelo caimento ou pelo estado da peça.';
     }
     var nA = r.linhas.filter(function (l) { return l.ganhaA; }).length;
@@ -985,8 +1008,10 @@
 
     // O calor é a dimensão que decide um agasalho, e não é negociável como
     // as outras: uma peça que não aquece não aquece mais por ser versátil.
+    // Quando a pessoa já escolheu "calor" como o critério, a frase-lead acima
+    // deu os dois números — repetir aqui seria dizer o mesmo duas vezes.
     var calor = r.linhas.filter(function (l) { return l.chave === 'calor'; })[0];
-    if (calor) {
+    if (calor && criterio !== 'calor') {
       var quente = calor.ganhaA ? a : b;
       frases.push('No calor, ' + Math.max(calor.a, calor.b) + ' contra '
         + Math.min(calor.a, calor.b) + ': pra frio de verdade, '
@@ -1016,7 +1041,7 @@
     }
     // "Comptoir…." — o ponto final a seguir às reticências de um nome
     // cortado. As reticências já fecham a frase.
-    return frases.join(' ').replace(/…\./g, '…');
+    return (lead + frases.join(' ')).replace(/…\./g, '…');
   }
 
   function formataPreco(n, moeda) {
@@ -1032,6 +1057,10 @@
   // mesmo cartão a 375px é toque errado garantido.
   var selecao = [];
   var modoSelecao = false;
+  // O critério que a pessoa marca como o que MAIS importa nela (Fase 1, grátis):
+  // a chave de uma dimensão (calor, viagem…), ou null. Muda só a história — a
+  // frase que lidera a resposta e a ordem das barras —, nunca o score /100.
+  var criterioSelecionado = null;
 
   /* As peças que podem entrar numa comparação: as guardadas e — isto é o que
      poupa um passo inteiro — A QUE ESTÁ ABERTA. Obrigar a guardar antes de
@@ -1075,12 +1104,12 @@
   // cinza de texto do design — os dois com contraste suficiente sobre o
   // painel (a cor não é o único sinal: há o rótulo "melhor" ao lado).
   var COR_GANHA = '#FF009D', COR_PERDE = '#6E6E73';
-  function linhasView(r, a, b, rotA, rotB) {
+  function linhasView(linhas, a, b, rotA, rotB) {
     // Os mesmos rótulos da resposta: nome quando distingue, "Peça 1"/"Peça 2"
     // quando não. Vale para o selo do vencedor, para a etiqueta à esquerda de
     // cada barra e para o texto que o leitor de ecrã ouve.
     rotA = rotA || a.curto; rotB = rotB || b.curto;
-    return r.linhas.map(function (l) {
+    return linhas.map(function (l) {
       var melhorA = l.ganhaA;
       return {
         rotulo: l.rotulo,
@@ -1153,7 +1182,42 @@
     var cmpAmbiguo = par ? mesmaEtiqueta(par.a, par.b) : false;
     var rotuloA = par ? (cmpAmbiguo ? 'Peça 1' : par.a.curto) : '';
     var rotuloB = par ? (cmpAmbiguo ? 'Peça 2' : par.b.curto) : '';
-    var cmpLinhas = cmp ? linhasView(cmp, par.a, par.b, rotuloA, rotuloB) : [];
+    // O critério marcado (Fase 1) sobe ao topo das barras. Se for um empate
+    // (<5 pontos) ele não está entre as linhas desenhadas; aí a resposta já diz
+    // que empatam nele, e a ordem das barras fica como está.
+    var linhasOrdenadas = cmp ? cmp.linhas.slice() : [];
+    if (cmp && criterioSelecionado) {
+      var iSel = -1;
+      linhasOrdenadas.forEach(function (l, i) { if (l.chave === criterioSelecionado) iSel = i; });
+      if (iSel > 0) linhasOrdenadas.unshift(linhasOrdenadas.splice(iSel, 1)[0]);
+    }
+    var cmpLinhas = cmp ? linhasView(linhasOrdenadas, par.a, par.b, rotuloA, rotuloB) : [];
+    // Os chips do "o que mais importa": só as dimensões medidas nas DUAS peças.
+    // Marcar reescreve a resposta e reordena as barras; marcar de novo desmarca.
+    var cmpCriterios = par ? DIMENSOES.filter(function (d) {
+      return par.a.dims[d.k] != null && par.b.dims[d.k] != null;
+    }).map(function (d) {
+      var ativo = criterioSelecionado === d.k;
+      var escolher = function () {
+        criterioSelecionado = (criterioSelecionado === d.k) ? null : d.k;
+        if (criterioSelecionado && window.metrica) {
+          window.metrica.registar('escolheu_criterio', { criterio: d.k });
+        }
+        render();
+      };
+      return {
+        rotulo: d.rotulo,
+        ativo: ativo,
+        ariaPressed: ativo ? 'true' : 'false',
+        ariaLabel: ativo
+          ? d.rotulo + ', marcado como o que mais importa. Toque para tirar.'
+          : d.rotulo + '. Toque para marcar como o que mais importa.',
+        bg: ativo ? '#1D1D1F' : '#FFFFFF',
+        cor: ativo ? '#FFFFFF' : '#1D1D1F',
+        borda: ativo ? '#1D1D1F' : 'rgba(0,0,0,.14)',
+        escolher: escolher
+      };
+    }) : [];
     var cmpEmpatadas = cmp ? cmp.empatadas.map(function (l) { return l.rotulo.toLowerCase(); }) : [];
     var cmpSemMedida = cmp ? cmp.semMedida : [];
     return {
@@ -1404,10 +1468,12 @@
       onModoSelecao: function () { modoSelecao = true; selecao = []; render(); },
       // Sair da escolha é obrigatório: um modo sem saída visível é uma
       // armadilha (a pessoa só tem o Voltar do navegador para fugir).
-      onSairSelecao: function () { modoSelecao = false; selecao = []; render(); },
+      onSairSelecao: function () { modoSelecao = false; selecao = []; criterioSelecionado = null; render(); },
       onCompararAgora: function () {
         if (selecao.length !== 2) return;
         evento('comparou_pecas');
+        // cada comparação começa sem critério marcado: a resposta padrão primeiro
+        criterioSelecionado = null;
         view = 'comparar';
         try { history.pushState({ lpView: 'comparar' }, '', '#comparar'); } catch (e) {}
         render(); window.scrollTo(0, 0);
@@ -1415,6 +1481,7 @@
       onTrocarPecas: function () {
         view = 'historico';
         modoSelecao = true;
+        criterioSelecionado = null;
         try { history.pushState({ lpView: 'historico' }, '', '#minhas-pecas'); } catch (e) {}
         render(); window.scrollTo(0, 0);
       },
@@ -1439,7 +1506,11 @@
       // a mesma regra de cor do relatório: vira em 70, com a extensão
       cmpANotaCor: par ? (par.a.nota >= 70 ? COR_GANHA : '#A67C3B') : '#1D1D1F',
       cmpBNotaCor: par ? (par.b.nota >= 70 ? COR_GANHA : '#A67C3B') : '#1D1D1F',
-      cmpResposta: par ? respostaDaComparacao(par.a, par.b, cmp, rotuloA, rotuloB) : '',
+      cmpResposta: par ? respostaDaComparacao(par.a, par.b, cmp, rotuloA, rotuloB, criterioSelecionado) : '',
+      // os chips "o que mais importa" (Fase 1, grátis)
+      cmpCriterios: cmpCriterios,
+      cmpTemCriterios: cmpCriterios.length > 0,
+      cmpCriterioAtivo: !!criterioSelecionado,
       cmpLinhas: cmpLinhas,
       cmpTemLinhas: cmpLinhas.length > 0,
       cmpEmpate: cmpEmpatadas.length

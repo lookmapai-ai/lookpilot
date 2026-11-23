@@ -48,9 +48,10 @@ a:hover{color:#000000}
 [data-hovercls="h10"]:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(0,0,0,.08)}
 [data-hovercls="h11"]:hover{transform:scale(1.028) translateY(-5px);box-shadow:0 34px 70px rgba(0,0,0,.16)}
 [data-hovercls="h12"]:hover{color:#FF009D !important}
-[data-hovercls="h13"]:hover{color:#FF009D !important}
+[data-hovercls="h13"]:hover{border-color:#1D1D1F}
 [data-hovercls="h14"]:hover{color:#FF009D !important}
 [data-hovercls="h15"]:hover{color:#FF009D !important}
+[data-hovercls="h16"]:hover{color:#FF009D !important}
 [data-hovercls="hbaixar"]:hover{opacity:.88;transform:translateY(-1px)}
   </style>
   </head>
@@ -304,14 +305,14 @@ a:hover{color:#000000}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2.5vw,24px)">
         <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
           <div style="position:relative;aspect-ratio:3/4;border-radius:clamp(16px,2.5vw,24px);overflow:hidden;background:#EDE9E2;box-shadow:0 8px 22px rgba(0,0,0,.06)"><span data-txt="cmpAFoto"></span></div>
-          <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#86868B"><span data-txt="cmpAPos"></span></p>
+          <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6E6E73"><span data-txt="cmpAPos"></span></p>
           <p data-tpl-title="{{ cmpANomeCompleto }}" style="margin:0;font-size:clamp(14px,1.6vw,17px);font-weight:600;letter-spacing:-.01em;color:#1D1D1F;text-wrap:pretty"><span data-txt="cmpANome"></span></p>
           <p style="margin:0;font-size:12px;line-height:1.4;color:#6E6E73"><span data-txt="cmpAMeta"></span></p>
           <p data-tpl-style="margin:0;font-size:clamp(28px,4vw,38px);font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums;color:{{ cmpANotaCor }}"><span data-txt="cmpANota"></span><span style="font-size:14px;font-weight:500;color:#6E6E73">/100</span></p>
         </div>
         <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
           <div style="position:relative;aspect-ratio:3/4;border-radius:clamp(16px,2.5vw,24px);overflow:hidden;background:#EDE9E2;box-shadow:0 8px 22px rgba(0,0,0,.06)"><span data-txt="cmpBFoto"></span></div>
-          <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#86868B"><span data-txt="cmpBPos"></span></p>
+          <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6E6E73"><span data-txt="cmpBPos"></span></p>
           <p data-tpl-title="{{ cmpBNomeCompleto }}" style="margin:0;font-size:clamp(14px,1.6vw,17px);font-weight:600;letter-spacing:-.01em;color:#1D1D1F;text-wrap:pretty"><span data-txt="cmpBNome"></span></p>
           <p style="margin:0;font-size:12px;line-height:1.4;color:#6E6E73"><span data-txt="cmpBMeta"></span></p>
           <p data-tpl-style="margin:0;font-size:clamp(28px,4vw,38px);font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums;color:{{ cmpBNotaCor }}"><span data-txt="cmpBNota"></span><span style="font-size:14px;font-weight:500;color:#6E6E73">/100</span></p>
@@ -321,7 +322,19 @@ a:hover{color:#000000}
       
       <div style="background:#F5F5F7;border-radius:clamp(20px,3vw,28px);padding:clamp(20px,3vw,32px);display:flex;flex-direction:column;gap:12px">
         <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:.13em;color:#57575C;text-transform:uppercase">A resposta</p>
-        <p style="margin:0;max-width:52ch;font-size:clamp(16px,1.9vw,20px);line-height:1.5;letter-spacing:-.01em;color:#1D1D1F;text-wrap:pretty"><span data-txt="cmpResposta"></span></p>
+        <p aria-live="polite" style="margin:0;max-width:52ch;font-size:clamp(16px,1.9vw,20px);line-height:1.5;letter-spacing:-.01em;color:#1D1D1F;text-wrap:pretty"><span data-txt="cmpResposta"></span></p>
+      </div>
+
+      
+      <div data-if="cmpTemCriterios" style="display:contents">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:.13em;color:#57575C;text-transform:uppercase">O que mais importa pra você?</p>
+          <div style="display:flex;flex-wrap:wrap;gap:10px">
+            <template data-for="cmpCriterios" data-as="cr">
+              <button type="button" data-on-click="cr.escolher" data-tpl-aria-pressed="{{ cr.ariaPressed }}" data-tpl-aria-label="{{ cr.ariaLabel }}" data-tpl-style="min-height:44px;padding:9px 16px;border-radius:999px;border:1px solid {{ cr.borda }};background:{{ cr.bg }};color:{{ cr.cor }};font-family:inherit;font-size:14px;font-weight:600;letter-spacing:-.005em;cursor:pointer;touch-action:manipulation;transition:background .2s ease,color .2s ease,border-color .2s ease" data-hovercls="h13" style-active="transform:scale(.97)"><span data-txt="cr.rotulo"></span></button>
+            </template>
+          </div>
+        </div>
       </div>
 
       
@@ -383,9 +396,9 @@ a:hover{color:#000000}
   <footer data-screen-label="Rodapé" style="margin-top:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:22px clamp(20px,5vw,64px);border-top:1px solid rgba(0,0,0,.06)">
     <img src="images/lookpilot-wordmark.svg" alt="LookPilot" style="display:block;height:22px;width:auto;opacity:.55">
     <div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px">
-      <a href="/#como" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h13">Como funciona</a>
-      <a href="#pecas" data-on-click="onHistorico" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h14">Minhas peças</a>
-      <a href="privacidade.html" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h15">Privacidade</a>
+      <a href="/#como" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h14">Como funciona</a>
+      <a href="#pecas" data-on-click="onHistorico" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h15">Minhas peças</a>
+      <a href="privacidade.html" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h16">Privacidade</a>
     </div>
     <p style="margin:0;font-size:12px;letter-spacing:.01em;color:#6E6E73">A qualidade se descobre</p>
   </footer>
@@ -393,7 +406,7 @@ a:hover{color:#000000}
 
 
   <script src="metrica.js"></script>
-<script src="runtime.js?v=1795458205"></script>
+<script src="runtime.js?v=1795462952"></script>
   </body>
   </html>
   

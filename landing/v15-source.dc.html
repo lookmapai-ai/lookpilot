@@ -286,14 +286,14 @@ a:hover{color:#000000}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2.5vw,24px)">
         <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
           <div style="position:relative;aspect-ratio:3/4;border-radius:clamp(16px,2.5vw,24px);overflow:hidden;background:#EDE9E2;box-shadow:0 8px 22px rgba(0,0,0,.06)">{{ cmpAFoto }}</div>
-          <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#86868B">{{ cmpAPos }}</p>
+          <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6E6E73">{{ cmpAPos }}</p>
           <p title="{{ cmpANomeCompleto }}" style="margin:0;font-size:clamp(14px,1.6vw,17px);font-weight:600;letter-spacing:-.01em;color:#1D1D1F;text-wrap:pretty">{{ cmpANome }}</p>
           <p style="margin:0;font-size:12px;line-height:1.4;color:#6E6E73">{{ cmpAMeta }}</p>
           <p style="margin:0;font-size:clamp(28px,4vw,38px);font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums;color:{{ cmpANotaCor }}">{{ cmpANota }}<span style="font-size:14px;font-weight:500;color:#6E6E73">/100</span></p>
         </div>
         <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
           <div style="position:relative;aspect-ratio:3/4;border-radius:clamp(16px,2.5vw,24px);overflow:hidden;background:#EDE9E2;box-shadow:0 8px 22px rgba(0,0,0,.06)">{{ cmpBFoto }}</div>
-          <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#86868B">{{ cmpBPos }}</p>
+          <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6E6E73">{{ cmpBPos }}</p>
           <p title="{{ cmpBNomeCompleto }}" style="margin:0;font-size:clamp(14px,1.6vw,17px);font-weight:600;letter-spacing:-.01em;color:#1D1D1F;text-wrap:pretty">{{ cmpBNome }}</p>
           <p style="margin:0;font-size:12px;line-height:1.4;color:#6E6E73">{{ cmpBMeta }}</p>
           <p style="margin:0;font-size:clamp(28px,4vw,38px);font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums;color:{{ cmpBNotaCor }}">{{ cmpBNota }}<span style="font-size:14px;font-weight:500;color:#6E6E73">/100</span></p>
@@ -304,8 +304,22 @@ a:hover{color:#000000}
            barras de cabeça não respondeu nada -->
       <div style="background:#F5F5F7;border-radius:clamp(20px,3vw,28px);padding:clamp(20px,3vw,32px);display:flex;flex-direction:column;gap:12px">
         <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:.13em;color:#57575C;text-transform:uppercase">A resposta</p>
-        <p style="margin:0;max-width:52ch;font-size:clamp(16px,1.9vw,20px);line-height:1.5;letter-spacing:-.01em;color:#1D1D1F;text-wrap:pretty">{{ cmpResposta }}</p>
+        <p aria-live="polite" style="margin:0;max-width:52ch;font-size:clamp(16px,1.9vw,20px);line-height:1.5;letter-spacing:-.01em;color:#1D1D1F;text-wrap:pretty">{{ cmpResposta }}</p>
       </div>
+
+      <!-- o que mais importa pra você: marcar um critério reescreve a resposta
+           (lidera por ele) e põe a barra dele no topo. Opcional e DEPOIS da
+           resposta: o produto responde primeiro, isto refina. -->
+      <sc-if value="{{ cmpTemCriterios }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:.13em;color:#57575C;text-transform:uppercase">O que mais importa pra você?</p>
+          <div style="display:flex;flex-wrap:wrap;gap:10px">
+            <sc-for list="{{ cmpCriterios }}" as="cr" hint-placeholder-count="6">
+              <button type="button" onClick="{{ cr.escolher }}" aria-pressed="{{ cr.ariaPressed }}" aria-label="{{ cr.ariaLabel }}" style="min-height:44px;padding:9px 16px;border-radius:999px;border:1px solid {{ cr.borda }};background:{{ cr.bg }};color:{{ cr.cor }};font-family:inherit;font-size:14px;font-weight:600;letter-spacing:-.005em;cursor:pointer;touch-action:manipulation;transition:background .2s ease,color .2s ease,border-color .2s ease" style-hover="border-color:#1D1D1F" style-active="transform:scale(.97)">{{ cr.rotulo }}</button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
 
       <!-- onde diferem, da maior diferença para a menor -->
       <sc-if value="{{ cmpTemLinhas }}" hint-placeholder-val="{{ true }}">
