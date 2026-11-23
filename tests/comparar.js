@@ -702,10 +702,11 @@ teste('nomes que DE FACTO distinguem continuam pelo nome, não por posição', (
    ao topo. Nunca mexe no score /100 — só na história e na ordem. */
 console.log('\n── 12. O que mais importa pra você (escolher critério) ─\n');
 
-function pecaSintetica(nome, id, preco, dims) {
+function pecaSintetica(nome, id, preco, dims, tipo) {
+  tipo = tipo || 'casaco';
   const q = new URLSearchParams();
   q.set('nome', nome); q.set('loja', 'MANGO'); q.set('preco', preco);
-  q.set('moeda', '€'); q.set('tipo', 'casaco');
+  q.set('moeda', '€'); q.set('tipo', tipo);
   Object.keys(dims).forEach((k) => q.set(k, dims[k]));
   return { id, tipo: nome, nota: dims.score, loja: 'MANGO', thumb: '',
            verdict: '', quando: Date.now(), aptidoes: [], url: '?' + q.toString() };
@@ -799,6 +800,47 @@ teste('num empate total, NINGUÉM é marcado (selo falso mentiria)', () => {
   const d = { calor:70, qualidade:70, durabilidade:70, conforto:70, custo:70, versatilidade:70, manutencao:70, viagem:70, score:70 };
   const r = compararGuardadas([pecaSintetica('Igual 1','ig1','100',d), pecaSintetica('Igual 2','ig2','100',d)]);
   return marcada(r) === 'ninguém' || 'marcou alguém num empate total: ' + marcada(r);
+});
+
+/* ═══════════════════════════════════════════════════════════════════
+   TIPOS DIFERENTES — aviso honesto, não bloqueio. Comparar um sobretudo
+   com uma camiseta dá "calor 90 contra 20": verdade e ruído. Quando as duas
+   são de famílias diferentes, a comparação segue, mas uma linha avisa. Mesma
+   família (dois agasalhos) ou tipo desconhecido não avisam. */
+console.log('\n── 14. Aviso de tipos diferentes ───────────────────\n');
+
+const DIMS_OK = { calor:60, qualidade:70, durabilidade:70, conforto:70, custo:70, versatilidade:70, manutencao:70, viagem:70, score:70 };
+
+teste('sobretudo vs camiseta: avisa, nomeando os dois tipos', () => {
+  const casaco = pecaSintetica('Casaco', 't1', '120', Object.assign({}, DIMS_OK, { calor:90 }), 'casaco');
+  const tee = pecaSintetica('Camiseta', 't2', '30', Object.assign({}, DIMS_OK, { calor:20 }), 'camiseta');
+  const r = compararGuardadas([casaco, tee]);
+  if (r.display.cmpTiposDiferentes !== 'contents') return 'não avisou tipos diferentes';
+  const aviso = r.txt.cmpAvisoTipos || '';
+  return (/casaco/.test(aviso) && /camiseta/.test(aviso))
+    || 'o aviso não nomeia os dois tipos: "' + aviso + '"';
+});
+
+teste('dois agasalhos (casaco e malha): NÃO avisa — mesma família', () => {
+  const casaco = pecaSintetica('Casaco', 't3', '120', DIMS_OK, 'casaco');
+  const malha = pecaSintetica('Malha', 't4', '80', DIMS_OK, 'malha');
+  return compararGuardadas([casaco, malha]).display.cmpTiposDiferentes !== 'contents'
+    || 'avisou entre peças da mesma família (agasalho)';
+});
+
+teste('tipo desconhecido (peça antiga) NÃO avisa', () => {
+  const a = pecaSintetica('Antiga', 't5', '50', DIMS_OK, 'clothing');
+  const casaco = pecaSintetica('Casaco', 't6', '120', DIMS_OK, 'casaco');
+  return compararGuardadas([a, casaco]).display.cmpTiposDiferentes !== 'contents'
+    || 'avisou com um tipo desconhecido (clothing)';
+});
+
+teste('o aviso NÃO bloqueia: a resposta e as barras continuam a aparecer', () => {
+  const casaco = pecaSintetica('Casaco', 't7', '120', Object.assign({}, DIMS_OK, { calor:90 }), 'casaco');
+  const tee = pecaSintetica('Camiseta', 't8', '30', Object.assign({}, DIMS_OK, { calor:20 }), 'camiseta');
+  const r = compararGuardadas([casaco, tee]);
+  return ((r.txt.cmpResposta || '').length > 20 && r.itens('cmpLinhas').length > 0)
+    || 'o aviso escondeu a comparação';
 });
 
 console.log(`\n${ok} ok · ${falhas} falha(s)\n`);

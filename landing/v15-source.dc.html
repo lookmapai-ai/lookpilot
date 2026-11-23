@@ -321,6 +321,11 @@ a:hover{color:#000000}
         </div>
       </sc-if>
 
+      <!-- tipos diferentes: aviso honesto, não bloqueio -->
+      <sc-if value="{{ cmpTiposDiferentes }}">
+        <p style="margin:0;display:flex;gap:8px;align-items:flex-start;max-width:60ch;font-size:14px;line-height:1.5;color:#6E6E73;text-wrap:pretty"><span aria-hidden="true" style="flex:0 0 auto;color:#A67C3B;font-weight:700">!</span><span>{{ cmpAvisoTipos }}</span></p>
+      </sc-if>
+
       <!-- onde diferem, da maior diferença para a menor -->
       <sc-if value="{{ cmpTemLinhas }}" hint-placeholder-val="{{ true }}">
         <div style="display:flex;flex-direction:column;gap:clamp(16px,2.2vw,22px)">

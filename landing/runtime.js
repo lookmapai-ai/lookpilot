@@ -971,6 +971,37 @@
     return nA === nB ? (a.nota >= b.nota ? a : b) : (nA > nB ? a : b);
   }
 
+  /* TIPOS DIFERENTES: um aviso honesto, não um bloqueio. Comparar um sobretudo
+     com uma camiseta dá "calor 90 contra 20" — verdade e ruído: ninguém decide
+     entre esses dois. Quando as duas peças são de FAMÍLIAS diferentes, a
+     comparação continua (decisões reais cruzam: casaco vs blazer), mas uma
+     linha avisa que certas linhas misturam coisas que não se decidem juntas.
+     Mesma família (dois agasalhos, duas camisas) não avisa — a comparação já é
+     linear. Tipo desconhecido (peça antiga) também não avisa. */
+  var LABEL_TIPO = {
+    casaco: 'casaco', blazer: 'blazer', malha: 'malha', camiseta: 'camiseta',
+    camisa: 'camisa', calca: 'calça', vestido: 'vestido',
+    roupa_esportiva: 'roupa esportiva', roupa_intima: 'roupa íntima',
+    shoes: 'calçado', bags: 'bolsa'
+  };
+  var FAMILIA_TIPO = {
+    casaco: 'agasalho', blazer: 'agasalho', malha: 'agasalho',
+    camiseta: 'top', camisa: 'top', calca: 'baixo', vestido: 'vestido',
+    roupa_esportiva: 'funcional', roupa_intima: 'funcional',
+    shoes: 'calcado', bags: 'bolsa'
+  };
+  function avisoTipos(a, b) {
+    var la = LABEL_TIPO[a.tipo], lb = LABEL_TIPO[b.tipo];
+    var fa = FAMILIA_TIPO[a.tipo], fb = FAMILIA_TIPO[b.tipo];
+    if (!la || !lb || !fa || !fb || fa === fb) return '';
+    var umEhAgasalho = fa === 'agasalho' || fb === 'agasalho';
+    return 'São peças de tipos diferentes — ' + la + ' e ' + lb + '. '
+      + (umEhAgasalho
+          ? 'Comparar o calor mistura o que não se decide junto'
+          : 'Algumas linhas comparam coisas de usos diferentes')
+      + '; aqui o que separa de verdade é o preço, a versatilidade e o estado.';
+  }
+
   /* A resposta, em prosa, antes de qualquer barra.
      Três movimentos, e o terceiro é o que falta na maioria das comparações:
      quem leva, onde o calor decide (se for agasalho), e O QUE SE PERDE ao
@@ -1243,6 +1274,8 @@
     // e aí nenhuma é marcada.
     var escolhida = cmp ? escolhaDaComparacao(par.a, par.b, cmp, criterioSelecionado) : null;
     var ANEL = '3px solid ' + COR_GANHA, SEM_ANEL = '3px solid transparent';
+    // aviso honesto quando as duas peças são de famílias diferentes
+    var avisoTiposTxt = par ? avisoTipos(par.a, par.b) : '';
     var cmpEmpatadas = cmp ? cmp.empatadas.map(function (l) { return l.rotulo.toLowerCase(); }) : [];
     var cmpSemMedida = cmp ? cmp.semMedida : [];
     return {
@@ -1543,6 +1576,9 @@
       cmpCriterios: cmpCriterios,
       cmpTemCriterios: cmpCriterios.length > 0,
       cmpCriterioAtivo: !!criterioSelecionado,
+      // aviso de tipos diferentes (não bloqueia, só contextualiza)
+      cmpTiposDiferentes: !!avisoTiposTxt,
+      cmpAvisoTipos: avisoTiposTxt,
       cmpLinhas: cmpLinhas,
       cmpTemLinhas: cmpLinhas.length > 0,
       cmpEmpate: cmpEmpatadas.length
