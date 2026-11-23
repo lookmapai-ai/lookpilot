@@ -304,14 +304,14 @@ a:hover{color:#000000}
       
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2.5vw,24px)">
         <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
-          <div style="position:relative;aspect-ratio:3/4;border-radius:clamp(16px,2.5vw,24px);overflow:hidden;background:#EDE9E2;box-shadow:0 8px 22px rgba(0,0,0,.06)"><span data-txt="cmpAFoto"></span></div>
+          <div data-tpl-style="position:relative;aspect-ratio:3/4;border-radius:clamp(16px,2.5vw,24px);overflow:hidden;background:#EDE9E2;box-shadow:0 8px 22px rgba(0,0,0,.06);outline:{{ cmpAAnel }};outline-offset:-3px"><span data-txt="cmpAFoto"></span><div data-if="cmpAEscolhida" style="display:contents"><span style="position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:4px;background:#1D1D1F;color:#FFFFFF;font-size:11px;font-weight:600;letter-spacing:.02em;padding:5px 10px;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.28)"><span aria-hidden="true" style="color:#FF009D">✓</span><span data-txt="cmpSeloEscolha"></span></span></div></div>
           <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6E6E73"><span data-txt="cmpAPos"></span></p>
           <p data-tpl-title="{{ cmpANomeCompleto }}" style="margin:0;font-size:clamp(14px,1.6vw,17px);font-weight:600;letter-spacing:-.01em;color:#1D1D1F;text-wrap:pretty"><span data-txt="cmpANome"></span></p>
           <p style="margin:0;font-size:12px;line-height:1.4;color:#6E6E73"><span data-txt="cmpAMeta"></span></p>
           <p data-tpl-style="margin:0;font-size:clamp(28px,4vw,38px);font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums;color:{{ cmpANotaCor }}"><span data-txt="cmpANota"></span><span style="font-size:14px;font-weight:500;color:#6E6E73">/100</span></p>
         </div>
         <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
-          <div style="position:relative;aspect-ratio:3/4;border-radius:clamp(16px,2.5vw,24px);overflow:hidden;background:#EDE9E2;box-shadow:0 8px 22px rgba(0,0,0,.06)"><span data-txt="cmpBFoto"></span></div>
+          <div data-tpl-style="position:relative;aspect-ratio:3/4;border-radius:clamp(16px,2.5vw,24px);overflow:hidden;background:#EDE9E2;box-shadow:0 8px 22px rgba(0,0,0,.06);outline:{{ cmpBAnel }};outline-offset:-3px"><span data-txt="cmpBFoto"></span><div data-if="cmpBEscolhida" style="display:contents"><span style="position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:4px;background:#1D1D1F;color:#FFFFFF;font-size:11px;font-weight:600;letter-spacing:.02em;padding:5px 10px;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.28)"><span aria-hidden="true" style="color:#FF009D">✓</span><span data-txt="cmpSeloEscolha"></span></span></div></div>
           <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6E6E73"><span data-txt="cmpBPos"></span></p>
           <p data-tpl-title="{{ cmpBNomeCompleto }}" style="margin:0;font-size:clamp(14px,1.6vw,17px);font-weight:600;letter-spacing:-.01em;color:#1D1D1F;text-wrap:pretty"><span data-txt="cmpBNome"></span></p>
           <p style="margin:0;font-size:12px;line-height:1.4;color:#6E6E73"><span data-txt="cmpBMeta"></span></p>
@@ -406,7 +406,7 @@ a:hover{color:#000000}
 
 
   <script src="metrica.js"></script>
-<script src="runtime.js?v=1795462952"></script>
+<script src="runtime.js?v=1795467383"></script>
   </body>
   </html>
   

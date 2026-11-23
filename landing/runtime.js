@@ -951,6 +951,26 @@
     return { linhas: linhas, empatadas: empatadas, semMedida: semMedida };
   }
 
+  /* QUAL É "A ESCOLHA" — a peça que a comparação recomenda, para marcar no
+     ecrã (não só na prosa). Segue a mesma lógica da resposta:
+     - com um critério marcado em que elas NÃO empatam, a escolha é a vencedora
+       nesse critério (é o "qual levo se o que importa é X", e faz o selo saltar
+       de coluna quando a escolha muda);
+     - senão, a recomendação geral (mais dimensões ganhas; empate desempata pela
+       nota). Quando empatam em tudo, ninguém é marcado — selo falso mentiria. */
+  function escolhaDaComparacao(a, b, r, criterio) {
+    if (criterio) {
+      var va = a.dims[criterio], vb = b.dims[criterio];
+      if (va != null && vb != null && Math.abs(va - vb) >= EMPATE) {
+        return va > vb ? a : b;
+      }
+    }
+    if (!r.linhas.length) return null;
+    var nA = r.linhas.filter(function (l) { return l.ganhaA; }).length;
+    var nB = r.linhas.length - nA;
+    return nA === nB ? (a.nota >= b.nota ? a : b) : (nA > nB ? a : b);
+  }
+
   /* A resposta, em prosa, antes de qualquer barra.
      Três movimentos, e o terceiro é o que falta na maioria das comparações:
      quem leva, onde o calor decide (se for agasalho), e O QUE SE PERDE ao
@@ -1218,6 +1238,11 @@
         escolher: escolher
       };
     }) : [];
+    // "A escolha": a peça recomendada, marcada no ecrã. Segue o critério — se a
+    // escolha muda ao marcar "viagem", o selo salta de coluna. Null = empatam,
+    // e aí nenhuma é marcada.
+    var escolhida = cmp ? escolhaDaComparacao(par.a, par.b, cmp, criterioSelecionado) : null;
+    var ANEL = '3px solid ' + COR_GANHA, SEM_ANEL = '3px solid transparent';
     var cmpEmpatadas = cmp ? cmp.empatadas.map(function (l) { return l.rotulo.toLowerCase(); }) : [];
     var cmpSemMedida = cmp ? cmp.semMedida : [];
     return {
@@ -1493,6 +1518,13 @@
       // que apontar quando os nomes coincidem
       cmpAPos: 'Peça 1',
       cmpBPos: 'Peça 2',
+      // "A escolha": anel rosa na foto da recomendada + selo. Move com o
+      // critério; nas duas falso quando empatam (ninguém marcado).
+      cmpAEscolhida: !!(par && escolhida === par.a),
+      cmpBEscolhida: !!(par && escolhida === par.b),
+      cmpAAnel: (par && escolhida === par.a) ? ANEL : SEM_ANEL,
+      cmpBAnel: (par && escolhida === par.b) ? ANEL : SEM_ANEL,
+      cmpSeloEscolha: 'A escolha',
       // o que nomeia cada peça na resposta e à esquerda de cada barra: nome
       // quando distingue, posição quando não
       cmpARotulo: rotuloA,

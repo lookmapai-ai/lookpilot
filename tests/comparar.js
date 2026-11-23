@@ -762,5 +762,44 @@ teste('o score /100 de cada peça NÃO muda com o critério', () => {
     || 'o score mudou com o critério: A ' + a0 + '→' + r.txt.cmpANota + ', B ' + b0 + '→' + r.txt.cmpBNota;
 });
 
+/* ═══════════════════════════════════════════════════════════════════
+   A ESCOLHA, MARCADA NO ECRÃ. A comparação recomenda uma peça; isso vivia
+   só na prosa. Agora a recomendada leva um selo "A escolha" e um anel na
+   foto — e o selo SALTA de coluna quando o critério marcado troca o
+   vencedor. Num empate de verdade, ninguém é marcado. */
+console.log('\n── 13. A escolha, marcada no ecrã ──────────────────\n');
+
+const marcada = (r) => {
+  const a = r.display.cmpAEscolhida === 'contents';
+  const b = r.display.cmpBEscolhida === 'contents';
+  return a && b ? 'as duas' : a ? 'A' : b ? 'B' : 'ninguém';
+};
+
+teste('a recomendada leva o selo "A escolha" — uma, e só uma', () => {
+  const m = marcada(compararGuardadas([PA, PB]));
+  return (m === 'A' || m === 'B') || 'esperava exatamente uma marcada, veio: ' + m;
+});
+
+teste('o selo SALTA de coluna quando o critério troca o vencedor', () => {
+  const r = compararGuardadas([PA, PB]);
+  const antes = marcada(r);                               // default: A lidera
+  r.clicarItem('cmpCriterios', 0, 'cr.escolher');         // Calor: B ganha (88 vs 70)
+  const depois = marcada(r);
+  return (antes === 'A' && depois === 'B')
+    || 'o selo não saltou pra B ao escolher calor: antes ' + antes + ', depois ' + depois;
+});
+
+teste('critério empatado mantém o selo na recomendação geral', () => {
+  const r = compararGuardadas([PA, PB]);
+  r.clicarItem('cmpCriterios', I_QUAL, 'cr.escolher');    // Qualidade: 72 vs 71 = empate
+  return marcada(r) === 'A' || 'o empate no critério tirou/moveu o selo: ' + marcada(r);
+});
+
+teste('num empate total, NINGUÉM é marcado (selo falso mentiria)', () => {
+  const d = { calor:70, qualidade:70, durabilidade:70, conforto:70, custo:70, versatilidade:70, manutencao:70, viagem:70, score:70 };
+  const r = compararGuardadas([pecaSintetica('Igual 1','ig1','100',d), pecaSintetica('Igual 2','ig2','100',d)]);
+  return marcada(r) === 'ninguém' || 'marcou alguém num empate total: ' + marcada(r);
+});
+
 console.log(`\n${ok} ok · ${falhas} falha(s)\n`);
 process.exit(falhas ? 1 : 0);
