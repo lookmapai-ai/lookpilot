@@ -730,6 +730,27 @@ function hasMinFibers(fibers, n, label) {
   if (!s.estimada) return fail(`palpite com selo de etiqueta: ${JSON.stringify(f.map(x => x.name + ' ' + x.pct))}`);
   return notIncludes(s.texto, 'Baseado na composição', 'texto do selo');
 }));
+// ─── Plástico nunca é lido como couro ───────────────────────────────
+// Cobre a CLASSE: cada termo da tabela que NÃO é couro animal, escrito
+// numa frase de loja, em sapato e em bolsa, não pode sair "Couro / Pele
+// genuína". Antes, "simili cuir", "cuir vegan", "efeito pele", "couro
+// ecológico" e "bonded leather" saíam todos como couro verdadeiro.
+['shoes', 'bags'].forEach(cat => {
+  Object.entries(MATERIALS[cat]).forEach(([termo, d]) => {
+    if (d.label === 'Couro / Pele genuína') return;
+    test(`não-couro (${cat}): "${termo}"`, () => {
+      const f = parseComposition('Material exterior: ' + termo + '. Forro têxtil.', cat);
+      const couro = f.find(x => x.data && x.data.label === 'Couro / Pele genuína');
+      return couro ? fail(`"${termo}" lido como couro via "${couro.name}"`) : true;
+    });
+  });
+});
+test('palavra inteira: "levar" não é EVA, "puxador" não é PU', () => {
+  const f = parseComposition('Fácil de levar, com puxador metálico. Couro.', 'bags');
+  const nomes = f.map(x => x.name);
+  return (nomes.includes('eva') || nomes.includes('pu')) ? fail(JSON.stringify(nomes)) : true;
+});
+
 test('selo honesto: etiqueta com percentagens continua ✓', () => {
   const s = seloDaLeitura(parseComposition('Composição: 60% algodão, 40% poliéster', 'clothing'), 80);
   return s.estimada ? fail('etiqueta real marcada como provável') : includes(s.texto, 'Baseado na composição', 'selo');

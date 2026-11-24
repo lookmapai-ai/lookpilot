@@ -2449,11 +2449,11 @@
         "couro_sintetico"
       ],
       "propriedades": {
-        "respirabilidade": 4,
+        "respirabilidade": 1,
         "resistencia": 5,
         "flexibilidade": 7,
         "resistencia_agua": 7,
-        "durabilidade": 5,
+        "durabilidade": 4,
         "facilidade_manutencao": 8,
         "conforto": 6,
         "peso": 4,
@@ -2462,9 +2462,10 @@
       },
       "propriedades_notas": {
         "origem": "Parte de matéria vegetal renovável, mas a maioria ainda usa ligante de poliuretano — não é 100% bio.",
-        "durabilidade": "Mais nova no mercado; durabilidade de longo prazo ainda em avaliação. Geralmente entre PU e couro.",
+        "durabilidade": "FILK 2021: nenhum couro vegetal igualou o couro; cacto, maçã e uva racharam entre 30 e 50 mil dobras (couro: mais de 200 mil).",
         "envelhecimento": "Não desenvolve pátina como couro animal.",
-        "sustentabilidade": "Menor impacto que couro animal e PU puro, mas o ligante PU limita biodegradabilidade. Score sobe conforme % bio."
+        "sustentabilidade": "Menor impacto que couro animal e PU puro, mas o ligante PU limita biodegradabilidade. Score sobe conforme % bio.",
+        "respirabilidade": "Cacto, maçã e uva são tecido com camada de PU: no teste FILK (2021) respiraram 8 a 10 vezes menos que couro."
       },
       "aplicacoes_ideais": {
         "sapato": 5,
@@ -2480,7 +2481,7 @@
         "facil_limpar": true,
         "versatil_ocasioes": true,
         "travel_score": 6,
-        "nota": "Leve, resiste à água e fácil de limpar; durabilidade de longo prazo ainda menos comprovada que couro."
+        "nota": "Quase sempre é tecido com plástico (PU) por cima: respira pouco e racha antes do couro. Mais sustentável só na parte vegetal."
       },
       "cuidados": {
         "limpeza": "Pano húmido.",
@@ -2497,7 +2498,117 @@
       },
       "fontes": [
         "documentação de fabricantes (Desserto, Piñatex, Mylo)",
-        "análises de ciclo de vida emergentes"
+        "análises de ciclo de vida emergentes",
+        "Pesquisa LookPilot 2026-11 (reports/Materiais de sapatos e bolsas.md)",
+        "Meyer et al., Coatings 2021 (FILK Freiberg)"
+      ]
+    },
+    "couro_reconstituido": {
+      "id": "couro_reconstituido",
+      "nome": "Couro reconstituído (bonded)",
+      "categoria": "sintetico",
+      "origem": "aparas de couro moídas e coladas com ligante, com película de PU por cima",
+      "materiais_similares": [
+        "couro_sintetico",
+        "couro"
+      ],
+      "propriedades": {
+        "respirabilidade": 2,
+        "resistencia": 3,
+        "flexibilidade": 4,
+        "resistencia_agua": 6,
+        "durabilidade": 2,
+        "facilidade_manutencao": 7,
+        "conforto": 4,
+        "peso": 5,
+        "envelhecimento": 1,
+        "sustentabilidade": 4
+      },
+      "propriedades_notas": {
+        "durabilidade": "O menos durável dos 'couros': descasca e racha. Na lei europeia (Diretiva 94/11/CE, norma EN 15987) não é couro.",
+        "envelhecimento": "Não ganha pátina; a película solta-se em placas."
+      },
+      "aplicacoes_ideais": {
+        "sapato": 3,
+        "bolsa": 3,
+        "carteira": 3,
+        "cinto": 2
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": false,
+        "resiste_uso_intenso": false,
+        "facil_limpar": true,
+        "versatil_ocasioes": true,
+        "travel_score": 4,
+        "nota": "Apesar do nome, não é couro: são aparas coladas com plástico por cima. Descasca e racha mais cedo que o couro sintético comum."
+      },
+      "cuidados": {
+        "limpeza": "Pano húmido.",
+        "racha": "Descasca em placas com o uso."
+      },
+      "vida_util": {
+        "ocasional": "2-4 anos",
+        "frequente": "1-2 anos",
+        "intenso": "menos de 1 ano",
+        "ressalva": "Sem testes independentes de vida útil; números de fontes comerciais."
+      },
+      "fontes": [
+        "Pesquisa LookPilot 2026-11 (reports/Materiais de sapatos e bolsas.md)",
+        "EN 15987 (terminologia de couro)",
+        "Diretiva 94/11/CE",
+        "ASA (Reino Unido) — 'Premium Bonded Leather' considerado enganoso"
+      ]
+    },
+    "pvc": {
+      "id": "pvc",
+      "nome": "PVC / Vinil",
+      "categoria": "sintetico",
+      "origem": "policloreto de vinilo com plastificantes, sobre base têxtil",
+      "materiais_similares": [
+        "couro_sintetico"
+      ],
+      "propriedades": {
+        "respirabilidade": 1,
+        "resistencia": 5,
+        "flexibilidade": 4,
+        "resistencia_agua": 9,
+        "durabilidade": 3,
+        "facilidade_manutencao": 9,
+        "conforto": 3,
+        "peso": 4,
+        "envelhecimento": 2,
+        "sustentabilidade": 1
+      },
+      "propriedades_notas": {
+        "envelhecimento": "Os plastificantes migram com o tempo: endurece e racha.",
+        "respirabilidade": "Não respira nada."
+      },
+      "aplicacoes_ideais": {
+        "sapato": 3,
+        "bolsa": 4,
+        "carteira": 4
+      },
+      "viagem": {
+        "ocupa_pouco_espaco": false,
+        "resiste_uso_intenso": false,
+        "facil_limpar": true,
+        "versatil_ocasioes": false,
+        "travel_score": 5,
+        "nota": "Impermeável e fácil de limpar, mas não respira e com o tempo endurece e racha."
+      },
+      "cuidados": {
+        "limpeza": "Pano húmido.",
+        "racha": "Endurece e racha, sobretudo ao frio e ao sol."
+      },
+      "vida_util": {
+        "ocasional": "2-5 anos",
+        "frequente": "1-3 anos",
+        "intenso": "1-2 anos",
+        "ressalva": "Sem dados independentes em anos."
+      },
+      "fontes": [
+        "Pesquisa LookPilot 2026-11 (reports/Materiais de sapatos e bolsas.md)",
+        "revisão 2022 sobre migração de plastificantes em PVC"
       ]
     }
   }

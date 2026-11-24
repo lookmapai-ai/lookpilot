@@ -55,16 +55,35 @@ LABEL_KEYS = {
 }
 
 MATERIAL_KEYS = {
+    # Ordem não importa: a leitura tenta sempre o termo mais comprido primeiro,
+    # por isso "simili cuir" ganha a "cuir" e "piel sintética" ganha a "piel".
     'couro': ['couro','couro genuíno','couro legítimo','couro natural','pele','pele bovina',
-              'pele ovina','pele suína','pele natural','pele genuína','leather','cuir','full grain','top grain'],
+              'pele ovina','pele suína','pele natural','pele genuína','leather','cuir','full grain','top grain',
+              'piel','piel vacuno','cuero','pelle','cuoio','pleine fleur','plena flor'],
+    # Termos que as lojas usam para plástico com cara de couro (pesquisa 2026-11).
+    # No Brasil e em vários países da UE é proibido chamar-lhes "couro" — mas
+    # as lojas usam, e a pessoa tem de saber que é PU.
     'couro_sintetico': ['couro sintético','couro sintetico','sintético','sintetico','pu',
-                         'synthetic leather','faux leather','vegan leather','poliuretano'],
-    'camurca': ['camurça','camurca','suede','nubuck','nobuck'],
-    'lona_canvas': ['lona','canvas','têxtil','textil','tecido'],
+                         'synthetic leather','faux leather','vegan leather','poliuretano',
+                         'pele sintética','pele sintetica','piel sintética','piel sintetica',
+                         'polipiel','simil piel','símil piel','similpiel','ecopiel','eco piel',
+                         'eco-pele','ecopele','eco pele','couro ecológico','couro ecologico',
+                         'eco-leather','eco leather','pu leather','leatherette',
+                         'simili cuir','similicuir','simili-cuir','cuir vegan','cuir végétal synthétique',
+                         'cuir synthétique','cuir synthetique','similpelle','ecopelle',
+                         'efeito pele','efeito couro','aspect cuir','effet cuir','leather-look','leather look'],
+    'couro_reconstituido': ['bonded leather','couro reconstituído','couro reconstituido',
+                            'cuero regenerado','cuero reconstituido','cuir reconstitué','cuir reconstitue',
+                            'recycled leather','couro regenerado'],
+    'pvc': ['pvc','vinil','vinyl','policloreto de vinilo','policloreto de vinila'],
+    'camurca': ['camurça','camurca','suede','nubuck','nobuck','serraje','croûte de cuir',
+                'croute de cuir','raspa','split leather','daim'],
+    'lona_canvas': ['lona','canvas','têxtil','textil','tecido','toile','mesh','malha','knit'],
     'nylon_balistico': ['nylon balístico','ballistic','cordura'],
-    'borracha': ['borracha','rubber','caoutchouc','sbs','sbr'],
+    'borracha': ['borracha','rubber','caoutchouc','sbs','sbr','goma','caucho'],
     'eva': ['eva','etileno'],
-    'couro_vegetal': ['couro vegetal','cactus','piñatex','pinatex','mylo','desserto','maçã','apple leather'],
+    'couro_vegetal': ['couro vegetal','cactus','piñatex','pinatex','mylo','desserto','maçã','apple leather',
+                      'appleskin','vegea'],
 }
 
 CAT_MAP = {'natural':'natural','semi-sintetico':'semi','sintetico':'synthetic',

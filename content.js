@@ -506,9 +506,18 @@
 
     // Pass 2: category material keywords without % (shoes/bags often do this)
     if (results.length === 0 && category !== 'clothing') {
+      // Termo mais comprido primeiro, palavra inteira, e o trecho achado sai
+      // do texto. Antes era "contém a sequência": "simili cuir" (couro falso)
+      // virava "cuir" = couro verdadeiro, "efeito pele" virava pele, e "eva"
+      // aparecia dentro de "levar". Plástico lido como couro é a pior
+      // mentira que o card pode contar sobre um sapato.
       const keys = Object.keys(db).sort((a, b) => b.length - a.length);
+      let resto = ' ' + norm.toLowerCase() + ' ';
+      const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       keys.forEach(key => {
-        if (norm.includes(key) && !seen.has(key)) {
+        const re = new RegExp('(^|[^a-zà-ÿ])' + esc(key) + '(?=[^a-zà-ÿ]|$)', 'i');
+        if (re.test(resto) && !seen.has(key)) {
+          resto = resto.replace(new RegExp(re.source, 'gi'), '$1 ');
           seen.add(key);
           results.push({ pct: results.length === 0 ? 100 : 15, name: key, data: db[key], estimated: true });
         }
