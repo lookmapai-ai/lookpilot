@@ -117,6 +117,29 @@ checa('o veredito nunca fica vazio', () => {
   }
 });
 
+/* ---------- COMPOSIÇÃO ESTIMADA NÃO PODE TER CARA DE CERTEZA ------
+   Bolsa/sapato sem percentagens: a extensão ADIVINHA a composição. O card
+   já marca "≈ material provável"; a página tinha de repetir isso, senão
+   dizia "leu a etiqueta · Composição: 100% couro sintético" — um palpite
+   com cara de leitura. Ver seloDaLeitura() em shared.js e o flag
+   `estimado` em content.js (buildAnaliseURL). */
+checa('composição estimada: página mostra o selo e NÃO afirma que leu a etiqueta', () => {
+  const base = { score: 50, verdict: 'Compra ponderada.', fibras: 'couro sintético:100', loja: 'OYSHO', nome: 'Bolsa' };
+  const comEst = montar(P(Object.assign({}, base, { estimado: '1' })));
+  const semEst = montar(P(base));
+
+  if (comEst.display['estimado'] !== 'contents') throw new Error('selo de leitura não apareceu com estimado=1');
+  if (semEst.display['estimado'] !== 'none') throw new Error('selo apareceu sem estimado');
+  if (!/provável/i.test(String(comEst.txt['estSeloTexto'] || ''))) throw new Error('texto do selo não diz "provável"');
+
+  const intro = String(comEst.txt['heroIntroEl'] || '');
+  if (/leu a etiqueta/i.test(intro)) throw new Error('hero afirma "leu a etiqueta" numa composição estimada: ' + intro);
+  if (!/estimou/i.test(intro)) throw new Error('hero não marca a composição como estimada: ' + intro);
+
+  const introSem = String(semEst.txt['heroIntroEl'] || '');
+  if (!/leu a etiqueta/i.test(introSem)) throw new Error('hero normal perdeu "leu a etiqueta": ' + introSem);
+});
+
 /* ---------- A MOLDURA QUE DEIXA FUGIR O QUE ESTÁ DENTRO ----------
    Encontrado num print, e de um jeito que nenhum teste de DOM simulado
    apanha: o ecrã de comparação abriu CINZENTO, do cabeçalho ao rodapé.

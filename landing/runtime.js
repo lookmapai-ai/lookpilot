@@ -68,6 +68,9 @@
   // da demonstração quando a peça é de outra loja
   var origem = Q.get('origem') || (has('score') ? '#' : DEFAULT.url);
   var fibras = Q.get('fibras') || '';
+  // A composição foi um palpite? (bolsa/sapato sem percentagens). O card já
+  // avisa; a página não pode repetir o palpite com cara de certeza.
+  var estimado = Q.get('estimado') === '1';
   // história vinda da extensão (conhecimento que só ela tem: blends.json e
   // os modificadores de qualidade detectados no texto da página)
   var mistura = Q.get('mistura') || '';
@@ -1339,7 +1342,7 @@
       // ("Lã pura por 9,99 € — qual é a pegadinha?")
       heroDuvida: real ? 'O que a etiqueta diz sobre esta peça?' : DEFAULT.duvida,
       heroIntroEl: mark(has('score')
-        ? 'O ==LookPilot== leu a etiqueta pra você.' + (etiqComp ? ' Composição: ==' + etiqComp + '==.' : '')
+        ? 'O ==LookPilot== ' + (estimado ? 'estimou a composição (a loja não dá percentagens).' : 'leu a etiqueta pra você.') + (etiqComp ? ' ' + (estimado ? 'Provável' : 'Composição') + ': ==' + etiqComp + '==.' : '')
         : DEFAULT.heroIntro),
       verdict: verdictParam || (score >= 75 ? 'Vale a pena.' : score >= 50 ? 'Compra ponderada.' : 'Deixa ficar.'),
       scoreTo: score,
@@ -1361,6 +1364,11 @@
       // a extensão não lê a referência da etiqueta; sem ela, fica vazio em vez
       // de repetir a loja (que já aparece acima, em "Etiqueta · ZARA")
       etiqRef: real ? '' : DEFAULT.etiqRef,
+      // Selo de leitura: só aparece quando a composição foi estimada. Mesmo
+      // texto do card (seloDaLeitura em shared.js), aqui como string fixa
+      // porque a página não carrega shared.js.
+      estimado: estimado,
+      estSeloTexto: 'Material provável · a loja não dá percentagens, confira a etiqueta',
       // selo viagem
       selo: selo,
       seloViagem: vg,

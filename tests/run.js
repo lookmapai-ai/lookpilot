@@ -715,6 +715,26 @@ function hasMinFibers(fibers, n, label) {
   return fail(`${label}: ${known.length} fibra(s) reconhecida(s), esperado ≥${n}. fibers=${JSON.stringify(fibers.map(f=>f.name))}`);
 }
 
+// ─── Leitura chutada nunca se apresenta como etiqueta lida ───────────
+// Cobre a CLASSE: qualquer texto sem percentagens, em qualquer categoria
+// que aceite palpite, tem de sair com o selo "provável", nunca com o ✓.
+[
+  ['shoes', 'Parte de cima em pele. Sola de borracha.'],
+  ['shoes', 'Upper: synthetic leather. Sole: rubber'],
+  ['bags',  'Bolsa em couro sintético com forro em poliéster'],
+  ['bags',  'Mala em pele de vaca'],
+].forEach(([cat, txt]) => test(`selo honesto (${cat}): "${txt}"`, () => {
+  const f = parseComposition(txt, cat);
+  if (!f.length) return true; // "não consegui ler" também é honesto
+  const s = seloDaLeitura(f, 80);
+  if (!s.estimada) return fail(`palpite com selo de etiqueta: ${JSON.stringify(f.map(x => x.name + ' ' + x.pct))}`);
+  return notIncludes(s.texto, 'Baseado na composição', 'texto do selo');
+}));
+test('selo honesto: etiqueta com percentagens continua ✓', () => {
+  const s = seloDaLeitura(parseComposition('Composição: 60% algodão, 40% poliéster', 'clothing'), 80);
+  return s.estimada ? fail('etiqueta real marcada como provável') : includes(s.texto, 'Baseado na composição', 'selo');
+});
+
 // Verifica que uma fibra específica está presente com pct próximo do esperado
 function hasFiber(fibers, name, pct, tol) {
   tol = tol || 5;

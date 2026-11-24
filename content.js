@@ -258,6 +258,10 @@
       .map(f => `${f.name}:${f.pct || 0}`)
       .join(',');
     if (fibersParam) params.set('fibras', fibersParam);
+    // A leitura foi um palpite? (bolsa/sapato sem percentagens). O flag viaja
+    // para a página não repetir, com cara de certeza, o que o card já marca
+    // como provável. Mesma regra de leituraEstimada() em shared.js.
+    if ((scores?.fibers || fibers).some(f => f && f.estimated)) params.set('estimado', '1');
     // Produto: URL + metadados (nome/preço/imagem/loja) para o hero da landing
     if (productUrl) params.set('origem', productUrl);
     const m = getProductMeta();
@@ -1218,7 +1222,7 @@
     // para a landing lookmap.ai mostrar a peça e um selo de confiança.
     const productMeta = getProductMeta();
     const conf = typeof confidenceScore === 'function'
-      ? confidenceScore({ hasComposition: fibers.length > 0, hasGarmentType: !!garmentType,
+      ? confidenceScore({ hasComposition: fibers.length > 0 && !fibers.some(f => f.estimated), hasGarmentType: !!garmentType,
                           hasCertification: !!(scores.certs && scores.certs.length),
                           hasBrand: !!productMeta.loja,
                           // Vinted: a composição é a que quem vende copiou à mão,
@@ -1264,10 +1268,10 @@
         </div>
 
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
-        ${conf != null ? `
-        <div style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#6E6E73;background:#F5F5F7;border-radius:20px;padding:4px 9px;">
-          <span style="color:#166534;">✓</span> Baseado na composição da etiqueta · ${conf}%
-        </div>` : ''}
+        ${(() => { const s = seloDaLeitura(fibers, conf); return (conf != null || s.estimada) ? `
+        <div data-lp-selo="${s.estimada ? 'estimada' : 'etiqueta'}" style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#6E6E73;background:#F5F5F7;border-radius:20px;padding:4px 9px;">
+          <span style="color:${s.cor};">${s.icone}</span> ${s.texto}
+        </div>` : ''; })()}
         ${productMeta.avaliacaoNota != null ? `
         <div style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#6E6E73;background:#F5F5F7;border-radius:20px;padding:4px 9px;" title="Avaliação de quem já comprou — não entra na nota de compra">
           <span style="color:#B45309;">★</span> ${String(productMeta.avaliacaoNota).replace('.', ',')}${productMeta.avaliacaoContagem ? ` · ${productMeta.avaliacaoContagem} avaliações` : ''}

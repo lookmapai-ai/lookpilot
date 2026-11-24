@@ -939,6 +939,25 @@ function confidenceScore(data) {
   return { score: Math.max(0, Math.min(100, conf)), have, missing };
 }
 
+// ─── O selo diz de onde veio a leitura ────────────────────────────
+// Sapato e bolsa muitas vezes não trazem percentagens: a extensão procura
+// palavras de material na página e ATRIBUI números (100% à primeira, 15%
+// às seguintes). Isso é um palpite, e o selo dizia "✓ Baseado na composição
+// da etiqueta" na mesma — uma resposta inventada com cara de certeza, o
+// pior tipo de erro (ver o caso Zara "pele 15%"). Agora o selo diz que é
+// provável e manda conferir; o card e a página leem daqui, num sítio só.
+function leituraEstimada(fibers) {
+  return Array.isArray(fibers) && fibers.some(f => f && f.estimated);
+}
+function seloDaLeitura(fibers, conf) {
+  if (leituraEstimada(fibers)) {
+    return { estimada: true, icone: '≈', cor: '#B45309',
+             texto: 'Material provável · a loja não dá percentagens, confira a etiqueta' };
+  }
+  return { estimada: false, icone: '✓', cor: '#166534',
+           texto: 'Baseado na composição da etiqueta' + (conf != null ? ' · ' + conf + '%' : '') };
+}
+
 function toTen(v) { return Math.round((v || 0) / 10); }
 
 function verdict(scores) {
