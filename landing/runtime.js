@@ -1065,30 +1065,37 @@
      dentro da mesma família (casaco, blazer e malha são todos agasalho).
      O tipo vem da análise; numa peça guardada por uma versão antiga, sem
      tipo, lê-se do nome — senão o bloqueio falhava justamente nelas. */
+  // O NOME manda mais do que o tipo que a extensão deduziu pelo tecido: uma
+  // jardineira de bombazina é "pesada" e saía como casaco — e foi comparada
+  // com um casaco. A ordem importa: a peça inteira e o vestido vêm antes
+  // ("vestido camisa"), o agasalho antes do top ("camisola" ≠ "camisa",
+  // "blusão" ≠ "blusa"), e palavras curtas vão com fronteira (\b) para
+  // "bolsos" não virar bolsa nem "botões" virar botas.
+  // Vocabulário das lojas que a extensão lê: PT-PT, PT-BR, ES, EN, FR, IT.
   var FAMILIA_NOME = [
-    [/casac|sobretud|blus[ãa]o|parka|anoraque|anorak|jaqueta|trench|gabardin|abrigo|blazer|camisol|malha|cardig|su[ée]ter|pullover|coat|jacket/i, 'agasalho'],
-    [/cal[çc]a|jeans|cal[çc][õo]es|bermuda|saia|leggings?|trousers|pants|shorts/i, 'baixo'],
-    [/camiset|t-?shirt|camisa|blusa|\btop\b|polo|body/i, 'top'],
-    [/vestido|macac[ãa]o|dress/i, 'vestido'],
-    [/sapat|t[ée]nis|bota|sand[áa]lia|sapatilh|mocassim|shoe|sneaker/i, 'calcado'],
-    [/\bmala\b|bolsa|mochila|carteira|\bbag\b/i, 'bolsa']
+    [/jardineir|salopet|macac[ãa]o|macaquinho|mono\b|jumpsuit|playsuit|overalls?\b|dungarees?|combinaison|tuta\b|peto\b|pichi/i, 'inteira'],
+    [/vestid|\bdress|robe\b|abito|chemisier/i, 'vestido'],
+    [/sapat|t[ée]nis|\bbotas?\b|botins?|bot[ií]n|sand[áa]li|sapatilh|chinel|mocassi|loafer|sabrina|bailarin|espadril|\bmules?\b|\bshoes?\b|sneaker|\bboots?\b|zapat|chaussur|baskets|scarpe|stival/i, 'calcado'],
+    [/\bmalas?\b|\bbolsas?\b|mochila|carteira|\bbags?\b|bolso\b|\bsac\b|borsa|clutch|tote\b|pochete|backpack/i, 'bolsa'],
+    [/casac|sobretud|blus[ãa]o|blus[õo]es|parka|anoraque|anorak|jaqueta|chaqueta|cazadora|abrigo|trench|gabardin|blazer|americana|camisol|malha|cardig|c[áa]rdigan|su[ée]ter|pullover|jersey|\bcoat|jacket|puffer|manteau|veste\b|doudoune|blouson|cappotto|giacca|piumino|maglion|chaleco|colete|gilet|\bvest\b|polar\b|fleece|kispo|corta[- ]?vento|windbreaker|bomber/i, 'agasalho'],
+    [/cal[çc]a|\bjeans?\b|vaquer|cal[çc][õo]es|bermuda|\bsaias?\b|\bfalda|leggings?|\bpantal|trousers|\bpants|\bshorts?\b|\bskirt|jupe\b|pantalon|gonna|chinos?\b|joggers?\b|cargo\b/i, 'baixo'],
+    [/camiset|t-?shirt|\btee\b|camisa|blusa|\btops?\b|\bpolo|\bbody\b|regata|cropped|\bshirt|blouse|chemise|camicia|maglia|canotta|tank\b/i, 'top']
   ];
   function familiaDe(p) {
     if (!p) return '';
-    if (FAMILIA_TIPO[p.tipo]) return FAMILIA_TIPO[p.tipo];
     var nome = String(p.nome || p.curto || '');
     for (var i = 0; i < FAMILIA_NOME.length; i++) {
       if (FAMILIA_NOME[i][0].test(nome)) return FAMILIA_NOME[i][1];
     }
-    return '';
+    return FAMILIA_TIPO[p.tipo] || '';
   }
-  // Duas peças comparam-se se forem da mesma família, ou se uma delas não
-  // tiver família conhecida (aí não há como saber, e bloquear seria pior).
+  // SEM CERTEZA DO TIPO, NÃO COMPARA — a mesma regra da nota. Deixar passar
+  // a peça de tipo desconhecido era o furo: a jardineira entrou por aí.
   function comparaveis(a, b) {
     var fa = familiaDe(a), fb = familiaDe(b);
-    return !fa || !fb || fa === fb;
+    return !!fa && !!fb && fa === fb;
   }
-  var NOME_FAMILIA = { agasalho: 'agasalhos', baixo: 'calças e saias', top: 'camisas e camisetas',
+  var NOME_FAMILIA = { inteira: 'jardineiras e macacões', agasalho: 'agasalhos', baixo: 'calças e saias', top: 'camisas e camisetas',
     vestido: 'vestidos', funcional: 'roupa esportiva', calcado: 'calçado', bolsa: 'bolsas' };
 
   function avisoTipos(a, b) {
@@ -1252,7 +1259,7 @@
     var i = selecao.indexOf(id);
     if (i >= 0) { selecao.splice(i, 1); return; }
     var p = pecaPorId(id);
-    if (p && !podeEntrar(p)) return;
+    if (p && (!familiaDe(p) || !podeEntrar(p))) return;
     // Duas, e não mais: a terceira empurra a primeira para fora, em vez de
     // ignorar o toque em silêncio (toque sem resposta parece avaria).
     if (selecao.length >= 2) selecao.shift();
@@ -1300,7 +1307,8 @@
       var ordem = selecao.indexOf(p.id) + 1;
       var escolhida = ordem > 0;
       var rotulo = p.curto || 'Peça';
-      var bloqueada = modoSelecao && !escolhida && selecao.length > 0 && !podeEntrar(p);
+      var semTipo = !familiaDe(p);
+      var bloqueada = modoSelecao && !escolhida && (semTipo || (selecao.length > 0 && !podeEntrar(p)));
       var abrir = function () {
         if (bloqueada) return;
         if (modoSelecao) { alternaSelecao(p.id); render(); return; }
@@ -1315,12 +1323,14 @@
         tabIx: 0, cursor: bloqueada ? 'not-allowed' : 'pointer',
         ariaDisabled: bloqueada ? 'true' : '',
         bloqueada: bloqueada,
+        bloqueioTxt: semTipo ? 'Tipo não reconhecido' : 'Outro tipo',
         opacidade: bloqueada ? '.35' : '1',
         filtro: bloqueada ? 'grayscale(1)' : 'none',
         ariaLabel: modoSelecao
           ? rotulo + ', nota ' + p.nota + ' de 100. ' + (escolhida
               ? 'Escolhida para comparar, ' + ordem + ' de 2.'
-              : bloqueada ? 'Outro tipo de peça, não compara com a escolhida.'
+              : bloqueada ? (semTipo ? 'Tipo de peça não reconhecido, não entra na comparação.'
+                                     : 'Outro tipo de peça, não compara com a escolhida.')
               : 'Escolher para comparar.')
           : rotulo + ', nota ' + p.nota + ' de 100' + (p.verdict ? ' — ' + p.verdict : ''),
         // A cor não pode ser o único sinal de que o cartão está escolhido:
@@ -1637,7 +1647,7 @@
       listaTitulo: (modoSelecao ? 'Pra comparar · ' : 'Minhas peças · ')
         + guardadas.length + (guardadas.length === 1 ? ' peça' : ' peças'),
       historicoSub: modoSelecao
-        ? (selecao.length && guardadas.some(function (g) { return g.bloqueada; })
+        ? (guardadas.some(function (g) { return g.bloqueada; })
             ? 'Só se comparam peças do mesmo tipo: um casaco com outro agasalho, uma calça com outra calça. As outras ficam apagadas.'
           : candidatos().some(function (p) { return p.estaAberta; })
             ? 'Toque em duas pra ver lado a lado. A que você acabou de analisar já entra aqui, mesmo sem salvar.'

@@ -264,8 +264,9 @@ teste('numa categoria, o decisor lidera as barras, ainda que não seja a maior d
 });
 
 teste('tipo desconhecido (clothing) mantém a ordem pela diferença', () => {
-  const a = pecaSintetica('X', 'ord-x', '30', BASE_TEE, 'clothing');
-  const b = pecaSintetica('Y', 'ord-y', '30', Object.assign({}, BASE_TEE, { conforto:72, durabilidade:85 }), 'clothing');
+  // o nome diz a família (top); o tipo 'clothing' não diz o decisor
+  const a = pecaSintetica('Camisa X', 'ord-x', '30', BASE_TEE, 'clothing');
+  const b = pecaSintetica('Camisa Y', 'ord-y', '30', Object.assign({}, BASE_TEE, { conforto:72, durabilidade:85 }), 'clothing');
   const difs = compararGuardadas([a, b]).itens('cmpLinhas').map((l) => num(l['l.diferenca']));
   if (!difs.length) return 'nenhuma linha desenhada';
   for (let i = 1; i < difs.length; i++) {
@@ -900,18 +901,24 @@ teste('dois agasalhos (casaco e malha): NÃO avisa — mesma família', () => {
     || 'avisou entre peças da mesma família (agasalho)';
 });
 
-teste('tipo desconhecido (peça antiga) NÃO avisa', () => {
-  const a = pecaSintetica('Antiga', 't5', '50', DIMS_OK, 'clothing');
-  const casaco = pecaSintetica('Casaco', 't6', '120', DIMS_OK, 'casaco');
-  return compararGuardadas([a, casaco]).display.cmpTiposDiferentes !== 'contents'
-    || 'avisou com um tipo desconhecido (clothing)';
+teste('o caso do print 2: a jardineira que a extensão chamou de "casaco" não compara com um casaco', () => {
+  // bombazina/ganga é tecido pesado e a extensão deduziu "casaco" — o nome manda
+  const jardineira = pecaSintetica('JARDINEIRA DE BOMBAZINA', 'j1', '39,95', DIMS_OK, 'casaco');
+  const casaco = pecaSintetica('Casaco de lã', 'j2', '120', DIMS_OK, 'casaco');
+  const r = escolher([casaco, jardineira], [0, 1]);
+  if (r.display.selecaoCompleta === 'contents') return 'a jardineira entrou na comparação com o casaco';
+  return r.itens('guardadas')[1]['?h.bloqueada'] === 'contents' || 'a jardineira não aparece apagada';
 });
 
-teste('peças sem tipo nem nome reconhecível continuam a comparar (não há como saber)', () => {
+// SEM CERTEZA DO TIPO, NÃO COMPARA. Era assim que a jardineira passava.
+teste('peça sem tipo nem nome reconhecível fica apagada desde o início e não entra', () => {
   const a = pecaSintetica('Peça X', 'u1', '50', DIMS_OK, 'clothing');
   const b = pecaSintetica('Peça Y', 'u2', '60', DIMS_OK, 'clothing');
-  const r = compararGuardadas([a, b]);
-  return r.display.isComparar === 'contents' || 'bloqueou duas peças de tipo desconhecido';
+  const r = escolher([a, b], [0, 1]);
+  if (r.display.selecaoCompleta === 'contents') return 'duas peças sem tipo entraram na comparação';
+  const it = r.itens('guardadas');
+  if (it[0]['?h.bloqueada'] !== 'contents') return 'a peça sem tipo não aparece apagada';
+  return /não reconhecido/.test(it[0]['h.bloqueioTxt'] || '') || 'etiqueta: "' + it[0]['h.bloqueioTxt'] + '"';
 });
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -956,9 +963,10 @@ teste('dois agasalhos de tipos diferentes (casaco e malha) NÃO ganham dica de u
 
 teste('tipo desconhecido NÃO ganha dica', () => {
   const r = compararGuardadas([
-    pecaSintetica('X', 'c7', '50', DIMS_OK, 'clothing'),
-    pecaSintetica('Y', 'c8', '60', DIMS_OK, 'clothing')
+    pecaSintetica('Camisa X', 'c7', '50', DIMS_OK, 'clothing'),
+    pecaSintetica('Camisa Y', 'c8', '60', DIMS_OK, 'clothing')
   ]);
+  if (r.display.isComparar !== 'contents') return 'duas camisas deixaram de comparar';
   return r.display.cmpTemDicaCategoria !== 'contents' || 'sugeriu categoria p/ tipo desconhecido';
 });
 
@@ -1021,6 +1029,65 @@ teste('no modo de escolher pra comparar o botão de remover some', () => {
   const vis = r.itens('guardadas').map((l) => l['?h.mostraRemover']);
   if (!vis.length) return 'lista vazia no modo de escolha';
   return vis.every((v) => v === 'none') || 'visibilidade: ' + vis.join(', ');
+});
+
+/* ═══════════════════════════════════════════════════════════════════
+   O TIPO DE CADA PEÇA, PELO NOME. A comparação só abre entre peças da mesma
+   família, e o nome manda mais do que o tipo que a extensão deduziu pelo
+   tecido (a jardineira de bombazina saía "casaco"). Se o nome de uma peça
+   real não for reconhecido, ela fica fora de qualquer comparação — por isso
+   cada título real de loja tem de cair na família certa, em todas as línguas
+   das lojas que a extensão lê. */
+console.log('\n── 17. O tipo de cada peça, pelo nome ──────────────\n');
+
+const RT = fs.readFileSync(path.join(raiz, 'landing', 'runtime.js'), 'utf8');
+const familia = (() => {
+  const ini = RT.indexOf('  var FAMILIA_TIPO = {');
+  const fimTipo = RT.indexOf('};', ini) + 2;
+  const iniNome = RT.indexOf('  var FAMILIA_NOME = [');
+  const fimNome = RT.indexOf('  function comparaveis(');
+  const ctx = {};
+  vm.createContext(ctx);
+  vm.runInContext(RT.slice(ini, fimTipo) + '\n' + RT.slice(iniNome, fimNome) + '\nthis.f = familiaDe;', ctx);
+  return (nome, tipo) => ctx.f({ nome: nome, tipo: tipo || '' });
+})();
+
+const NOMES = [
+  // as peças guardadas como página real (tests/lojas)
+  ...fs.readdirSync(path.join(__dirname, 'lojas')).filter((f) => f.endsWith('.txt')).map((f) => {
+    const t = fs.readFileSync(path.join(__dirname, 'lojas', f), 'utf8');
+    const tit = (/^titulo:\s*(.*)$/m.exec(t) || [, ''])[1].split('|')[0].trim();
+    const fam = /cal[çc][õo]es/i.test(tit) ? 'baixo'
+      : /camisa|t-shirt|shirt|blouse/i.test(tit) ? 'top' : 'agasalho';
+    return [tit, fam];
+  }),
+  // nomes reais vistos nas lojas em 24/11/2026
+  ['JARDINEIRA DE BOMBAZINA', 'inteira'], ['Jardineira jeans', 'inteira'], ['Macacão de malha', 'inteira'],
+  ['Salopete de ganga', 'inteira'], ['Mono largo de lino', 'inteira'], ['Denim dungarees', 'inteira'],
+  ['CALÇAS DE BOMBAZINA BARREL', 'baixo'], ['Pantalón volumen pana', 'baixo'], ['Vaquero ancho tiro alto', 'baixo'],
+  ['Straight Regular Waist Jeans', 'baixo'], ['Joggers com pernas arqueadas', 'baixo'], ['Saia midi plissada', 'baixo'],
+  ['Calças cargo em sarja acetinada', 'baixo'], ['Calções de linho com cordão', 'baixo'],
+  ['Vestido mini 100% lana', 'vestido'], ['Vestido punto cuello polo', 'vestido'], ['Vestido camisa', 'vestido'],
+  ['Jersey trenzado cuello redondo', 'agasalho'], ['Cárdigan corto lana cuello pico', 'agasalho'],
+  ['PUFFERTECH Chaqueta', 'agasalho'], ['Teddy Jacket', 'agasalho'], ['Casaco em malha bouclé', 'agasalho'],
+  ['Camisola com meia gola', 'agasalho'], ['Americana punto', 'agasalho'], ['Casaco desportivo fecho correr', 'agasalho'],
+  ['Bomber painéis s/ gola, pêlo sint.', 'agasalho'], ['Casaco curto com gola funil', 'agasalho'],
+  ['Camisas The Edit com colarinho em cetim', 'top'], ['Top justo manga comprida gola subida', 'top'],
+  ['Camiseta básica', 'top'],
+  ['Botas de plataforma plana com forro quente', 'calcado'], ['Ténis', 'calcado'], ['Sapatilhas de corrida', 'calcado'],
+  ['Mala de ombro retangular', 'bolsa'], ['Mochila urbana', 'bolsa'],
+  // armadilhas: a palavra parecida que não é a peça
+  ['Casaco com bolsos e botões', 'agasalho'], ['Calças com bolsos', 'baixo'], ['Blusa de cetim', 'top'],
+  ['Blusão cruzado soft', 'agasalho']
+];
+
+teste('cada nome real cai na família certa', () => {
+  const erradas = NOMES.filter(([n, f]) => familia(n) !== f).map(([n, f]) => `"${n}" → ${familia(n) || '(nenhuma)'} (esperava ${f})`);
+  return !erradas.length || erradas.join('\n      ');
+});
+
+teste('o nome manda mais do que o tipo deduzido pelo tecido', () => {
+  return familia('Jardineira de bombazina', 'casaco') === 'inteira' || 'a jardineira ficou ' + familia('Jardineira de bombazina', 'casaco');
 });
 
 console.log(`\n${ok} ok · ${falhas} falha(s)\n`);
