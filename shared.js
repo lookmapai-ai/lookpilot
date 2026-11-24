@@ -553,7 +553,7 @@ function calcScores(fibers, pageText, certText, titleText) {
   const BRAND_TECH = [
     // ── isolamento: substituem ou complementam a pena ────────────────
     { re: /primaloft/i,               nome: 'PrimaLoft',  conforto: 8,
-      o_que: 'isolamento sintético que continua a aquecer mesmo molhado, que é o ponto fraco da pena' },
+      o_que: 'isolamento sintético que continua a aquecer mesmo molhado' },
     { re: /thinsulate/i,              nome: 'Thinsulate', conforto: 7,
       o_que: 'fibra muito fina que aquece com pouca espessura, sem volume de casaco' },
     { re: /thermoball/i,              nome: 'ThermoBall', conforto: 7,
