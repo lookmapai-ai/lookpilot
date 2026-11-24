@@ -1,0 +1,109 @@
+loja: Uniqlo
+titulo: Abrigo corto
+url: https://www.uniqlo.com/es/es/products/E487830-000/00
+capturado: 2026-11-24
+espera_fibras: poliéster:100
+nota_humana: Casaco de pelo falso (mouton) em promoção: 69,90 € (era 89,90 €). Etiqueta toda numa linha: "Cuerpo: Cara: 100% Poliéster/ Interior: 100% Poliéster/ Tela Del Bolsillo: 65% Poliéster, 35% Algodón". O bolso não é a peça. Armadilha: os recomendados ("Abrigo largo lana mezcla") falam de lã — nada disso é desta peça. Uniqlo não tem loja em Portugal; esta é a de Espanha. A página não declara preço para máquinas (JSON-LD inválido, sem meta): a extensão fica sem preço.
+---
+Abrigo corto
+Color: 32 BEIGE
+Talla: Mujer S
+XXS
+XS
+S
+M
+L
+XL
+XXL
+Talla
+Consigue ayuda
+para encontrar tu talla.
+
+69,90 €
+
+89,90 €
+
+4.7
+(58)
+
+Artículo rebajado
+
+Precio más bajo en los últimos 30 días: 89,90 €
+INFORMACIÓN SOBRE EMBALAJES Y RECICLADO
+
+Entrega: Llega el 27/11 - 01/12
+
+AÑADIR A LA CESTA DE LA COMPRA
+Existencias disponibles
+AÑADIR A LA LISTA DE DESEOS
+Envío GRATIS y RÁPIDO con Click & Collect y envíos GRATIS a domicilio con una compra mínima de 70 €
+
+Disponibilidad en tienda
+
+Descripción
+
+ID del producto: 487830
+
+Detalles
+
+Detalles de la función
+
+- Corte: Oversized
+
+ID del producto: 487830
+
+Las imágenes de los productos que se muestran pueden contener colores que no están disponibles.
+
+Composición del material e instrucciones de cuidado
+
+Detalles del tejido
+
+Cuerpo: Cara: 100% Poliéster/ Interior: 100% Poliéster/ Tela Del Bolsillo: 65% Poliéster, 35% Algodón
+
+Instrucciones de lavado
+
+Lavar a mano en frio, No usar secadora, No apto para secadora
+
+Entrega y devoluciones
+
+Producción
+
+Looks de UNIQLO y StyleHint
+Reseñas
+Escribir una reseña
+4.7
+(58)
+Perfekte Passform, super weich und warm!
+Ich bin absolut begeistert von diesem Mouton Mantel! Das Material ist unglaublich weich und hält an kalten Tagen richtig schön warm.
+Bought the brown one in xxs. Fits perfectly for someone who is 5ft2. Very warm and cozy.
+La gente también ha visto
+
+Mujer, XXS-XXL
+
+Abrigo largo lana mezcla estampado
+
+109,90 €
+
+Mujer, XS-XL
+
+Abrigo largo lana mezcla
+
+229 €
+
+Mujer, S-L
+
+Chaqueta sobrecamisa lana mezcla
+
+149 €
+
+Mujer, XXS-XXL
+
+Abrigo corto plumas
+
+149,90 €
+
+Mujer, XXS-XXL
+
+Parka algodón mezcla
+
+59,90 €

@@ -2,9 +2,8 @@ loja: Vinted
 titulo: Manteau court 80% laine rouge Comptoir des Cotonniers T34 | Vinted
 url: https://www.vinted.pt/items/10682151564-manteau-court-80-laine-rouge-comptoir-des-cotonniers-t34
 capturado: 2026-11-09
-espera: 80% lã
-etiqueta: parcial
-nota_humana: Esta lia-se, e era pior do que não ler: 80% laine entrava bem, mas a palavra "laine" não existe na tabela de calor (que só tem as chaves em português). Resultado: o selo de calor desaparecia, a regra do agasalho-sem-prova-de-calor acusava a peça, a nota caía de 70 para 51 e o texto afirmava "não aquece: a etiqueta descreve um tecido de meia-estação" sobre 80% de lã. Não parece falha, parece análise. Vale para toda a etiqueta escrita noutra língua, Vinted ou não: laine, lana, wool, cashmere. Casaco curto de lã a 30 EUR, estado Muito bom.
+espera: sem_composicao
+nota_humana: DESDE 24/11/2026 NÃO DÁ NOTA: a etiqueta só diz 80% laine e os outros 20% não aparecem em lado nenhum. Antes: Esta lia-se, e era pior do que não ler: 80% laine entrava bem, mas a palavra "laine" não existe na tabela de calor (que só tem as chaves em português). Resultado: o selo de calor desaparecia, a regra do agasalho-sem-prova-de-calor acusava a peça, a nota caía de 70 para 51 e o texto afirmava "não aquece: a etiqueta descreve um tecido de meia-estação" sobre 80% de lã. Não parece falha, parece análise. Vale para toda a etiqueta escrita noutra língua, Vinted ou não: laine, lana, wool, cashmere. Casaco curto de lã a 30 EUR, estado Muito bom.
 ---
 Continuar para o conteúdo
 Catálogo

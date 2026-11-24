@@ -378,16 +378,38 @@ function calcScores(fibers, pageText, certText, titleText) {
   // Usa certText (texto completo) se disponível — certificações podem estar fora da zona de composição
   const certScope = ((certText || pageText) || '').toLowerCase();
   const pageOrganic  = /org[aâ]nic|organic|\bgots\b|\bocs\b/.test(certScope);
-  const pageRecycled = /recicl|recycled|\bgrs\b|\brcs\b|econyl|rpet/.test(certScope);
+  // RECICLADO EM PARTE NÃO É RECICLADO: a H&M escreve "O peso total deste
+  // produto contém pelo menos: 19% Poliéster reciclado" num casaco 100%
+  // poliéster. Quando a página dá a percentagem reciclada, só promove se ela
+  // cobrir a fibra (≥ 90% do que a etiqueta tem dessa fibra).
+  //
+  // RECICLADO É DE UMA FIBRA, NÃO DA PÁGINA. A Mango põe o selo "Lã reciclada
+  // — no mínimo 50%" ao lado da etiqueta; ler só "recicl" em qualquer sítio
+  // transformava os 41% de poliéster em "poliéster reciclado", que a etiqueta
+  // não diz. Só conta quando o reciclado vem colado à fibra (ou a uma
+  // certificação/marca que só existe para ela).
+  const CERT_RECICLADO = /\bgrs\b|\brcs\b|global recycled standard/;
+  const parcialRecic = (re, pctDaFibra) => {
+    const m = certScope.match(re);
+    if (!m) return false;
+    const n = parseFloat(String(m[1]).replace(',', '.'));
+    return isFinite(n) && n < 0.9 * (pctDaFibra || 100);
+  };
+  const PCT_POLI_RECIC = /(\d{1,3}(?:[.,]\d+)?)\s*%\s*(?:de\s+)?poli[eé]ster\s+(?:recicl|recuperad|regenerad)/;
+  const PCT_NYLON_RECIC = /(\d{1,3}(?:[.,]\d+)?)\s*%\s*(?:de\s+)?poliamida\s+(?:recicl|recuperad|regenerad)/;
+  const pagePoliRecic = CERT_RECICLADO.test(certScope)
+    || /poli[eé]ster\s+recicl|recicl\w*\s+(?:de\s+)?poli[eé]ster|recycled\s+polyester|polyester\s+recycled|\brpet\b/.test(certScope);
+  const pageNylonRecic = CERT_RECICLADO.test(certScope)
+    || /poliamida\s+recicl|recicl\w*\s+(?:de\s+)?poliamida|recycled\s+(?:nylon|polyamide)|econyl/.test(certScope);
   fibers = fibers.map(f => {
     const n = (f.name || '').toLowerCase();
     if (pageOrganic && /algod[aã]o|cotton/.test(n) && FIBER_DB['algodão orgânico']) {
       return { ...f, data: FIBER_DB['algodão orgânico'], name: 'algodão orgânico' };
     }
-    if (pageRecycled && /poli[eé]ster|polyester/.test(n) && FIBER_DB['poliéster reciclado']) {
+    if (pagePoliRecic && !parcialRecic(PCT_POLI_RECIC, f.pct) && /poli[eé]ster|polyester/.test(n) && FIBER_DB['poliéster reciclado']) {
       return { ...f, data: FIBER_DB['poliéster reciclado'], name: 'poliéster reciclado' };
     }
-    if (pageRecycled && /poliamida|nylon/.test(n) && FIBER_DB['poliamida reciclada']) {
+    if (pageNylonRecic && !parcialRecic(PCT_NYLON_RECIC, f.pct) && /poliamida|nylon/.test(n) && FIBER_DB['poliamida reciclada']) {
       return { ...f, data: FIBER_DB['poliamida reciclada'], name: 'poliamida reciclada' };
     }
     return f;
@@ -956,6 +978,81 @@ function seloDaLeitura(fibers, conf) {
   }
   return { estimada: false, icone: '✓', cor: '#166534',
            texto: 'Baseado na composição da etiqueta' + (conf != null ? ' · ' + conf + '%' : '') };
+}
+
+// ─── A prova da nota: a frase da etiqueta que foi lida ────────────
+// Decisão de 24/11/2026: o card mostra SEMPRE o trecho da página de onde a
+// composição saiu, para quem lê conferir com a etiqueta. Uma leitura errada
+// ("100% lã" num casaco com 41% de poliéster) passa a ser visível na hora,
+// em vez de virar uma nota com cara de certa.
+// Procura a percentagem da fibra principal no texto e devolve a linha onde
+// ela está; se a página chegou achatada numa linha só, devolve uma janela
+// à volta. Vazio quando não encontra — nunca inventa um trecho.
+function trechoDaEtiqueta(texto, fibras) {
+  if (!texto || !Array.isArray(fibras) || !fibras.length) return '';
+  const lidas = fibras.filter(f => f && f.pct > 0 && !f.inferida && !f.estimated);
+  if (!lidas.length) return '';
+  const alvo = lidas.slice().sort((a, b) => b.pct - a.pct)[0].pct;
+  // Uma etiqueta é uma CADEIA de "N% fibra" separados por vírgula, "+", "e"
+  // ou espaço — com um rótulo curto opcional à frente ("Composição:",
+  // "Outer material:"). Termina no primeiro texto que não é fibra ("Cor",
+  // "Cinto:", "Rodapé"), por isso o trecho é a etiqueta e não a página.
+  const NUM = '\\d{1,3}(?:[.,]\\d+)?\\s*%';
+  const FIB = '(?:[Dd][Ee]\\s+)?[\\p{L}][\\p{L}™®]*(?:\\s+[\\p{Ll}][\\p{L}™®]*)?';
+  // Primeiro a forma de sempre ("51% lã"); só se não houver nenhuma, a
+  // invertida ("algodão 80%", Massimo Dutti) — senão "Principal 100.0%"
+  // ganhava a "100.0% Algodão" da Decathlon.
+  // O rótulo à frente só entra se for rótulo de etiqueta conhecido — senão
+  // "País de origem: Bangladesh / Corpo:" virava "Bangladesh Corpo:".
+  const ROTULO = '(?:(?<![\\p{L}])(?:[Cc]omposi\\p{L}*|[Cc]omposition(?: [Oo]uter)?(?: [Mm]aterial)?|[Oo]uter [Mm]aterial|[Mm]ateria(?:l|is|ls)|[Tt]ecido(?: [Pp]rincipal| [Ee]xterior)?|[Tt]ejido(?: [Pp]rincipal)?|[Ee]xterior|[Cc]orpo|[Cc]uerpo|[Bb]ody|[Ss]hell|[Mm]ain(?: [Ff]abric)?|[Cc]ara)\\s*:\\s*)?';
+  const cadeia = (ITEM) => new RegExp(ROTULO + ITEM + '(?:\\s*(?:[,;+]|\\se\\s|\\sand\\s|\\sy\\s)?\\s*' + ITEM + ')*', 'gu');
+  const FORMAS = [cadeia(NUM + '\\s*' + FIB), cadeia(FIB + '\\s+' + NUM)];
+  const numeros = (t) => (t.match(/\d{1,3}(?:[.,]\d+)?(?=\s*%)/g) || []).map(n => parseFloat(n.replace(',', '.')));
+  let melhor = '';
+  // A Zara escreve uma fibra por linha ("8% acrílico / 5% poliamida / 48% lã");
+  // linhas seguidas que são só "N% fibra" juntam-se numa, como na etiqueta.
+  const SO_ITEM = new RegExp('^\\s*' + NUM + '\\s*' + FIB + '\\s*$', 'u');
+  const linhas = [];
+  String(texto).split(/\n/).map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean).forEach((l) => {
+    const ant = linhas.length - 1;
+    if (ant >= 0 && SO_ITEM.test(l) && SO_ITEM.test(linhas[ant].split(', ').pop())) linhas[ant] += ', ' + l;
+    else linhas.push(l);
+  });
+  const ehFibra = (w) => {
+    w = w.trim().replace(/^de\s+/i, '').toLowerCase();
+    if (!w || /^(de|e|y|and)$/.test(w)) return false;
+    return typeof getFiber !== 'function' || !!(getFiber(w) || getFiber(w.split(/\s+/)[0]));
+  };
+  for (const [i, CADEIA] of FORMAS.entries()) {
+    const UM = new RegExp(i === 0 ? NUM + '\\s*' + FIB : FIB + '\\s+' + NUM, 'gu');
+    linhas.forEach((linha) => {
+      let m;
+      CADEIA.lastIndex = 0;
+      while ((m = CADEIA.exec(linha)) !== null) {
+        // corta a cadeia no primeiro "N% coisa" que não é fibra: num texto
+        // achatado "Poliéster 100% Forro:" dava "100% Forro", o título
+        // "100% DE LÃ" dava "100% DE", e "1% outras fibras" estragava a
+        // etiqueta inteira da Zara
+        const rotulo = (m[0].match(/^[^%\d]*:\s*/) || [''])[0];
+        const itens = m[0].slice(rotulo.length).match(UM) || [];
+        const bons = [];
+        for (const it of itens) {
+          const palavra = it.replace(new RegExp(NUM, 'u'), '');
+          if (!ehFibra(palavra)) break;
+          bons.push(it.trim());
+        }
+        if (!bons.length) continue;
+        const cadeia = rotulo + (bons.length === itens.length ? m[0].slice(rotulo.length).trim() : bons.join(', '));
+        if (numeros(cadeia).indexOf(alvo) < 0) continue;
+        // a cadeia com mais percentagens é a etiqueta (não o selo "no mínimo 50%")
+        if (numeros(cadeia).length > numeros(melhor).length) melhor = cadeia.trim();
+      }
+    });
+    if (melhor) break;
+  }
+  if (!melhor) return '';
+  const MAX = 160;
+  return melhor.length <= MAX ? melhor : melhor.slice(0, MAX).replace(/\s+\S*$/, '') + '…';
 }
 
 function toTen(v) { return Math.round((v || 0) / 10); }

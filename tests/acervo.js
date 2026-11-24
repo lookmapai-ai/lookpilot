@@ -107,7 +107,12 @@ function analisar(peca) {
   const achatado = texto.replace(/\s*\n+\s*/g, ' ');
   const fibrasAchatado = achatado === texto ? fibras : API.parseComposition(achatado, categoria);
 
-  return { fibras, fibrasAchatado, s, tipo, nota, cardTexto, seccoes };
+  // A prova que o card mostra ao lado da nota (decisão de 24/11/2026).
+  const fonte = (primaria && primaria.text) || texto;
+  const prova = trechoDaEtiqueta(fonte, fibras) || trechoDaEtiqueta(texto, fibras);
+  const provaAchatada = trechoDaEtiqueta(achatado, fibrasAchatado);
+
+  return { fibras, fibrasAchatado, s, tipo, nota, cardTexto, seccoes, prova, provaAchatada };
 }
 
 // ─── SUSPEITAS ───────────────────────────────────────────────────────
@@ -137,6 +142,40 @@ const SUSPEITAS = [
       && r.fibras.length === 0
       && /composi[çc][ãa]o|composici[óo]n|composition|tecido principal|tejido principal/i.test(p.texto)
       && /\d\s?%/.test(p.texto)
+  },
+  {
+    // Quem olhou a etiqueta escreve o que ela diz (espera_fibras: lã:51,
+    // poliéster:41). A leitura tem de bater — com quebras de linha E com o
+    // texto achatado — e o nome final da fibra não pode ganhar qualificador
+    // que a etiqueta não tem ("poliéster reciclado" vindo do selo "Lã
+    // reciclada" ao lado). Caso real: sobretudo da Mango, nov 2026, que
+    // chegou à comparação como "100% lã" com 41% de poliéster na etiqueta.
+    id: 'etiqueta-diferente-da-que-quem-olhou-leu',
+    porque: 'a etiqueta diz uma coisa e o motor leu outra — a pessoa leva a leitura errada para casa',
+    ve: (r, p) => {
+      if (!p.meta.espera_fibras) return false;
+      const esperadas = p.meta.espera_fibras.split(',').map((x) => x.split(':'));
+      const bate = (lista) => esperadas.every(([nome, pct]) =>
+        lista.some((f) => (f.name || '').toLowerCase() === nome.trim().toLowerCase() && Math.round(f.pct) === +pct));
+      return !bate(r.fibras) || !bate(r.fibrasAchatado) || !bate(r.s.fibers || []);
+    }
+  },
+  {
+    // Toda nota vem com a frase da etiqueta de onde saiu. Uma nota sem prova
+    // é exatamente o que fazia "difícil confiar na nota": não há como a
+    // pessoa conferir. E a prova tem de conter a percentagem da fibra
+    // principal — um trecho qualquer da página não prova nada.
+    id: 'nota-sem-prova',
+    porque: 'o card daria uma nota sem mostrar o trecho da etiqueta de onde ela saiu',
+    ve: (r) => {
+      const confere = (prova, fibras) => {
+        if (!fibras.length) return true;
+        const p = [...fibras].sort((a, b) => b.pct - a.pct)[0];
+        const ns = (prova || '').match(/\d{1,3}(?:[.,]\d+)?(?=\s*%)/g) || [];
+        return ns.some((n) => parseFloat(n.replace(',', '.')) === p.pct) && prova.length <= 170;
+      };
+      return !confere(r.prova, r.fibras) || !confere(r.provaAchatada, r.fibrasAchatado);
+    }
   },
   {
     id: 'soma-nao-fecha',
@@ -219,7 +258,7 @@ const SUSPEITAS = [
     // uma página que rótula o material — e uma suspeita que acusa resultado
     // certo ensina quem a lê a ignorar o alarme.
     ve: (r, p) => r.fibras.length > 0
-      && !/composi[çc][ãa]o|composici[óo]n|composition|material\s*[:\n·|]|materiais|materials?\s*[:\n]|informa[çc][õo]es gerais|material principal|tecido principal|tejido|\bfabric\b/i.test(p.texto)
+      && !/composi[çc][ãa]o|composici[óo]n|composition|material\s*[:\n·|]|materiais|materials?\s*[:\n]|informa[çc][õo]es gerais|material principal|tecido principal|tejido|\bfabric\b|\b(corpo|cuerpo|exterior|body|shell)\s*:/i.test(p.texto)
   },
   {
     id: 'fibra-de-inverno-em-peca-de-verao',
@@ -267,7 +306,7 @@ const SUSPEITAS = [
     // onde "abrigo" é o casaco espanhol e não o rodapé da garantia legal.
     // Faltava-lhe "blusão", a palavra da Zara portuguesa: quando o motor
     // deixou de reconhecer o blusão, esta rede também não o viu.
-    ve: (r, p) => /casac|jaquet|parka|anorak|chaquet|abrigo|jacket|coats?\b|blus[ãa]o|blus[õo]es|bomber|corta[-\s]?vento|windbreaker|kispo|cazadora|plum[ií]fero|gabardin|trench|sobretudo|manteau|doudoune|blouson|puffer/i.test(p.meta.titulo || '')
+    ve: (r, p) => p.meta.espera !== 'sem_composicao' && /casac|jaquet|parka|anorak|chaquet|abrigo|jacket|coats?\b|blus[ãa]o|blus[õo]es|bomber|corta[-\s]?vento|windbreaker|kispo|cazadora|plum[ií]fero|gabardin|trench|sobretudo|manteau|doudoune|blouson|puffer/i.test(p.meta.titulo || '')
                   && r.tipo !== 'casaco'
   }
 ];
@@ -308,6 +347,7 @@ pecas.forEach((p) => {
     if (a.aviso) avisos++; else reprovas++;
   });
   if (listar) console.log(`      "${(r.cardTexto || '').slice(0, 150)}"`);
+  if (listar && r.prova) console.log(`      etiqueta lida: “${r.prova}”`);
 });
 
 console.log('\n──────────────────────────────────────');

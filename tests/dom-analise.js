@@ -208,7 +208,15 @@ function criarDom() {
           attrs[a.attr + '|' + a.valor] = el;
           frag.appendChild(el);
         });
-        tpl.__itens.push({ campos: textos, cliques: alvos, attrs: attrs });
+        // os data-if DENTRO do item (ex.: h.mostraRemover). Sem eles o
+        // simulador "clicava" num botão que a página tem escondido.
+        const ifs = {};
+        IF.filter((k) => k.indexOf(alias + '.') === 0).forEach((k) => {
+          const el = elemento({ 'data-if': k }, null);
+          ifs[k] = el;
+          frag.appendChild(el);
+        });
+        tpl.__itens.push({ campos: textos, cliques: alvos, attrs: attrs, ifs: ifs });
         return frag;
       }
     };
@@ -317,6 +325,8 @@ function montar(query, opcoes) {
     return (tpl.__itens || []).map((it) => {
       const linha = {};
       Object.keys(it.campos).forEach((k) => { linha[k] = it.campos[k].textContent; });
+      // visibilidade dos data-if do item, debaixo de '?nome'
+      Object.keys(it.ifs || {}).forEach((k) => { linha['?' + k] = it.ifs[k].style.display; });
       // atributos interpolados, debaixo de '@nome' (o último que tiver
       // valor — há vários style na mesma linha, só um por elemento)
       Object.keys(it.attrs || {}).forEach((k) => {
@@ -327,6 +337,9 @@ function montar(query, opcoes) {
       return linha;
     });
   };
+  // O que ficou gravado no navegador — para os testes de remover verem a
+  // lista a sério, não só o ecrã.
+  registo.gravadas = () => JSON.parse(guardado['lookpilot-guardadas'] || '[]');
   registo.nItens = (lista) => {
     const tpl = document.querySelectorAll('template[data-for]')
       .filter((t) => t.getAttribute('data-for') === lista)[0];

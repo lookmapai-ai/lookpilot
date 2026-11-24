@@ -190,10 +190,13 @@ teste('Benetton: 60% lana no título + Material "Poliéster, Lã" → 60% lã, 4
   return lido === '60% lã, 40% poliéster' || 'leu: ' + (lido || '(nada)');
 });
 
-teste('Comptoir: 80% laine + Material "Lã" → fica nos 80%, sem inventar o resto', () => {
+// SEM CERTEZA, SEM NOTA (24/11/2026). Antes, "80% laine" sozinho dava nota
+// sobre 80% da peça. Os outros 20% podem ser qualquer coisa — e uma nota
+// sobre o que não se sabe tem a mesma cara de uma nota certa. Agora a
+// etiqueta incompleta dá "não consegui ler", sem inventar o resto.
+teste('Comptoir: 80% laine e nada mais → sem nota, sem inventar os 20%', () => {
   const f = API.parseComposition(API.cortaRecomendados(COMPTOIR.texto), 'clothing');
-  const lido = rotulos(f);
-  return lido === '80% lã' || 'leu: ' + (lido || '(nada)');
+  return f.length === 0 || 'leu: ' + rotulos(f);
 });
 
 teste('o mesmo texto achatado numa linha lê a mesma coisa', () => {
@@ -202,10 +205,10 @@ teste('o mesmo texto achatado numa linha lê a mesma coisa', () => {
   return lido === '60% lã, 40% poliéster' || 'leu: ' + (lido || '(nada)');
 });
 
-teste('com DUAS fibras em falta, o resto não é dividido (seria invenção)', () => {
+teste('com DUAS fibras em falta, o resto não é dividido e não há nota', () => {
   const t = BENETTON.texto.replace('Poliéster, Lã', 'Poliéster, Lã, Elastano');
   const f = API.parseComposition(API.cortaRecomendados(t), 'clothing');
-  return rotulos(f) === '60% lã' || 'leu: ' + rotulos(f);
+  return f.length === 0 || 'leu: ' + rotulos(f);
 });
 
 teste('a percentagem solta só passa se a fibra for uma das que o Vinted lista', () => {
@@ -313,7 +316,7 @@ teste('a confiança desconta a etiqueta que não é da marca', () => {
 // ─────────────────────────────────────────────────────────────────────
 console.log('\n── 7. As duas peças, de ponta a ponta ───────────────────\n');
 
-[[BENETTON, 'casaco', 60], [COMPTOIR, 'casaco', 55]].forEach(([peca, tipo, notaMinima]) => {
+[[BENETTON, 'casaco', 60]].forEach(([peca, tipo, notaMinima]) => {
   teste(`${peca.meta.titulo.split('|')[0].trim()} → ${tipo}, com calor e nota ≥ ${notaMinima}`, () => {
     const texto = API.cortaRecomendados(peca.texto);
     const fibras = API.parseComposition(texto, 'clothing');

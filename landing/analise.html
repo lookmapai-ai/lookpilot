@@ -46,12 +46,14 @@ a:hover{color:#000000}
 [data-hovercls="h8"]:hover{color:#FF009D !important}
 [data-hovercls="h9"]:hover{transform:scale(1.03);opacity:.9}
 [data-hovercls="h10"]:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(0,0,0,.08)}
-[data-hovercls="h11"]:hover{transform:scale(1.028) translateY(-5px);box-shadow:0 34px 70px rgba(0,0,0,.16)}
-[data-hovercls="h12"]:hover{color:#FF009D !important}
-[data-hovercls="h13"]:hover{border-color:#1D1D1F}
+[data-hovercls="h11"]:hover{background:rgba(255,255,255,.26)}
+[data-hovercls="h12"]:hover{transform:scale(1.028) translateY(-5px);box-shadow:0 34px 70px rgba(0,0,0,.16)}
+[data-hovercls="h13"]:hover{background:#FFFFFF;color:#FF009D;transform:scale(1.06)}
 [data-hovercls="h14"]:hover{color:#FF009D !important}
-[data-hovercls="h15"]:hover{color:#FF009D !important}
+[data-hovercls="h15"]:hover{border-color:#1D1D1F}
 [data-hovercls="h16"]:hover{color:#FF009D !important}
+[data-hovercls="h17"]:hover{color:#FF009D !important}
+[data-hovercls="h18"]:hover{color:#FF009D !important}
 [data-hovercls="hbaixar"]:hover{opacity:.88;transform:translateY(-1px)}
   </style>
   </head>
@@ -272,12 +274,20 @@ a:hover{color:#000000}
           <button data-on-click="onDetalhe" style="display:inline-flex;align-items:center;gap:5px;background:none;border:none;min-height:44px;padding:8px 0;font-family:inherit;font-size:14px;font-weight:500;letter-spacing:-.005em;color:#1D1D1F;cursor:pointer;touch-action:manipulation">Voltar ao relatório <span aria-hidden="true">›</span></button>
         </div>
       </div>
+      <div data-if="temRemovida" style="display:contents">
+        <div role="status" style="align-self:flex-start;display:inline-flex;align-items:center;gap:14px;padding:8px 8px 8px 18px;border-radius:999px;background:#1D1D1F;color:#FFFFFF;font-size:14px;letter-spacing:-.005em;box-shadow:0 10px 28px rgba(0,0,0,.18);animation:apFade .3s ease">
+          <span><span data-txt="removidaTexto"></span></span>
+          <button data-on-click="onDesfazer" style="display:inline-flex;align-items:center;min-height:36px;padding:6px 14px;border-radius:999px;border:none;background:rgba(255,255,255,.14);color:#FFFFFF;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation;transition:background .2s ease" data-hovercls="h11">Desfazer</button>
+        </div>
+      </div>
       <div data-if="temGuardadas" style="display:contents">
         <div style="background:#F5F5F7;border-radius:28px;padding:clamp(20px,3vw,34px)">
           <p style="margin:0 0 clamp(16px,2.4vw,26px);font-size:13px;font-weight:600;letter-spacing:.13em;color:#57575C;text-transform:uppercase"><span data-txt="listaTitulo"></span></p>
           <div style="display:flex;flex-wrap:wrap;gap:clamp(16px,2.4vw,26px)">
             <template data-for="guardadas" data-as="h">
-              <div data-tpl-role="{{ h.role }}" data-tpl-tabIndex="{{ h.tabIx }}" data-tpl-aria-label="{{ h.ariaLabel }}" data-tpl-aria-checked="{{ h.ariaChecked }}" data-on-click="h.abrir" data-on-keydown="h.abrirKey" data-tpl-title="{{ h.tipo }}" data-tpl-style="position:relative;flex:0 1 clamp(280px,32vw,380px);aspect-ratio:3/4;border-radius:26px;overflow:hidden;background:{{ h.cor }};cursor:{{ h.cursor }};touch-action:manipulation;box-shadow:{{ h.cardShadow }};outline:{{ h.cardOutline }};outline-offset:-1px;transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s cubic-bezier(.16,1,.3,1)" data-hovercls="h11" style-active="transform:scale(.985)">
+              
+              <div style="position:relative;flex:0 1 clamp(280px,32vw,380px);display:flex">
+              <div data-tpl-role="{{ h.role }}" data-tpl-tabIndex="{{ h.tabIx }}" data-tpl-aria-label="{{ h.ariaLabel }}" data-tpl-aria-checked="{{ h.ariaChecked }}" data-on-click="h.abrir" data-on-keydown="h.abrirKey" data-tpl-title="{{ h.tipo }}" data-tpl-style="position:relative;flex:1 1 auto;width:100%;aspect-ratio:3/4;border-radius:26px;overflow:hidden;background:{{ h.cor }};cursor:{{ h.cursor }};touch-action:manipulation;box-shadow:{{ h.cardShadow }};outline:{{ h.cardOutline }};outline-offset:-1px;transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s cubic-bezier(.16,1,.3,1)" data-hovercls="h12" style-active="transform:scale(.985)">
                 <div data-media="h.mediaEl" style="display:contents"></div>
                 <div data-if="h.selMostra" style="display:contents">
                   <span style="position:absolute;top:14px;right:14px;z-index:3;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:999px;background:#FF009D;color:#FFFFFF;font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;box-shadow:0 6px 18px rgba(255,0,157,.45)"><span data-txt="h.selNum"></span></span>
@@ -286,6 +296,10 @@ a:hover{color:#000000}
                   <span data-tpl-style="flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:38px;padding:0 12px;border-radius:999px;background:{{ h.badgeBg }};color:{{ h.badgeColor }};font-size:19px;font-weight:700;font-variant-numeric:tabular-nums"><span data-txt="h.nota"></span></span>
                   <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:600;letter-spacing:-.008em;color:#1D1D1F"><span data-txt="h.tipo"></span></span>
                 </div>
+              </div>
+              <div data-if="h.mostraRemover" style="display:contents">
+                <button data-on-click="h.remover" data-tpl-aria-label="{{ h.removerLabel }}" title="Remover" style="position:absolute;top:12px;right:12px;z-index:4;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:999px;border:none;background:rgba(255,255,255,.82);backdrop-filter:blur(14px) saturate(1.6);-webkit-backdrop-filter:blur(14px) saturate(1.6);box-shadow:0 6px 18px rgba(0,0,0,.12);color:#1D1D1F;font-family:inherit;font-size:22px;line-height:1;cursor:pointer;touch-action:manipulation;transition:transform .2s ease,background .2s ease,color .2s ease" data-hovercls="h13" style-active="transform:scale(.94)"><span aria-hidden="true">×</span></button>
+              </div>
               </div>
             </template>
           </div>
@@ -297,7 +311,7 @@ a:hover{color:#000000}
   
   <div data-if="isComparar" style="display:contents">
     <section data-screen-label="Comparar" style="flex:1;width:100%;max-width:980px;margin:0 auto;box-sizing:border-box;padding:clamp(16px,2.5vh,28px) clamp(20px,5vw,64px) clamp(56px,9vh,110px);display:flex;flex-direction:column;gap:clamp(22px,3vw,30px);animation:apFade .4s ease">
-      <button data-on-click="onTrocarPecas" style="align-self:flex-start;display:inline-flex;align-items:center;gap:5px;background:none;border:none;min-height:44px;padding:8px 0;font-family:inherit;font-size:14px;letter-spacing:-.005em;color:#6E6E73;cursor:pointer;touch-action:manipulation;transition:color .2s ease" data-hovercls="h12"><span aria-hidden="true" style="font-size:16px;line-height:1">‹</span> Trocar peças</button>
+      <button data-on-click="onTrocarPecas" style="align-self:flex-start;display:inline-flex;align-items:center;gap:5px;background:none;border:none;min-height:44px;padding:8px 0;font-family:inherit;font-size:14px;letter-spacing:-.005em;color:#6E6E73;cursor:pointer;touch-action:manipulation;transition:color .2s ease" data-hovercls="h14"><span aria-hidden="true" style="font-size:16px;line-height:1">‹</span> Trocar peças</button>
 
       <div style="display:flex;flex-direction:column;gap:6px">
         <h1 style="margin:0;font-size:clamp(30px,4.5vw,46px);font-weight:700;letter-spacing:-.026em;line-height:1.05">Comparar</h1>
@@ -337,7 +351,7 @@ a:hover{color:#000000}
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:10px">
             <template data-for="cmpCriterios" data-as="cr">
-              <button type="button" data-on-click="cr.escolher" data-tpl-aria-pressed="{{ cr.ariaPressed }}" data-tpl-aria-label="{{ cr.ariaLabel }}" data-tpl-style="min-height:44px;padding:9px 16px;border-radius:999px;border:1px solid {{ cr.borda }};background:{{ cr.bg }};color:{{ cr.cor }};font-family:inherit;font-size:14px;font-weight:600;letter-spacing:-.005em;cursor:pointer;touch-action:manipulation;transition:background .2s ease,color .2s ease,border-color .2s ease" data-hovercls="h13" style-active="transform:scale(.97)"><span data-txt="cr.rotulo"></span></button>
+              <button type="button" data-on-click="cr.escolher" data-tpl-aria-pressed="{{ cr.ariaPressed }}" data-tpl-aria-label="{{ cr.ariaLabel }}" data-tpl-style="min-height:44px;padding:9px 16px;border-radius:999px;border:1px solid {{ cr.borda }};background:{{ cr.bg }};color:{{ cr.cor }};font-family:inherit;font-size:14px;font-weight:600;letter-spacing:-.005em;cursor:pointer;touch-action:manipulation;transition:background .2s ease,color .2s ease,border-color .2s ease" data-hovercls="h15" style-active="transform:scale(.97)"><span data-txt="cr.rotulo"></span></button>
             </template>
           </div>
         </div>
@@ -407,9 +421,9 @@ a:hover{color:#000000}
   <footer data-screen-label="Rodapé" style="margin-top:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:22px clamp(20px,5vw,64px);border-top:1px solid rgba(0,0,0,.06)">
     <img src="images/lookpilot-wordmark.svg" alt="LookPilot" style="display:block;height:22px;width:auto;opacity:.55">
     <div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px">
-      <a href="/#como" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h14">Como funciona</a>
-      <a href="#pecas" data-on-click="onHistorico" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h15">Minhas peças</a>
-      <a href="privacidade.html" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h16">Privacidade</a>
+      <a href="/#como" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h16">Como funciona</a>
+      <a href="#pecas" data-on-click="onHistorico" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h17">Minhas peças</a>
+      <a href="privacidade.html" style="font-size:12px;letter-spacing:.01em;color:#6E6E73;text-decoration:underline;text-underline-offset:3px;transition:color .2s ease" data-hovercls="h18">Privacidade</a>
     </div>
     <p style="margin:0;font-size:12px;letter-spacing:.01em;color:#6E6E73">A qualidade se descobre</p>
   </footer>
@@ -417,7 +431,7 @@ a:hover{color:#000000}
 
 
   <script src="metrica.js"></script>
-<script src="runtime.js?v=1795519301"></script>
+<script src="runtime.js?v=1795540719"></script>
   </body>
   </html>
   

@@ -77,14 +77,65 @@
     return { nota, contagem };
   }
 
-  // Último recurso: preço no DOM. Restringe-se à zona do produto para não
-  // apanhar o preço de um item "relacionado" ou de um carrossel.
+  // PREÇO RISCADO NÃO É O PREÇO. Em promoção (Black Friday, saldos) a loja
+  // marca DOIS preços para máquinas: o antigo, riscado, e o atual. A Mango
+  // põe dois <meta itemprop="price"> — 149.99 primeiro, 119.99 depois — e
+  // pegar o primeiro mostrava o preço que a pessoa já não paga.
+  // Regra: de cada candidato, vê se o bloco da oferta dele está riscado
+  // (tag <del>/<s>, classe "crossed/strike/old/original…" ou line-through).
+  // Fica o primeiro NÃO riscado; se todos parecerem riscados, o mais baixo.
+  const RISCADO_CLASSE = /crossed|strike|riscad|tachad|old[-_]*price|was[-_]*price|price[-_]*(old|before|was|original|initial)|original[-_]*price|compare/i;
+  function estaRiscado(bloco) {
+    if (!bloco) return false;
+    const marcas = [bloco].concat(Array.from(bloco.querySelectorAll ? bloco.querySelectorAll('*') : []));
+    return marcas.some((e) => {
+      const tag = (e.tagName || '').toLowerCase();
+      if (tag === 'del' || tag === 's' || tag === 'strike') return true;
+      const cls = (e.getAttribute && e.getAttribute('class')) || '';
+      if (RISCADO_CLASSE.test(cls)) return true;
+      try {
+        const td = (typeof getComputedStyle === 'function') ? getComputedStyle(e).textDecorationLine : '';
+        if (/line-through/.test(td || '')) return true;
+      } catch (err) {}
+      return false;
+    });
+  }
+  function escolhePreco(candidatos) {
+    const validos = candidatos.filter((c) => isFinite(c.valor) && c.valor > 0);
+    if (!validos.length) return null;
+    const atual = validos.find((c) => !c.riscado);
+    if (atual) return atual.valor;
+    return Math.min.apply(null, validos.map((c) => c.valor));
+  }
+  function numeroDePreco(t) {
+    t = String(t || '').replace(/[^\d.,]/g, '');
+    if (/,\d{1,2}$/.test(t)) t = t.replace(/\./g, '').replace(',', '.');
+    else t = t.replace(/,/g, '');
+    return parseFloat(t);
+  }
+
+  // Preço via microdados (itemprop="price"), em <meta> ou no texto. Restringe-se
+  // à zona do produto para não apanhar o preço de um item "relacionado".
   function precoDoDom() {
     const escopo = document.querySelector('[itemtype*="Product" i], main, [id*="product" i], [class*="product-detail" i]')
       || document.body;
-    const el = escopo.querySelector('[itemprop="price"]');
-    if (!el) return '';
-    return (el.getAttribute('content') || el.textContent || '').trim().slice(0, 20);
+    const els = Array.from(escopo.querySelectorAll('[itemprop="price"]'));
+    if (!els.length) return '';
+    const v = escolhePreco(els.map((el) => {
+      const oferta = (el.closest && el.closest('[itemscope]')) || el.parentElement;
+      return { valor: numeroDePreco(el.getAttribute('content') || el.textContent), riscado: estaRiscado(oferta) };
+    }));
+    return v === null ? '' : v.toFixed(2).replace('.', ',');
+  }
+
+  // A MOEDA QUE A PESSOA VÊ. A Shein PT declara "USD" na meta tag e mostra
+  // 37,12 € na página: o card dizia "37,12 USD". Se o próprio número do
+  // preço aparece na página junto de €, a moeda é o euro.
+  function moedaVisivel(preco, moeda, visivel) {
+    if (!preco || !moeda || String(moeda).toUpperCase() === 'EUR') return moeda;
+    const n = String(preco).replace('.', ',').replace(/,(\d)$/, ',$10');
+    const esc = n.replace(/[.,]/g, '[.,]');
+    return new RegExp('(?:' + esc + '\\s*€|€\\s*' + esc + ')').test(visivel || '') ? 'EUR' : moeda;
   }
 
   // Extrai metadados do produto para a landing lookmap.ai/analise mostrar a peça
@@ -111,11 +162,11 @@
     const preco = doJsonLd.preco ||
                   meta('meta[property="product:price:amount"]') ||
                   meta('meta[property="og:price:amount"]') ||
-                  meta('meta[itemprop="price"]') ||
                   precoDoDom();
-    const moeda = doJsonLd.moeda ||
+    let moeda = doJsonLd.moeda ||
                   meta('meta[property="product:price:currency"]') ||
                   meta('meta[property="og:price:currency"]') || '';
+    moeda = moedaVisivel(preco, moeda, (document.body && document.body.innerText) || '');
     const loja = meta('meta[property="og:site_name"]') ||
                  location.hostname.replace(/^www\./, '').split('.')[0];
     const avaliacao = getAvaliacaoJsonLd();
@@ -332,8 +383,26 @@
     // roupa inteira, e ainda apagava a fibra principal do card.
     const SECUNDARIAS = /\b(tecido\s+secund[aá]rio|secondary\s+fabric|forro|lining|bordad\w*|embroider\w*|acabamento\w*|entretela|interlining|enchimento|padding|wadding|punho\w*|cuff\w*|gola\b|collar|canelado|ribbing|capuz|hood|aplica[cç][aã]\w*|appliqu\w*|\btrim\b|relleno|pu[nñ]o\w*|capucha|ribete|revestimento|acolchoamento|pele\s+sint[eé]tica)\b/i;
     const iSec = norm.search(SECUNDARIAS);
-    // só corta se a composição principal já apareceu antes do marcador
-    if (iSec > 0 && /\d\s*%/.test(norm.slice(0, iSec))) norm = norm.slice(0, iSec);
+    // só corta se a composição principal já apareceu antes do marcador — e
+    // "apareceu" quer dizer uma percentagem COLADA A UMA FIBRA. Qualquer "%"
+    // não serve: na Black Friday o "-20%" do desconto vem antes da descrição
+    // ("Gola envolvente…"), e o corte apagava a etiqueta inteira que vinha
+    // depois. Caso real: sobretudo de lã da Mango, nov 2026.
+    const temFibraAntes = (trecho) => {
+      const re = /(\d+(?:[.,]\d+)?)\s*%\s*(?:de\s+)?([a-zà-öø-ÿ][a-zà-öø-ÿ\s]{1,50}?)(?=[,;.:\n/|·]|\d|$)/gi;
+      let k;
+      while ((k = re.exec(trecho)) !== null) {
+        const partes = k[2].trim().split(/\s+/);
+        for (let n = partes.length; n >= 1; n--) { if (getFiber(partes.slice(0, n).join(' '))) return true; }
+      }
+      // e a forma invertida, "Lã 100%" (Massimo Dutti): sem ela, num texto
+      // achatado o forro não era cortado e "100% forro mangas viscose" virava
+      // 100% viscose num sobretudo de lã.
+      const inv = /([a-zà-öø-ÿ]+)\s+(\d+(?:[.,]\d+)?)\s*%/gi;
+      while ((k = inv.exec(trecho)) !== null) { if (getFiber(k[1])) return true; }
+      return false;
+    };
+    if (iSec > 0 && temFibraAntes(norm.slice(0, iSec))) norm = norm.slice(0, iSec);
     const results = [];
     const seen = new Set();
     const db = (typeof MATERIALS !== 'undefined' && MATERIALS[category]) ? MATERIALS[category] : {};
@@ -499,9 +568,17 @@
     // A excepção é a etiqueta que a própria página confirma por outra via
     // (o campo "Material" do Vinted, acima): aí a leitura parcial é a
     // etiqueta que existe, e deitar fora é que seria perder informação.
-    if (category === 'clothing' && results.length && !confirmadaPelaFicha) {
+    //
+    // SEM CERTEZA, SEM NOTA (decisão de 24/11/2026). O limite era 70%: uma
+    // etiqueta lida pela metade ainda dava nota, e uma nota sobre metade da
+    // peça tem a mesma cara de uma nota certa. Agora só conta a leitura que
+    // fecha a peça — 95% a 105% (a folga cobre o 1% de algodão que se perde
+    // e o arredondamento da loja). Acima de 105% houve zonas somadas.
+    // Isto vale também para a etiqueta parcial do Vinted: se a ficha não
+    // completou a conta, a pessoa recebe "não consegui ler", não um número.
+    if (category === 'clothing' && results.length) {
       const total = results.reduce((a, f) => a + (f.pct || 0), 0);
-      if (total < 70) results.length = 0;
+      if (total < 95 || total > 105) results.length = 0;
     }
 
     // Pass 2: category material keywords without % (shoes/bags often do this)
@@ -550,7 +627,10 @@
       .replace(/Secondary\s+Fabric\s*:?\s*/gi, '\nTecido Secundário\n');
     const lines = text.split(/\n|\r/);
     const sections = [];
-    let currentLabel = 'principal', currentText = '', liningContext = false;
+    // "implicita": o texto antes do primeiro cabeçalho (título, descrição).
+    // Chama-se "principal" por omissão, mas não é a etiqueta — "Sobretudo em
+    // tecido 100% de lã" na descrição não pode empatar com "EXTERIOR Lã 100%".
+    let currentLabel = 'principal', currentText = '', liningContext = false, vistoCabecalho = false;
     const SECONDARY = ['bordado','bordados','embroidery','forro','lining','trim','detalhe','bolso','pocket','etiqueta','elástico','elastic','ribana','inviés','invies','bias','vies','entretela','fita','tecido secundário','tecido secundario','sole','sola','solado','palmilha','insole'];
     const PRIMARY   = ['exterior','externo','shell','corpo','body','tecido base','principal','composição','material','tecido','main','outer','gáspea','gaspea','cabedal','upper'];
     for (const line of lines) {
@@ -563,16 +643,22 @@
          PRIMARY.some(l => low === l));
       if (isHeader) {
         // "FORRO" abre contexto de forro; "EXTERIOR" fecha-o
+        // Dentro do forro, as PARTES do forro continuam a ser forro. A Massimo
+        // Dutti escreve "FORRO / MANGAS / Viscose 50%… / CORPO / Modal 52%,
+        // Poliéster 48%" — e "corpo" é rótulo de tecido principal, por isso o
+        // forro do corpo passava pela peça: um sobretudo 100% lã saía 46/100,
+        // "não aquece". Sub-parte (mangas, corpo, tecido principal…) dentro do
+        // forro é forro; qualquer outro cabeçalho fecha o contexto.
+        const SUBPARTE = /^(mangas?|corpo|body|sleeves?|tecido (principal|secund[aá]rio)|parte (superior|inferior)|frente|costas|capuz)$/;
         if (/forro|lining/.test(low)) liningContext = true;
-        else if (/exterior|externo|shell|outer/.test(low)) liningContext = false;
-        // Dentro do forro, "tecido principal/secundário" continuam a ser forro (secundário)
-        if (currentText) { sections.push({ label: currentLabel, text: currentText }); currentText = ''; }
-        // Se estamos em contexto de forro, marca o label como forro mesmo que diga "tecido principal"
-        currentLabel = liningContext && /tecido (principal|secund)/.test(low) ? 'forro ' + trimmed : trimmed;
+        else if (liningContext && !SUBPARTE.test(low)) liningContext = false;
+        if (currentText) { sections.push({ label: currentLabel, text: currentText, implicita: !vistoCabecalho }); currentText = ''; }
+        vistoCabecalho = true;
+        currentLabel = liningContext && SUBPARTE.test(low) ? 'forro ' + trimmed : trimmed;
       }
       else currentText += ' ' + trimmed;
     }
-    if (currentText) sections.push({ label: currentLabel, text: currentText });
+    if (currentText) sections.push({ label: currentLabel, text: currentText, implicita: !vistoCabecalho });
     return sections.length > 0 ? sections : [{ label: 'principal', text }];
   }
 
@@ -599,6 +685,7 @@
       let priority = fibers.length;
       // Exterior tem prioridade forte; forro é fortemente penalizado (é a peça por dentro)
       if (/forro|lining/.test(label))             priority -= 30;
+      else if (sec.implicita)                      priority += 5;
       else if (PRIMARY.some(l => label.includes(l)))   priority += 15;
       if (SECONDARY.some(l => label.includes(l))) priority -= 15;
       if (total >= 98 && total <= 102) priority += 20;
@@ -1286,6 +1373,16 @@
           <span style="color:#B45309;">★</span> ${String(productMeta.avaliacaoNota).replace('.', ',')}${productMeta.avaliacaoContagem ? ` · ${productMeta.avaliacaoContagem} avaliações` : ''}
         </div>` : ''}
         </div>
+        ${(() => {
+          // A prova da nota: o trecho da página de onde a composição saiu.
+          const trecho = typeof trechoDaEtiqueta === 'function' ? trechoDaEtiqueta(section.text || fullPageText, fibers) || trechoDaEtiqueta(fullPageText, fibers) : '';
+          if (!trecho) return '';
+          const seguro = trecho.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+          return `<div data-lp-etiqueta style="font-size:11px;line-height:1.45;color:#6E6E73;background:#FAFAFB;border:1px solid #EDEDF0;border-radius:9px;padding:8px 10px;margin-bottom:12px;">
+            <span style="display:block;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#86868B;margin-bottom:3px;">Etiqueta lida na página</span>
+            <span style="color:#1D1D1F;">“${seguro}”</span>
+          </div>`;
+        })()}
 
         <a href="${buildAnaliseURL(scores, fibers, buy, bv.label, location.href, conf, historia)}" target="_blank" data-lp-abrir style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:600;color:#fff;background:#1D1D1F;text-decoration:none;border:none;padding:11px;border-radius:9px;letter-spacing:0.02em;">
           Ver análise completa →

@@ -1231,7 +1231,6 @@ test('[Varredura] os formatos reais das lojas continuam todos a ser lidos', () =
     ['EN mistura',            'Composition: 78% polyester, 22% elastane'],
     ['decimais',              'Composição: 66,5% Poliéster, 33,5% Algodão'],
     ['4 fibras',              '45% Acrílico, 33% Poliéster, 17% Viscose, 5% Elastano'],
-    ['incompleta 80',         'Composição: 80% algodão'],
     ['incompleta 95',         'Composição: 95% algodão'],
     ['lã pura',               'Composição: 100% lã'],
     ['merino',                'Composição: 100% lã merino'],
@@ -1267,11 +1266,16 @@ test('[Composição] uma leitura que não chega perto de 100% é descartada', ()
   return true;
 });
 
-test('[Composição] etiquetas reais, mesmo incompletas, continuam a passar', () => {
+// SEM CERTEZA, SEM NOTA (24/11/2026): uma etiqueta que só mostra 80% da peça
+// deixou de passar — os outros 20% podem ser qualquer coisa, e uma nota sobre
+// o que não se sabe tem a mesma cara de uma certa. 95% ainda passa: é a folga
+// do 1% que se perde e do arredondamento da loja.
+test('[Composição] etiquetas reais passam; a que só cobre 80% da peça não', () => {
+  if (parse('Composição: 80% algodão').length) return fail('"80% algodão" sozinho ainda dá nota');
   const devem = [
     ['Composição: 55% linho, 45% viscose', 2],
     ['Tecido principal: 100% Poliamida', 1],
-    ['Composição: 80% algodão', 1],
+    ['Composição: 95% algodão', 1],
     ['Composição: 95% algodão, 5% elastano', 2]
   ];
   for (const [txt, n] of devem) {
@@ -1633,10 +1637,11 @@ console.log('══════════════════════�
 //   acordeao.js — a etiqueta que está a um clique (painel fechado da loja)
 //   vinted.js — a segunda mão: etiqueta copiada à mão, parcial e noutra
 //               língua, e o estado da peça a pesar tanto como a fibra
+//   preco.js — em promoção, o preço atual e nunca o riscado
 //   comparar.js — duas peças lado a lado: a ordem das linhas, o que empata,
 //                 a medida que não existe e o que se perde ao escolher
 let extras = 0;
-for (const t of ['coerencia.js', 'acervo.js', 'pagina.js', 'entrega.js', 'abrir-aba.js', 'acordeao.js', 'vinted.js', 'comparar.js']) {
+for (const t of ['coerencia.js', 'acervo.js', 'pagina.js', 'entrega.js', 'abrir-aba.js', 'acordeao.js', 'vinted.js', 'comparar.js', 'preco.js']) {
   try {
     require('child_process').execSync('node ' + require('path').join(__dirname, t),
       { stdio: 'inherit' });

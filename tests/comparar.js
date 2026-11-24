@@ -110,10 +110,15 @@ const A = linkDaPeca('vinted-benetton-cappotto-60-lana.txt', {
   nome: 'Cappotto rosso Benetton - 60% lana', loja: 'Vinted', preco: '10,00', moeda: '€',
   origem: 'https://www.vinted.pt/items/10732248062-cappotto-rosso-benetton-60-lana'
 });
-const B = linkDaPeca('vinted-comptoir-manteau-80-laine.txt', {
-  nome: 'Manteau court 80% laine rouge Comptoir des Cotonniers T34',
-  loja: 'Vinted', preco: '30,00', moeda: '€',
-  origem: 'https://www.vinted.pt/items/10682151564-manteau-court-80-laine-rouge'
+// A segunda peça era o "Manteau court 80% laine" do Vinted. Desde 24/11/2026
+// uma etiqueta incompleta não dá nota (sem certeza, sem nota), e uma peça sem
+// nota não entra numa comparação. Fica outro sobretudo de lã com a etiqueta
+// INTEIRA — o 100% lã da Massimo Dutti — que mantém o que torna o par útil:
+// notas parecidas, calor bem diferente.
+const B = linkDaPeca('massimodutti-sobretudo-100-la.txt', {
+  nome: 'Sobretudo comprido 100% de lã Massimo Dutti cor castanho mesclado',
+  loja: 'Massimo Dutti', preco: '199,00', moeda: '€',
+  origem: 'https://www.massimodutti.com/pt/sobretudo-comprido-100-de-la-l06451764'
 });
 
 // uma peça guardada, no formato que a página grava no navegador
@@ -407,7 +412,7 @@ teste('a peça aberta e a guardada comparam-se sem passar por "guardar"', () => 
   r.clicar('onCompararAgora');
   if (r.display.isComparar !== 'contents') return 'não chegou ao ecrã de comparação';
   const nomes = [r.txt.cmpANome, r.txt.cmpBNome].join(' | ');
-  return /Cappotto|Benetton/.test(nomes) && /Manteau|Comptoir/.test(nomes)
+  return /Cappotto|Benetton/.test(nomes) && /Sobretudo|Massimo/.test(nomes)
     || 'comparou as peças erradas: ' + nomes + ' (cartões: ' + cartoes.join(', ') + ')';
 });
 
@@ -495,8 +500,8 @@ teste('a composição de cada peça aparece escrita, não só a nota', () => {
   const r = compararGuardadas([guardada(A), guardada(B)]);
   const a = r.txt.cmpAComposicao || '', b = r.txt.cmpBComposicao || '';
   if (!/60% lana|60% lã/.test(a + b)) return 'a composição do Benetton não aparece: "' + a + '" / "' + b + '"';
-  return /80% laine|80% lã/.test(a + b)
-    || 'a composição do Comptoir não aparece: "' + a + '" / "' + b + '"';
+  return /100% lã/.test(a + b)
+    || 'a composição da Massimo Dutti não aparece: "' + a + '" / "' + b + '"';
 });
 
 teste('o estado da peça usada é comparado lado a lado', () => {
@@ -594,7 +599,8 @@ console.log('\n── 10. O nome da peça e o jeito de falar ──────�
    court 80%…": ficava com a parte que não identifica nada e perdia a marca,
    que é justamente como a pessoa chama a peça — "o Comptoir", "o Benetton". */
 teste('a marca sobrevive ao corte', () => {
-  const r = compararGuardadas([guardada(A), guardada(B)]);
+  const r = compararGuardadas([guardada(A),
+    comNome(B, 'Manteau court 80% laine rouge Comptoir des Cotonniers T34', 'dir', '30,00')]);
   const nomes = [r.txt.cmpANome, r.txt.cmpBNome].join(' | ');
   if (!/Benetton/.test(nomes)) return 'perdeu "Benetton": ' + nomes;
   return /Comptoir/.test(nomes) || 'perdeu "Comptoir": ' + nomes;
@@ -681,6 +687,18 @@ teste('com o nome igual, a resposta nomeia por posição, não repete o nome', (
     || 'o nome repetido ainda entra na resposta: "' + resp + '"';
 });
 
+/* Nomes DIFERENTES que começam igual ("Sobretudo de lã com cinto" e
+   "Sobretudo de lã Manteco…") cortam-se ao mesmo "Sobretudo de l…" na
+   coluna estreita à esquerda das barras. Visto num print real (nov 2026). */
+teste('a etiqueta à esquerda das barras é sempre Peça 1 / Peça 2', () => {
+  const r = compararGuardadas([
+    comNome(A, 'Sobretudo de lã com cinto', 'esq', '149,99'),
+    comNome(B, 'Sobretudo de lã Manteco cruzado', 'dir', '149,99')
+  ]);
+  return (r.txt.cmpARotulo === 'Peça 1' && r.txt.cmpBRotulo === 'Peça 2')
+    || 'barras rotuladas "' + r.txt.cmpARotulo + '" / "' + r.txt.cmpBRotulo + '"';
+});
+
 teste('com o nome igual, o selo do vencedor de cada barra é Peça 1 ou Peça 2', () => {
   const melhores = parAmbiguo().itens('cmpLinhas').map((l) => l['l.melhor']);
   if (!melhores.length) return 'nenhuma linha desenhada';
@@ -716,7 +734,7 @@ teste('nomes que DE FACTO distinguem continuam pelo nome, não por posição', (
   const melhores = compararGuardadas([guardada(A), guardada(B)])
     .itens('cmpLinhas').map((l) => l['l.melhor']);
   return !melhores.some((m) => /^Peça [12]$/.test(String(m)))
-    || 'passou a nomear por posição mesmo com Benetton ≠ Comptoir: ' + melhores.join(', ');
+    || 'passou a nomear por posição mesmo com Benetton ≠ Massimo Dutti: ' + melhores.join(', ');
 });
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -912,6 +930,67 @@ teste('tipo desconhecido NÃO ganha dica', () => {
     pecaSintetica('Y', 'c8', '60', DIMS_OK, 'clothing')
   ]);
   return r.display.cmpTemDicaCategoria !== 'contents' || 'sugeriu categoria p/ tipo desconhecido';
+});
+
+/* ═══════════════════════════════════════════════════════════════════
+   REMOVER UMA PEÇA. A lista só crescia: uma peça analisada por engano, ou
+   guardada por uma versão com o preço riscado e a etiqueta mal lida (o
+   sobretudo da Mango, nov 2026), ficava para sempre e entrava em todas as
+   comparações. Pedido da Nathalia: "é preciso um botão para remover as peças". */
+console.log('\n── 16. Remover uma peça salva ───────────────────────\n');
+
+function minhasPecas(lista) {
+  return montar('', { guardadas: lista, hash: '#minhas-pecas' });
+}
+const tres = () => [guardada(A), guardada(B), comNome(A, 'Casaco de teste', 'terceira', '9,99')];
+
+teste('cada peça salva tem o botão de remover', () => {
+  const r = minhasPecas(tres());
+  if (r.nItens('guardadas') !== 3) return 'a lista mostra ' + r.nItens('guardadas') + ' peças, esperava 3';
+  for (let i = 0; i < 3; i++) {
+    try { r.clicarItem('guardadas', 0, 'h.remover'); } catch (e) { return 'peça ' + (i + 1) + ': ' + e.message; }
+  }
+  return r.gravadas().length === 0 || 'ficaram ' + r.gravadas().length + ' gravadas';
+});
+
+teste('remover tira a peça do ecrã E do navegador, e só essa', () => {
+  const r = minhasPecas(tres());
+  r.clicarItem('guardadas', 1, 'h.remover');
+  const ids = r.gravadas().map((h) => h.id);
+  if (ids.length !== 2) return 'gravadas: ' + ids.length;
+  if (ids.indexOf(guardada(B).id) >= 0) return 'a peça removida continua gravada';
+  return r.nItens('guardadas') === 2 || 'o ecrã ainda mostra ' + r.nItens('guardadas');
+});
+
+teste('remover não abre a análise da peça (o toque não atravessa para o cartão)', () => {
+  const r = minhasPecas(tres());
+  r.clicarItem('guardadas', 0, 'h.remover');
+  return !r.navegou || 'abriu ' + r.navegou;
+});
+
+teste('"Desfazer" devolve a peça ao mesmo lugar', () => {
+  const r = minhasPecas(tres());
+  const antes = r.gravadas().map((h) => h.id).join('|');
+  r.clicarItem('guardadas', 1, 'h.remover');
+  if (r.display.temRemovida !== 'contents') return 'não apareceu o aviso com "Desfazer"';
+  if (!/saiu das suas peças/.test(r.txt.removidaTexto || '')) return 'aviso sem texto: "' + r.txt.removidaTexto + '"';
+  r.clicar('onDesfazer');
+  const depois = r.gravadas().map((h) => h.id).join('|');
+  if (depois !== antes) return 'voltou noutra ordem: ' + depois;
+  return r.display.temRemovida !== 'contents' || 'o aviso ficou depois de desfazer';
+});
+
+teste('o botão de remover aparece nas peças salvas', () => {
+  const vis = minhasPecas(tres()).itens('guardadas').map((l) => l['?h.mostraRemover']);
+  if (!vis.length || vis[0] === undefined) return 'o simulador não vê o data-if do botão';
+  return vis.every((v) => v === 'contents') || 'visibilidade: ' + vis.join(', ');
+});
+
+teste('no modo de escolher pra comparar o botão de remover some', () => {
+  const r = montar('', { guardadas: tres(), hash: '#comparar' });
+  const vis = r.itens('guardadas').map((l) => l['?h.mostraRemover']);
+  if (!vis.length) return 'lista vazia no modo de escolha';
+  return vis.every((v) => v === 'none') || 'visibilidade: ' + vis.join(', ');
 });
 
 console.log(`\n${ok} ok · ${falhas} falha(s)\n`);

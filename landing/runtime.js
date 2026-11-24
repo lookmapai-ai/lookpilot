@@ -764,6 +764,34 @@
     if (window.metrica) window.metrica.registar('salvou', { noHistorico: l.length });
   }
 
+  /* ---------- REMOVER UMA PEÇA SALVA --------------------------------
+     A lista só crescia: uma peça analisada por engano, ou uma versão antiga
+     com o preço riscado ou a etiqueta mal lida, ficava lá para sempre e
+     entrava nas comparações. Remover é imediato, mas DESFAZÍVEL: um toque
+     sem querer num cartão de 380px não pode custar a peça. A última peça
+     removida fica em memória até à próxima remoção ou até sair da página. */
+  var ultimaRemovida = null;   // { item, pos }
+  function removerPeca(id) {
+    var l = lerGuardadas();
+    var pos = -1;
+    l.forEach(function (h, i) { if (h.id === id && pos < 0) pos = i; });
+    if (pos < 0) return;
+    ultimaRemovida = { item: l[pos], pos: pos };
+    l.splice(pos, 1);
+    gravarGuardadas(l);
+    var i = selecao.indexOf(id);
+    if (i >= 0) selecao.splice(i, 1);
+    evento('removeu_peca');
+  }
+  function desfazerRemocao() {
+    if (!ultimaRemovida) return;
+    var l = lerGuardadas();
+    var jaVoltou = l.some(function (h) { return h.id === ultimaRemovida.item.id; });
+    if (!jaVoltou) l.splice(Math.min(ultimaRemovida.pos, l.length), 0, ultimaRemovida.item);
+    gravarGuardadas(l);
+    ultimaRemovida = null;
+  }
+
   /* ---------- COMPARAR DUAS PEÇAS ----------------------------------
      PORQUE É AQUI E NÃO NO CARD DA LOJA. A comparação precisa de TODAS as
      medidas das DUAS peças. As peças guardadas vivem no localStorage deste
@@ -1259,7 +1287,12 @@
         mediaEl: mediaEl(p.thumb, rotulo,
           'width:100%;height:100%;object-fit:cover;object-position:50% 30%;filter:saturate(1.06) sepia(.06)'),
         abrir: abrir,
-        abrirKey: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } }
+        abrirKey: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrir(); } },
+        // Remover: só nas peças SALVAS e fora do modo de escolha (lá o toque
+        // no cartão já quer dizer "escolher", e um × ao lado confundia).
+        mostraRemover: !modoSelecao && !p.estaAberta,
+        removerLabel: 'Remover ' + rotulo + ' das minhas peças',
+        remover: function () { removerPeca(p.id); render(); }
       };
     });
 
@@ -1534,6 +1567,10 @@
         render(); window.scrollTo(0, 0);
       },
       guardadas: guardadas,
+      temRemovida: !!ultimaRemovida && !modoSelecao,
+      // "removida" não concorda com "sobretudo"; "saiu" serve a qualquer peça
+      removidaTexto: ultimaRemovida ? (ultimaRemovida.item.tipo || 'A peça') + ' saiu das suas peças.' : '',
+      onDesfazer: function () { desfazerRemocao(); render(); },
       nGuardadas: nGuardadasReal,
       nGuardadasLabel: nGuardadasReal + (nGuardadasReal === 1 ? ' peça' : ' peças'),
       temGuardadas: guardadas.length > 0,
@@ -1617,10 +1654,11 @@
       cmpAAnel: (par && escolhida === par.a) ? ANEL : SEM_ANEL,
       cmpBAnel: (par && escolhida === par.b) ? ANEL : SEM_ANEL,
       cmpSeloEscolha: 'A escolha',
-      // o que nomeia cada peça na resposta e à esquerda de cada barra: nome
-      // quando distingue, posição quando não
-      cmpARotulo: rotuloA,
-      cmpBRotulo: rotuloB,
+      // à esquerda de cada barra cabem ~12 letras: nenhum nome de peça
+      // cabe ali, e dois nomes que começam igual ("Sobretudo de l…") viram
+      // a mesma etiqueta. A posição é curta e bate com o cabeçalho da coluna.
+      cmpARotulo: par ? 'Peça 1' : '',
+      cmpBRotulo: par ? 'Peça 2' : '',
       cmpANomeCompleto: par ? par.a.nome : '',
       cmpBNomeCompleto: par ? par.b.nome : '',
       cmpAMeta: par ? [par.a.loja, par.a.preco ? par.a.preco + ' ' + par.a.moeda : ''].filter(Boolean).join(' · ') : '',
