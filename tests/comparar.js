@@ -1062,7 +1062,7 @@ const NOMES = [
   ...fs.readdirSync(path.join(__dirname, 'lojas')).filter((f) => f.endsWith('.txt')).map((f) => {
     const t = fs.readFileSync(path.join(__dirname, 'lojas', f), 'utf8');
     const tit = (/^titulo:\s*(.*)$/m.exec(t) || [, ''])[1].split('|')[0].trim();
-    const fam = /cal[çc][õo]es/i.test(tit) ? 'baixo'
+    const fam = /jardineir/i.test(tit) ? 'inteira' : /cal[çc][õo]es/i.test(tit) ? 'baixo'
       : /camisa|t-shirt|shirt|blouse/i.test(tit) ? 'top' : 'agasalho';
     return [tit, fam];
   }),
@@ -1089,6 +1089,22 @@ const NOMES = [
 teste('cada nome real cai na família certa', () => {
   const erradas = NOMES.filter(([n, f]) => familia(n) !== f).map(([n, f]) => `"${n}" → ${familia(n) || '(nenhuma)'} (esperava ${f})`);
   return !erradas.length || erradas.join('\n      ');
+});
+
+teste('a primeira palavra de peça decide ("Camiseta de jersey" não é camisola)', () => {
+  const casos = [['Camiseta de jersey', 'top'], ['Vestido de malha', 'vestido'], ['Casaco de malha', 'agasalho'],
+                 ['Calças com bolsos', 'baixo'], ['Jersey trenzado', 'agasalho']];
+  const erradas = casos.filter(([n, f]) => familia(n) !== f).map(([n, f]) => n + ' → ' + familia(n));
+  return !erradas.length || erradas.join('; ');
+});
+
+teste('a extensão e a página dão o mesmo tipo a cada nome', () => {
+  // a lista vive em dois ficheiros (a página não carrega o shared.js)
+  if (typeof familiaPeloNome !== 'function') return 'familiaPeloNome() não existe no shared.js';
+  const difs = NOMES.concat([['Camiseta de jersey'], ['Vestido de malha']])
+    .filter(([n]) => familiaPeloNome(n) !== familia(n))
+    .map(([n]) => n + ': extensão ' + familiaPeloNome(n) + ', página ' + familia(n));
+  return !difs.length || difs.join('; ');
 });
 
 teste('o nome manda mais do que o tipo deduzido pelo tecido', () => {

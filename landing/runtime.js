@@ -1006,13 +1006,13 @@
      linear. Tipo desconhecido (peça antiga) também não avisa. */
   var LABEL_TIPO = {
     casaco: 'casaco', blazer: 'blazer', malha: 'malha', camiseta: 'camiseta',
-    camisa: 'camisa', calca: 'calça', vestido: 'vestido',
+    camisa: 'camisa', calca: 'calça', jardineira: 'jardineira', vestido: 'vestido',
     roupa_esportiva: 'roupa esportiva', roupa_intima: 'roupa íntima',
     shoes: 'calçado', bags: 'bolsa'
   };
   var FAMILIA_TIPO = {
     casaco: 'agasalho', blazer: 'agasalho', malha: 'agasalho',
-    camiseta: 'top', camisa: 'top', calca: 'baixo', vestido: 'vestido',
+    camiseta: 'top', camisa: 'top', calca: 'baixo', jardineira: 'inteira', vestido: 'vestido',
     roupa_esportiva: 'funcional', roupa_intima: 'funcional',
     shoes: 'calcado', bags: 'bolsa'
   };
@@ -1025,13 +1025,13 @@
      divergem, quem fala é o aviso de tipos diferentes. */
   var DECISOR_TIPO = {
     casaco: 'calor', blazer: 'calor', malha: 'calor',
-    camiseta: 'conforto', camisa: 'qualidade', calca: 'durabilidade',
+    camiseta: 'conforto', camisa: 'qualidade', calca: 'durabilidade', jardineira: 'durabilidade',
     vestido: 'qualidade', roupa_esportiva: 'durabilidade',
     roupa_intima: 'conforto', shoes: 'durabilidade', bags: 'durabilidade'
   };
   var ARTIGO_TIPO = {
     casaco: 'Num', blazer: 'Num', malha: 'Numa', camiseta: 'Numa',
-    camisa: 'Numa', calca: 'Numa', vestido: 'Num', roupa_esportiva: 'Numa',
+    camisa: 'Numa', calca: 'Numa', jardineira: 'Numa', vestido: 'Num', roupa_esportiva: 'Numa',
     roupa_intima: 'Numa', shoes: 'Num', bags: 'Numa'
   };
   var ART_DIM = {
@@ -1077,17 +1077,21 @@
     [/vestid|\bdress|robe\b|abito|chemisier/i, 'vestido'],
     [/sapat|t[ée]nis|\bbotas?\b|botins?|bot[ií]n|sand[áa]li|sapatilh|chinel|mocassi|loafer|sabrina|bailarin|espadril|\bmules?\b|\bshoes?\b|sneaker|\bboots?\b|zapat|chaussur|baskets|scarpe|stival/i, 'calcado'],
     [/\bmalas?\b|\bbolsas?\b|mochila|carteira|\bbags?\b|bolso\b|\bsac\b|borsa|clutch|tote\b|pochete|backpack/i, 'bolsa'],
-    [/casac|sobretud|blus[ãa]o|blus[õo]es|parka|anoraque|anorak|jaqueta|chaqueta|cazadora|abrigo|trench|gabardin|blazer|americana|camisol|malha|cardig|c[áa]rdigan|su[ée]ter|pullover|jersey|\bcoat|jacket|puffer|manteau|veste\b|doudoune|blouson|cappotto|giacca|piumino|maglion|chaleco|colete|gilet|\bvest\b|polar\b|fleece|kispo|corta[- ]?vento|windbreaker|bomber/i, 'agasalho'],
+    [/casac|sobretud|blus[ãa]o|blus[õo]es|parka|anoraque|anorak|jaqueta|chaqueta|cazadora|(?<!\bao )abrigo|trench|gabardin|blazer|americana|camisol|malha|cardig|c[áa]rdigan|su[ée]ter|pullover|jersey|\bcoat|jacket|puffer|manteau|veste\b|doudoune|blouson|cappotto|giacca|piumino|maglion|chaleco|colete|gilet|\bvest\b|polar\b|fleece|kispo|corta[- ]?vento|windbreaker|bomber/i, 'agasalho'],
     [/cal[çc]a|\bjeans?\b|vaquer|cal[çc][õo]es|bermuda|\bsaias?\b|\bfalda|leggings?|\bpantal|trousers|\bpants|\bshorts?\b|\bskirt|jupe\b|pantalon|gonna|chinos?\b|joggers?\b|cargo\b/i, 'baixo'],
     [/camiset|t-?shirt|\btee\b|camisa|blusa|\btops?\b|\bpolo|\bbody\b|regata|cropped|\bshirt|blouse|chemise|camicia|maglia|canotta|tank\b/i, 'top']
   ];
   function familiaDe(p) {
     if (!p) return '';
+    // vale a PRIMEIRA palavra de peça do nome ("Camiseta de jersey" é
+    // camiseta) — a mesma regra de familiaPeloNome() em shared.js
     var nome = String(p.nome || p.curto || '');
+    var melhor = '', pos = Infinity;
     for (var i = 0; i < FAMILIA_NOME.length; i++) {
-      if (FAMILIA_NOME[i][0].test(nome)) return FAMILIA_NOME[i][1];
+      var m = FAMILIA_NOME[i][0].exec(nome);
+      if (m && m.index < pos) { pos = m.index; melhor = FAMILIA_NOME[i][1]; }
     }
-    return FAMILIA_TIPO[p.tipo] || '';
+    return melhor || FAMILIA_TIPO[p.tipo] || '';
   }
   // SEM CERTEZA DO TIPO, NÃO COMPARA — a mesma regra da nota. Deixar passar
   // a peça de tipo desconhecido era o furo: a jardineira entrou por aí.

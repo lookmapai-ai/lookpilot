@@ -360,6 +360,12 @@
       .replace(/Tecido\s+Secundário\s*:?\s*/gi, '\nTecido Secundário\n')
       .replace(/Tecido\s+Principal\s*:?\s*/gi, '\nTecido Principal\n')
       .replace(/Secondary\s+Fabric\s*:?\s*/gi, '\nSecondary Fabric\n');
+    // Um título em MAIÚSCULAS logo depois de uma palavra em minúsculas é uma
+    // fronteira ("43% lyocell MANUTENÇÃO Cuidar das suas peças…"). Num texto
+    // achatado numa linha só, sem ela, o nome da última fibra arrastava a
+    // frase seguinte, passava dos 50 caracteres e a fibra perdia-se — e com
+    // ela a etiqueta inteira da Zara (57% + 43% virava 57%, abaixo dos 95%).
+    text = text.normalize('NFC').replace(/([a-zà-öø-ÿ])[ \t]+(?=[A-ZÀ-ÖØ-Þ]{4,}\b)/g, '$1;\n');
     let norm = text.normalize('NFC').toLowerCase()
       .replace(/\r?\n/g, ';')   // newlines → ; para Pass 1a não capturar cross-line
       .replace(/\s+/g, ' ');

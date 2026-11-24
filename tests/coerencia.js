@@ -79,7 +79,9 @@ const PECAS = [
     titulo: 'T-shirt básica de algodão',
     texto: 'Composição: 100% Algodão. T-shirt de malha, gola redonda, manga curta.',
     fibras: [fibra('Algodão', 100)],
-    esperaTipo: 'malha',
+    // desde 24/11/2026 o nome decide: "T-shirt" é camiseta (era malha, pela
+    // palavra "malha" solta na descrição)
+    esperaTipo: 'camiseta',
     agasalho: false
   },
   {
@@ -87,7 +89,7 @@ const PECAS = [
     titulo: 'Top de alças poliamida reciclada',
     texto: 'Composição: 92% Poliamida reciclada, 8% Elastano. Top de alças finas, tecido leve.',
     fibras: [fibra('Poliamida', 92), fibra('Elastano', 8)],
-    esperaTipo: 'clothing',
+    esperaTipo: 'camiseta',   // "Top" no nome (era peça genérica)
     agasalho: false
   },
   {
@@ -95,7 +97,7 @@ const PECAS = [
     titulo: 'Calças de sarja de algodão corte reto',
     texto: 'Composição: 98% Algodão, 2% Elastano. Calças de sarja, tecido encorpado, corte reto.',
     fibras: [fibra('Algodão', 98), fibra('Elastano', 2)],
-    esperaTipo: 'clothing',
+    esperaTipo: 'calca',      // "Calças" no nome (era peça genérica)
     agasalho: false,
     parteDeBaixo: true
   },
@@ -531,6 +533,8 @@ console.log('  Vocabulário de agasalho');
     'Saia blazer curta',
     'Saia gabardina midi',
     'Shorts bomber de ganga',
+    'Jardineira de bombazina',
+    'Vestido de malha com cinto',
   ];
   const fibras = [fibra('Poliéster', 100)];
   const texto = 'Composição: 100% Poliéster.';
@@ -538,15 +542,28 @@ console.log('  Vocabulário de agasalho');
   AGASALHO.forEach((titulo) => {
     const s = calcScores(fibras, texto, '', titulo);
     const tipo = detectGarmentType(s, null, 'clothing');
-    checa('    "' + titulo + '" é agasalho', tipo === 'casaco',
+    // blazer e malha também são agasalho (o nome agora diz qual dos três)
+    checa('    "' + titulo + '" é agasalho', ['casaco', 'blazer', 'malha'].indexOf(tipo) >= 0,
       'detectou "' + tipo + '" — a palavra não está no vocabulário de agasalho '
       + 'do shared.js, e a peça vai receber as frases de roupa colada ao corpo');
+  });
+
+  // O CASO DE 24/11/2026: a página fala de casacos (o "complete o look"
+  // mostra um casaco acolchoado), o tecido é pesado, e o nome diz o que a
+  // peça é. O nome ganha — senão a jardineira é julgada pelo calor.
+  [['Jardineira de bombazina', 'jardineira'], ['Vestido de lã', 'vestido'],
+   ['Camiseta de algodão', 'camiseta'], ['Macacão de ganga', 'jardineira']].forEach(([titulo, esperado]) => {
+    const pagina = 'Composição: 100% Poliéster. Complete o look: casaco acolchoado com capuz, parka de penas, sobretudo.';
+    const s = calcScores(fibras, pagina, '', titulo);
+    const tipo = detectGarmentType(s, null, 'clothing');
+    checa('    "' + titulo + '" numa página que fala de casacos é ' + esperado, tipo === esperado,
+      'detectou "' + tipo + '" — as palavras de casaco da página passaram à frente do nome');
   });
 
   NAO_AGASALHO.forEach((titulo) => {
     const s = calcScores(fibras, texto, '', titulo);
     const tipo = detectGarmentType(s, null, 'clothing');
-    checa('    "' + titulo + '" NÃO é agasalho', tipo !== 'casaco',
+    checa('    "' + titulo + '" NÃO é agasalho', ['casaco', 'blazer', 'malha'].indexOf(tipo) < 0,
       'detectou "casaco" — uma palavra ambígua do vocabulário apanhou esta peça '
       + 'e ela vai receber as frases de inverno');
   });

@@ -496,7 +496,11 @@ function calcScores(fibers, pageText, certText, titleText) {
   // veto tem de conhecer as quatro: a primeira versão desta regra só sabia a
   // grafia inglesa, e "Culote de bombazina" continuava a virar casaco.
   const ehParteDeBaixo = /\bcal[çc]as?\b|\bcal[çc][õo]es\b|\bsaia\b|\bshorts?\b|\bbermudas?\b|\bleggings?\b|\btrousers\b|\bpants\b|\bskirt\b|\bculot(?:t)?es?\b|\bjupe[-\s]?culot(?:t)?e\b|\bsaia[-\s]?cal[çc]a\b/i.test(titleText || '');
-  const isPadded = !ehParteDeBaixo
+  // O nome diz o tipo e não é agasalho (jardineira, vestido, camiseta…):
+  // as palavras de casaco da página são de outra peça. Mesmo veto.
+  const tipoTitulo = tipoPeloNome(titleText || '');
+  const tituloNaoAgasalho = !!tipoTitulo && ['casaco', 'blazer', 'malha'].indexOf(tipoTitulo) < 0;
+  const isPadded = !ehParteDeBaixo && !tituloNaoAgasalho
     && /acolchoad|quilted|puffer|puffect|\bpenas?\b|\bdown\b|duvet|plumas|recheio|enchimento/i.test(textoAmplo);
 
   // ─── Ficha técnica: os números que a própria loja publica ──────────
@@ -737,7 +741,7 @@ function calcScores(fibers, pageText, certText, titleText) {
   // (o ehParteDeBaixo é calculado lá em cima, junto do isPadded — os dois
   // sinais de agasalho obedecem ao mesmo veto, e o veto tem de existir antes
   // do primeiro deles)
-  const isBulkyGarment = !ehParteDeBaixo
+  const isBulkyGarment = !ehParteDeBaixo && !tituloNaoAgasalho
     && /casac|sobretudo|parka|trench|blaz[eê]r|jaquet|jacket|coats?\b|puffer|acolchoad|quilted|gabardin|trincheira|blus[ãa]o|blus[õo]es|anorak|bomber|corta[-\s]?vento|windbreaker|kispo|chaquet|cazadora|plum[ií]fero|manteau|doudoune|blouson/i.test(textoAmplo);
   const packability = typeof packabilityScore === 'function' ? packabilityScore(fibers, isKnitEarly, isBulkyGarment) : 65;
   const warmth = typeof warmthScore === 'function' ? warmthScore(fibers) : null;
@@ -824,7 +828,7 @@ function calcScores(fibers, pageText, certText, titleText) {
   // Semente de variação: primeiro tipo de peça encontrado no texto → frases variam entre tipos de peça
   const garmentWords = (pageText || '').toLowerCase().match(/camisa|t-?shirt|camiseta|vestido|cal[çc]a|saia|blusa|top|casaco|blaz[eê]r|jaqueta|short|macac[ãa]o|sobretudo|cardigan|camisola|sweater|polo/);
   const productSeed = garmentWords ? garmentWords[0] : '';
-  return { quality: qualityFinal, comfort, durability: durabilityFinal, maintenance, versatility, costBenefit, travel, travelMaterial, packability, warmth, overall, natPct, synPct, certs, fibers, qualityModifier: qmod, isKnit, isHeavyWoven, isBulkyGarment, isPadded, semProvaDeCalor, fichaTecnica, hasTechSpec, brandTech, brandTechInfo, temperaturaMin, productSeed, colorInfo, vinted };
+  return { tipoTitulo, quality: qualityFinal, comfort, durability: durabilityFinal, maintenance, versatility, costBenefit, travel, travelMaterial, packability, warmth, overall, natPct, synPct, certs, fibers, qualityModifier: qmod, isKnit, isHeavyWoven, isBulkyGarment, isPadded, semProvaDeCalor, fichaTecnica, hasTechSpec, brandTech, brandTechInfo, temperaturaMin, productSeed, colorInfo, vinted };
 }
 
 // ─── Que tipo de peça é essa? ─────────────────────────────────────
@@ -836,8 +840,52 @@ function calcScores(fibers, pageText, certText, titleText) {
 //
 // Mora em shared.js, e não solto no content.js, porque assim tests/
 // coerencia.js decide o tipo exatamente como o navegador decide.
+// ─── O tipo da peça pelo NOME ─────────────────────────────────────
+// Decisão de 24/11/2026: o nome da peça decide o tipo, e as palavras soltas
+// da página só valem quando o nome não diz nada. Uma jardineira de
+// bombazina saía "casaco" porque a página (recomendados incluídos) falava
+// de casacos e só calças/saias/shorts tinham veto — e a nota dela vinha
+// pesada em calor. Vale a PRIMEIRA palavra de peça que aparece no nome:
+// "Camiseta de jersey" é camiseta (não o jersey/camisola), "Casaco de
+// malha" é casaco (de malha), "Calças com bolsos" é calça (não bolsa).
+//
+// A MESMA lista vive em landing/runtime.js (a página não carrega este
+// ficheiro); tests/comparar.js obriga as duas a darem a mesma resposta.
+const FAMILIA_NOME = [
+  [/jardineir|salopet|macac[ãa]o|macaquinho|mono\b|jumpsuit|playsuit|overalls?\b|dungarees?|combinaison|tuta\b|peto\b|pichi/i, 'inteira'],
+  [/vestid|\bdress|robe\b|abito|chemisier/i, 'vestido'],
+  [/sapat|t[ée]nis|\bbotas?\b|botins?|bot[ií]n|sand[áa]li|sapatilh|chinel|mocassi|loafer|sabrina|bailarin|espadril|\bmules?\b|\bshoes?\b|sneaker|\bboots?\b|zapat|chaussur|baskets|scarpe|stival/i, 'calcado'],
+  [/\bmalas?\b|\bbolsas?\b|mochila|carteira|\bbags?\b|bolso\b|\bsac\b|borsa|clutch|tote\b|pochete|backpack/i, 'bolsa'],
+  [/casac|sobretud|blus[ãa]o|blus[õo]es|parka|anoraque|anorak|jaqueta|chaqueta|cazadora|(?<!\bao )abrigo|trench|gabardin|blazer|americana|camisol|malha|cardig|c[áa]rdigan|su[ée]ter|pullover|jersey|\bcoat|jacket|puffer|manteau|veste\b|doudoune|blouson|cappotto|giacca|piumino|maglion|chaleco|colete|gilet|\bvest\b|polar\b|fleece|kispo|corta[- ]?vento|windbreaker|bomber/i, 'agasalho'],
+  [/cal[çc]a|\bjeans?\b|vaquer|cal[çc][õo]es|bermuda|\bsaias?\b|\bfalda|leggings?|\bpantal|trousers|\bpants|\bshorts?\b|\bskirt|jupe\b|pantalon|gonna|chinos?\b|joggers?\b|cargo\b/i, 'baixo'],
+  [/camiset|t-?shirt|\btee\b|camisa|blusa|\btops?\b|\bpolo|\bbody\b|regata|cropped|\bshirt|blouse|chemise|camicia|maglia|canotta|tank\b/i, 'top']
+];
+function familiaPeloNome(nome) {
+  nome = String(nome || '');
+  let melhor = '', pos = Infinity;
+  FAMILIA_NOME.forEach(([re, fam]) => {
+    const m = re.exec(nome);
+    if (m && m.index < pos) { pos = m.index; melhor = fam; }
+  });
+  return melhor;
+}
+const MALHA_NO_NOME = /malha|camisol|cardig|c[áa]rdigan|su[ée]ter|pullover|pul[oô]ver|\bjersey|tricot|knit|maglion|jumper|camisaco/i;
+function tipoPeloNome(nome) {
+  const fam = familiaPeloNome(nome);
+  if (fam === 'agasalho') {
+    if (/blazer|americana/i.test(nome)) return 'blazer';
+    if (MALHA_NO_NOME.test(nome)) return 'malha';
+    return 'casaco';
+  }
+  if (fam === 'top') return /camiset|t-?shirt|\btee\b|\btops?\b|regata|tank\b|canotta|\bbody\b|cropped/i.test(nome) ? 'camiseta' : 'camisa';
+  return { inteira: 'jardineira', vestido: 'vestido', baixo: 'calca', calcado: 'shoes', bolsa: 'bags' }[fam] || '';
+}
+
 function detectGarmentType(scores, tipoExplicito, categoria) {
   if (tipoExplicito) return tipoExplicito;
+  if (categoria === 'shoes' || categoria === 'bags') return categoria;
+  // o nome decide (ver tipoPeloNome); a página só desempata quando ele cala
+  if (scores?.tipoTitulo) return scores.tipoTitulo;
   if (scores?.isPadded) return 'casaco';      // acolchoado/pena é sempre agasalho
   if (scores?.isBulkyGarment) return 'casaco';
   if (scores?.isKnit) return 'malha';
@@ -863,6 +911,7 @@ const BUY_WEIGHTS = {
   camisa:         { quality:0.20, durability:0.15, versatility:0.17, maintenance:0.11, costBenefit:0.10, travel:0.13, comfort:0.14 },
   blazer:         { quality:0.25, durability:0.20, versatility:0.16, maintenance:0.07, costBenefit:0.11, travel:0.11, comfort:0.10 },
   calca:          { quality:0.19, durability:0.22, versatility:0.16, maintenance:0.09, costBenefit:0.11, travel:0.10, comfort:0.13 },
+  jardineira:          { quality:0.19, durability:0.22, versatility:0.16, maintenance:0.09, costBenefit:0.11, travel:0.10, comfort:0.13 },
   vestido:        { quality:0.21, durability:0.13, versatility:0.17, maintenance:0.09, costBenefit:0.13, travel:0.13, comfort:0.14 },
   casaco:         { quality:0.25, durability:0.23, versatility:0.11, maintenance:0.07, costBenefit:0.11, travel:0.13, comfort:0.10 },
   roupa_esportiva:{ quality:0.15, durability:0.19, versatility:0.10, maintenance:0.15, costBenefit:0.10, travel:0.15, comfort:0.16 },

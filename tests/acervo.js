@@ -178,6 +178,14 @@ const SUSPEITAS = [
     }
   },
   {
+    // Quem olhou a peça escreve o tipo dela (espera_tipo: jardineira). O tipo
+    // muda a nota inteira — um casaco é julgado pelo calor — e uma jardineira
+    // de bombazina já saiu "casaco" por causa do tecido e das palavras da página.
+    id: 'tipo-diferente-do-que-a-peca-e',
+    porque: 'o motor tomou a peça por outro tipo e julga-a pelo que ela não é',
+    ve: (r, p) => !!p.meta.espera_tipo && r.tipo !== p.meta.espera_tipo.trim()
+  },
+  {
     id: 'soma-nao-fecha',
     porque: 'uma etiqueta só pode somar 100% — acima disso houve zonas juntas',
     ve: (r) => {
@@ -307,7 +315,8 @@ const SUSPEITAS = [
     // Faltava-lhe "blusão", a palavra da Zara portuguesa: quando o motor
     // deixou de reconhecer o blusão, esta rede também não o viu.
     ve: (r, p) => p.meta.espera !== 'sem_composicao' && /casac|jaquet|parka|anorak|chaquet|abrigo|jacket|coats?\b|blus[ãa]o|blus[õo]es|bomber|corta[-\s]?vento|windbreaker|kispo|cazadora|plum[ií]fero|gabardin|trench|sobretudo|manteau|doudoune|blouson|puffer/i.test(p.meta.titulo || '')
-                  && r.tipo !== 'casaco'
+                  // malha e blazer também são agasalho ("casaco de malha" é cardigã)
+                  && ['casaco', 'malha', 'blazer'].indexOf(r.tipo) < 0
   }
 ];
 
