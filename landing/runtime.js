@@ -929,24 +929,19 @@
     });
     linhas.sort(function (x, y) { return y.dif - x.dif; });
 
-    /* UMA EXCEPÇÃO À ORDEM, e é a que faz a lista concordar com a resposta.
-       Ordenar só pelo tamanho da diferença assume que as oito dimensões
-       pesam o mesmo. Num agasalho não pesam: estes dois sobretudos de lã
-       diferem 17 pontos em manutenção e 12 em calor, e a ordem por tamanho
-       punha "como se lava" acima de "se aquece" — com o calor em quarto
-       lugar, abaixo da dobra num telefone.
-
-       Num agasalho o calor não é uma troca, é a condição: um casaco que não
-       aquece falhou no que foi feito para fazer, por muito bem que se
-       comporte no resto. A prosa já o tratava assim (tem uma frase própria);
-       as barras é que diziam outra coisa. Fora dos agasalhos a excepção não
-       se aplica: numa camisa de algodão o calor é só mais uma linha. */
-    var AGASALHOS = ['casaco', 'blazer', 'malha'];
-    var ehAgasalho = AGASALHOS.indexOf(a.tipo) >= 0 || AGASALHOS.indexOf(b.tipo) >= 0;
-    if (ehAgasalho) {
-      var iCalor = -1;
-      linhas.forEach(function (l, i) { if (l.chave === 'calor') iCalor = i; });
-      if (iCalor > 0) linhas.unshift(linhas.splice(iCalor, 1)[0]);
+    /* O DECISOR DA CATEGORIA LIDERA AS BARRAS. Ordenar só pelo tamanho da
+       diferença assume que as oito dimensões pesam o mesmo — e não pesam. Num
+       agasalho o calor não é uma troca, é a condição; numa calça é a
+       durabilidade; numa camiseta o conforto. Por isso a dimensão que decide
+       aquele tipo sobe ao topo (ainda que não seja a maior diferença), e o
+       resto segue a diferença. Fora de um par de categoria clara (tipos
+       diferentes, ou tipo desconhecido), a ordem continua a ser a diferença.
+       `decisorDaComparacao` é a mesma regra que guia a dica dos chips. */
+    var decisor = decisorDaComparacao(a, b);
+    if (decisor) {
+      var iDec = -1;
+      linhas.forEach(function (l, i) { if (l.chave === decisor) iDec = i; });
+      if (iDec > 0) linhas.unshift(linhas.splice(iDec, 1)[0]);
     }
     return { linhas: linhas, empatadas: empatadas, semMedida: semMedida };
   }
@@ -1016,6 +1011,15 @@
   function decisorTipo(a, b) {
     if (a.tipo !== b.tipo) return null;
     return DECISOR_TIPO[a.tipo] || null;
+  }
+  // O decisor que lidera as barras e sobe o chip. No agasalho é o calor mesmo
+  // entre tipos diferentes de agasalho (casaco vs malha); fora dele, só quando
+  // as duas são do mesmo tipo conhecido. Tipo desconhecido/misto: sem decisor
+  // (a ordem fica pela diferença, e o aviso de tipos diferentes fala).
+  function decisorDaComparacao(a, b) {
+    if (FAMILIA_TIPO[a.tipo] === 'agasalho' && FAMILIA_TIPO[b.tipo] === 'agasalho') return 'calor';
+    if (a.tipo === b.tipo && DECISOR_TIPO[a.tipo]) return DECISOR_TIPO[a.tipo];
+    return null;
   }
   function dicaCategoria(tipo, decisor) {
     var artT = ARTIGO_TIPO[tipo], labT = LABEL_TIPO[tipo], artD = ART_DIM[decisor];
@@ -1305,14 +1309,17 @@
     }) : [];
     // Reenquadrar por categoria: a dimensão que decide neste tipo sobe à frente
     // dos chips e vira dica. Só quando as duas são do mesmo tipo conhecido.
-    var sugerido = par ? decisorTipo(par.a, par.b) : null;
+    var sugerido = par ? decisorDaComparacao(par.a, par.b) : null;
     var sugeridoMedido = sugerido && cmpCriterios.some(function (c) { return c.chave === sugerido; });
     if (sugeridoMedido) {
       var iSug = -1;
       cmpCriterios.forEach(function (c, i) { if (c.chave === sugerido) iSug = i; });
       if (iSug > 0) cmpCriterios.unshift(cmpCriterios.splice(iSug, 1)[0]);
     }
-    var dicaCategoriaTxt = sugeridoMedido ? dicaCategoria(par.a.tipo, sugerido) : '';
+    // a dica tem texto específico do tipo ("Num casaco…"), então só quando as
+    // duas são do mesmo tipo; o chip ainda sobe no caso agasalho misto.
+    var dicaCategoriaTxt = (sugeridoMedido && par.a.tipo === par.b.tipo)
+      ? dicaCategoria(par.a.tipo, sugerido) : '';
     // "A escolha": a peça recomendada, marcada no ecrã. Segue o critério — se a
     // escolha muda ao marcar "viagem", o selo salta de coluna. Null = empatam,
     // e aí nenhuma é marcada.

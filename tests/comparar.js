@@ -237,12 +237,34 @@ teste('o preço entra na resposta quando a diferença é grande (10 € contra 3
 /* ═══════════════════════════════════════════════════════════════════ */
 console.log('\n── 2. A ordem das linhas ───────────────────────────\n');
 
-teste('fora de um agasalho, as linhas saem da maior diferença para a menor', () => {
-  const r = compararGuardadas([comoTipo(A, 'camiseta', 'a-camiseta'), comoTipo(B, 'camiseta', 'b-camiseta')]);
-  const difs = r.itens('cmpLinhas').map((l) => num(l['l.diferenca']));
+/* A ordem das barras: o DECISOR da categoria lidera (ainda que não seja a
+   maior diferença), e o resto segue a diferença. Numa camiseta o decisor é o
+   conforto. (Fixtures sintéticos: controlam as dimensões, ao contrário das
+   duas peças reais, cujos números vêm do motor.) */
+const BASE_TEE = { calor:60, qualidade:70, durabilidade:50, conforto:60, custo:70, versatilidade:70, manutencao:70, viagem:70, score:70 };
+
+teste('numa categoria, o decisor lidera as barras, ainda que não seja a maior diferença', () => {
+  const a = pecaSintetica('Tee A', 'ord-a', '30', BASE_TEE, 'camiseta');
+  // conforto difere 12 (o decisor); durabilidade difere 35 (bem mais)
+  const b = pecaSintetica('Tee B', 'ord-b', '30', Object.assign({}, BASE_TEE, { conforto:72, durabilidade:85 }), 'camiseta');
+  const r = compararGuardadas([a, b]);
+  const rotulos = r.itens('cmpLinhas').map((l) => l['l.rotulo']);
+  if (!rotulos.length) return 'nenhuma linha desenhada';
+  if (rotulos[0] !== 'Conforto') return 'o decisor (Conforto) não liderou: ' + rotulos.join(', ');
+  const resto = r.itens('cmpLinhas').slice(1).map((l) => num(l['l.diferenca']));
+  for (let i = 1; i < resto.length; i++) {
+    if (resto[i] > resto[i - 1]) return 'o resto deixou de estar ordenado: ' + resto.join(', ');
+  }
+  return true;
+});
+
+teste('tipo desconhecido (clothing) mantém a ordem pela diferença', () => {
+  const a = pecaSintetica('X', 'ord-x', '30', BASE_TEE, 'clothing');
+  const b = pecaSintetica('Y', 'ord-y', '30', Object.assign({}, BASE_TEE, { conforto:72, durabilidade:85 }), 'clothing');
+  const difs = compararGuardadas([a, b]).itens('cmpLinhas').map((l) => num(l['l.diferenca']));
   if (!difs.length) return 'nenhuma linha desenhada';
   for (let i = 1; i < difs.length; i++) {
-    if (difs[i] > difs[i - 1]) return 'ordem quebrada: ' + difs.join(', ');
+    if (difs[i] > difs[i - 1]) return 'ordem quebrada p/ tipo genérico: ' + difs.join(', ');
   }
   return true;
 });
@@ -265,10 +287,12 @@ teste('num agasalho, o calor é a PRIMEIRA linha, ainda que não seja a maior di
   return true;
 });
 
-teste('a mesma peça declarada camiseta não dá privilégio ao calor', () => {
-  const r = compararGuardadas([comoTipo(A, 'camiseta', 'a-camiseta'), comoTipo(B, 'camiseta', 'b-camiseta')]);
-  const rotulos = r.itens('cmpLinhas').map((l) => l['l.rotulo']);
-  return rotulos[0] !== 'Calor' || 'pôs o calor à frente numa peça que não é agasalho: ' + rotulos.join(', ');
+teste('entre dois agasalhos de tipos diferentes (casaco e malha), o calor lidera', () => {
+  // calor difere 25 (o decisor do agasalho); durabilidade difere 35 (mais)
+  const casaco = pecaSintetica('Casaco', 'ag-a', '120', Object.assign({}, BASE_TEE, { calor:85, durabilidade:85 }), 'casaco');
+  const malha = pecaSintetica('Malha', 'ag-b', '80', BASE_TEE, 'malha');
+  const rotulos = compararGuardadas([casaco, malha]).itens('cmpLinhas').map((l) => l['l.rotulo']);
+  return rotulos[0] === 'Calor' || 'o calor não liderou entre dois agasalhos: ' + rotulos.join(', ');
 });
 
 teste('cada linha mostra a diferença em pontos, no singular e no plural certos', () => {
