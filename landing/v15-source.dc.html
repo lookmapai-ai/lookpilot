@@ -253,6 +253,13 @@ a:hover{color:#000000}
           <button onClick="{{ onDetalhe }}" style="display:inline-flex;align-items:center;gap:5px;background:none;border:none;min-height:44px;padding:8px 0;font-family:inherit;font-size:14px;font-weight:500;letter-spacing:-.005em;color:#1D1D1F;cursor:pointer;touch-action:manipulation">Voltar ao relatório <span aria-hidden="true">›</span></button>
         </div>
       </sc-if>
+      <sc-if value="{{ temAbasTipo }}" hint-placeholder-val="{{ true }}">
+        <div role="tablist" aria-label="Tipos de peça" style="display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;margin:0 -2px;scrollbar-width:none;-webkit-overflow-scrolling:touch">
+          <sc-for list="{{ abasTipo }}" as="ab" hint-placeholder-count="4">
+            <button type="button" role="tab" aria-selected="{{ ab.ariaSelected }}" onClick="{{ ab.escolher }}" style="flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:9px 16px;border-radius:999px;border:1px solid {{ ab.borda }};background:{{ ab.bg }};color:{{ ab.cor }};font-family:inherit;font-size:14px;font-weight:600;letter-spacing:-.005em;white-space:nowrap;cursor:pointer;touch-action:manipulation;transition:background .2s ease,color .2s ease,border-color .2s ease" style-active="transform:scale(.97)"><span>{{ ab.rotulo }}</span><span style="font-weight:500;opacity:.6;font-variant-numeric:tabular-nums">{{ ab.n }}</span></button>
+          </sc-for>
+        </div>
+      </sc-if>
       <sc-if value="{{ temRemovida }}" hint-placeholder-val="{{ false }}">
         <div role="status" style="align-self:flex-start;display:inline-flex;align-items:center;gap:14px;padding:8px 8px 8px 18px;border-radius:999px;background:#1D1D1F;color:#FFFFFF;font-size:14px;letter-spacing:-.005em;box-shadow:0 10px 28px rgba(0,0,0,.18);animation:apFade .3s ease">
           <span>{{ removidaTexto }}</span>

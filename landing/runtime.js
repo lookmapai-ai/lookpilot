@@ -1095,6 +1095,24 @@
     var fa = familiaDe(a), fb = familiaDe(b);
     return !!fa && !!fb && fa === fb;
   }
+  /* SEPARADORES POR TIPO em "Minhas peças" (pedido de 24/11/2026). Como só
+     se comparam peças do mesmo tipo, a lista arruma-se pelo tipo: a pessoa
+     vê de relance o que pode comparar com o quê. Só aparecem os separadores
+     dos tipos que ela tem salvos, e só quando há mais de um tipo. A aba
+     escolhida fica lembrada neste navegador (conveniência; se o navegador
+     não deixar guardar, volta a "Todas" e a página funciona na mesma). */
+  var ORDEM_ABAS = ['agasalho', 'baixo', 'top', 'vestido', 'inteira', 'funcional', 'calcado', 'bolsa', 'sem'];
+  var ROTULO_ABA = { agasalho: 'Agasalhos', baixo: 'Calças e saias', top: 'Camisas e tops',
+    vestido: 'Vestidos', inteira: 'Jardineiras e macacões', funcional: 'Esportiva',
+    calcado: 'Calçado', bolsa: 'Bolsas', sem: 'Sem tipo' };
+  var ABA_KEY = 'lookpilot-aba';
+  var abaTipo = (function () { try { return localStorage.getItem(ABA_KEY) || 'todas'; } catch (e) { return 'todas'; } })();
+  function mudaAba(k) {
+    abaTipo = k;
+    try { localStorage.setItem(ABA_KEY, k); } catch (e) {}
+  }
+  function abaDe(p) { return familiaDe(p) || 'sem'; }
+
   var NOME_FAMILIA = { inteira: 'jardineiras e macacões', agasalho: 'agasalhos', baixo: 'calças e saias', top: 'camisas e camisetas',
     vestido: 'vestidos', funcional: 'roupa esportiva', calcado: 'calçado', bolsa: 'bolsas' };
 
@@ -1260,6 +1278,9 @@
     if (i >= 0) { selecao.splice(i, 1); return; }
     var p = pecaPorId(id);
     if (p && (!familiaDe(p) || !podeEntrar(p))) return;
+    // a primeira escolha leva a lista para o separador do tipo dela: as
+    // outras peças desse separador são as que podem ser a segunda
+    if (p && !selecao.length) mudaAba(familiaDe(p));
     // Duas, e não mais: a terceira empurra a primeira para fora, em vez de
     // ignorar o toque em silêncio (toque sem resposta parece avaria).
     if (selecao.length >= 2) selecao.shift();
@@ -1300,8 +1321,30 @@
     // no modo de escolha, cada um passa a ser uma caixa de selecção, e a
     // peça que está aberta entra na lista sem precisar de ser guardada.
     var nGuardadasReal = lerGuardadas().length;
-    var guardadas = candidatos().filter(function (p) {
+    var visiveis = candidatos().filter(function (p) {
       return modoSelecao || !p.estaAberta;
+    });
+    // contagem por separador; uma aba que ficou vazia (peça removida) volta a "Todas"
+    var porAba = {};
+    visiveis.forEach(function (p) { var k = abaDe(p); porAba[k] = (porAba[k] || 0) + 1; });
+    var abasPresentes = ORDEM_ABAS.filter(function (k) { return porAba[k]; });
+    if (abaTipo !== 'todas' && !porAba[abaTipo]) abaTipo = 'todas';
+    var mostraAbas = abasPresentes.length > 1;
+    if (!mostraAbas) abaTipo = 'todas';
+    var abas = mostraAbas ? ['todas'].concat(abasPresentes).map(function (k) {
+      var ativo = abaTipo === k;
+      return {
+        rotulo: k === 'todas' ? 'Todas' : ROTULO_ABA[k],
+        n: String(k === 'todas' ? visiveis.length : porAba[k]),
+        ariaSelected: ativo ? 'true' : 'false',
+        bg: ativo ? '#1D1D1F' : '#FFFFFF',
+        cor: ativo ? '#FFFFFF' : '#1D1D1F',
+        borda: ativo ? '#1D1D1F' : 'rgba(0,0,0,.1)',
+        escolher: function () { mudaAba(k); render(); }
+      };
+    }) : [];
+    var guardadas = visiveis.filter(function (p) {
+      return abaTipo === 'todas' || abaDe(p) === abaTipo || selecao.indexOf(p.id) >= 0;
     }).map(function (p) {
       var cor = p.nota >= 75 ? '#E8E3DA' : p.nota >= 50 ? '#EDE9E2' : '#E6E6E9';
       var ordem = selecao.indexOf(p.id) + 1;
@@ -1624,6 +1667,8 @@
         render(); window.scrollTo(0, 0);
       },
       guardadas: guardadas,
+      abasTipo: abas,
+      temAbasTipo: mostraAbas,
       temRemovida: !!ultimaRemovida && !modoSelecao,
       // "removida" não concorda com "sobretudo"; "saiu" serve a qualquer peça
       removidaTexto: ultimaRemovida ? (ultimaRemovida.item.tipo || 'A peça') + ' saiu das suas peças.' : '',
@@ -1645,6 +1690,7 @@
          ser "as peças que podem entrar na comparação". O título diz isso, e
          conta o que está desenhado. */
       listaTitulo: (modoSelecao ? 'Pra comparar · ' : 'Minhas peças · ')
+        + (abaTipo !== 'todas' ? ROTULO_ABA[abaTipo] + ' · ' : '')
         + guardadas.length + (guardadas.length === 1 ? ' peça' : ' peças'),
       historicoSub: modoSelecao
         ? (guardadas.some(function (g) { return g.bloqueada; })

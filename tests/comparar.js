@@ -859,9 +859,14 @@ const DIMS_OK = { calor:60, qualidade:70, durabilidade:70, conforto:70, custo:70
    umas calças de bombazina contra um sobretudo de lã (print da Nathalia).
    Agora, escolhida a primeira peça, as de outra família ficam apagadas e
    não entram. */
+// Escolhe pela posição na lista COMPLETA. Depois da primeira escolha a
+// lista pula para o separador do tipo dela; para tentar as outras (e ver
+// que continuam bloqueadas) volta-se a "Todas" antes de cada toque.
 function escolher(lista, quais) {
   const r = montar('', { guardadas: lista, hash: '#comparar' });
-  quais.forEach((i) => r.clicarItem('guardadas', i, 'h.abrir'));
+  const todas = () => { if (r.display.temAbasTipo === 'contents') r.clicarItem('abasTipo', 0, 'ab.escolher'); };
+  quais.forEach((i) => { todas(); r.clicarItem('guardadas', i, 'h.abrir'); });
+  todas();
   return r;
 }
 
@@ -1088,6 +1093,56 @@ teste('cada nome real cai na família certa', () => {
 
 teste('o nome manda mais do que o tipo deduzido pelo tecido', () => {
   return familia('Jardineira de bombazina', 'casaco') === 'inteira' || 'a jardineira ficou ' + familia('Jardineira de bombazina', 'casaco');
+});
+
+/* ═══════════════════════════════════════════════════════════════════
+   SEPARADORES POR TIPO. Pedido da Nathalia: "as peças têm que estar
+   organizadas por separadores de tipo". Só se comparam peças do mesmo tipo,
+   por isso a lista arruma-se pelo tipo. */
+console.log('\n── 18. Separadores por tipo em Minhas peças ────────\n');
+
+const mistas = () => [
+  pecaSintetica('Sobretudo de lã', 'm1', '120', DIMS_OK, 'casaco'),
+  pecaSintetica('Casaco de malha', 'm2', '80', DIMS_OK, 'malha'),
+  pecaSintetica('CALÇAS DE BOMBAZINA', 'm3', '30', DIMS_OK, 'clothing'),
+  pecaSintetica('Peça sem nome', 'm4', '20', DIMS_OK, 'clothing')
+];
+const abasDe = (r) => r.itens('abasTipo').map((a) => a['ab.rotulo'] + ' ' + a['ab.n']);
+const nomesNaLista = (r) => r.itens('guardadas').map((l) => l['h.tipo']);
+
+teste('só aparecem os separadores dos tipos salvos, com a contagem', () => {
+  const r = minhasPecas(mistas());
+  if (r.display.temAbasTipo !== 'contents') return 'não mostrou separadores';
+  const a = abasDe(r).join(' | ');
+  return a === 'Todas 4 | Agasalhos 2 | Calças e saias 1 | Sem tipo 1' || 'separadores: ' + a;
+});
+
+teste('tocar num separador mostra só as peças desse tipo', () => {
+  const r = minhasPecas(mistas());
+  r.clicarItem('abasTipo', 1, 'ab.escolher');
+  const nomes = nomesNaLista(r);
+  if (nomes.length !== 2 || nomes.some((n) => !/Sobretudo|Casaco/.test(n))) return 'a aba Agasalhos mostra: ' + nomes.join(', ');
+  return /Agasalhos/.test(r.txt.listaTitulo || '') || 'o título não diz o separador: "' + r.txt.listaTitulo + '"';
+});
+
+teste('com um tipo só, não há separadores (seriam ruído)', () => {
+  const r = minhasPecas([pecaSintetica('Sobretudo A', 'o1', '120', DIMS_OK, 'casaco'),
+                         pecaSintetica('Sobretudo B', 'o2', '90', DIMS_OK, 'casaco')]);
+  return r.display.temAbasTipo !== 'contents' || 'mostrou separadores com um tipo só';
+});
+
+teste('ao comparar, a primeira escolha leva a lista para o separador dela', () => {
+  const r = montar('', { guardadas: mistas(), hash: '#comparar' });
+  r.clicarItem('guardadas', 0, 'h.abrir');
+  const nomes = nomesNaLista(r);
+  return (nomes.length === 2 && nomes.every((n) => /Sobretudo|Casaco/.test(n))) || 'depois do sobretudo a lista mostra: ' + nomes.join(', ');
+});
+
+teste('remover a última peça de um separador volta a "Todas"', () => {
+  const r = minhasPecas(mistas());
+  r.clicarItem('abasTipo', 2, 'ab.escolher');          // Calças e saias (1)
+  r.clicarItem('guardadas', 0, 'h.remover');
+  return nomesNaLista(r).length === 3 || 'ficou numa aba vazia: ' + nomesNaLista(r).join(', ');
 });
 
 console.log(`\n${ok} ok · ${falhas} falha(s)\n`);
