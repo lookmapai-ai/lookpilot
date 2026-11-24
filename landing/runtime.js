@@ -1058,6 +1058,39 @@
     return artT + ' ' + labT + ', costuma decidir ' + artD + '.';
   }
 
+  /* PEÇAS DE TIPOS DIFERENTES NÃO SE COMPARAM (pedido de 24/11/2026). Antes
+     a página avisava e comparava na mesma — e coroava "A escolha" umas calças
+     de bombazina contra um sobretudo de lã. Não existe resposta certa para
+     "qual das duas" entre um casaco e umas calças: a comparação só abre
+     dentro da mesma família (casaco, blazer e malha são todos agasalho).
+     O tipo vem da análise; numa peça guardada por uma versão antiga, sem
+     tipo, lê-se do nome — senão o bloqueio falhava justamente nelas. */
+  var FAMILIA_NOME = [
+    [/casac|sobretud|blus[ãa]o|parka|anoraque|anorak|jaqueta|trench|gabardin|abrigo|blazer|camisol|malha|cardig|su[ée]ter|pullover|coat|jacket/i, 'agasalho'],
+    [/cal[çc]a|jeans|cal[çc][õo]es|bermuda|saia|leggings?|trousers|pants|shorts/i, 'baixo'],
+    [/camiset|t-?shirt|camisa|blusa|\btop\b|polo|body/i, 'top'],
+    [/vestido|macac[ãa]o|dress/i, 'vestido'],
+    [/sapat|t[ée]nis|bota|sand[áa]lia|sapatilh|mocassim|shoe|sneaker/i, 'calcado'],
+    [/\bmala\b|bolsa|mochila|carteira|\bbag\b/i, 'bolsa']
+  ];
+  function familiaDe(p) {
+    if (!p) return '';
+    if (FAMILIA_TIPO[p.tipo]) return FAMILIA_TIPO[p.tipo];
+    var nome = String(p.nome || p.curto || '');
+    for (var i = 0; i < FAMILIA_NOME.length; i++) {
+      if (FAMILIA_NOME[i][0].test(nome)) return FAMILIA_NOME[i][1];
+    }
+    return '';
+  }
+  // Duas peças comparam-se se forem da mesma família, ou se uma delas não
+  // tiver família conhecida (aí não há como saber, e bloquear seria pior).
+  function comparaveis(a, b) {
+    var fa = familiaDe(a), fb = familiaDe(b);
+    return !fa || !fb || fa === fb;
+  }
+  var NOME_FAMILIA = { agasalho: 'agasalhos', baixo: 'calças e saias', top: 'camisas e camisetas',
+    vestido: 'vestidos', funcional: 'roupa esportiva', calcado: 'calçado', bolsa: 'bolsas' };
+
   function avisoTipos(a, b) {
     var la = LABEL_TIPO[a.tipo], lb = LABEL_TIPO[b.tipo];
     var fa = FAMILIA_TIPO[a.tipo], fb = FAMILIA_TIPO[b.tipo];
@@ -1208,11 +1241,18 @@
   function parSelecionado() {
     if (selecao.length !== 2) return null;
     var a = pecaPorId(selecao[0]), b = pecaPorId(selecao[1]);
-    return (a && b) ? { a: a, b: b } : null;
+    return (a && b && comparaveis(a, b)) ? { a: a, b: b } : null;
+  }
+  // Uma peça pode entrar se for comparável com TODAS as já escolhidas — com
+  // duas escolhidas a terceira empurra a primeira, e ficaria com a segunda.
+  function podeEntrar(p) {
+    return selecao.every(function (id) { var o = pecaPorId(id); return !o || o.id === p.id || comparaveis(o, p); });
   }
   function alternaSelecao(id) {
     var i = selecao.indexOf(id);
     if (i >= 0) { selecao.splice(i, 1); return; }
+    var p = pecaPorId(id);
+    if (p && !podeEntrar(p)) return;
     // Duas, e não mais: a terceira empurra a primeira para fora, em vez de
     // ignorar o toque em silêncio (toque sem resposta parece avaria).
     if (selecao.length >= 2) selecao.shift();
@@ -1260,7 +1300,9 @@
       var ordem = selecao.indexOf(p.id) + 1;
       var escolhida = ordem > 0;
       var rotulo = p.curto || 'Peça';
+      var bloqueada = modoSelecao && !escolhida && selecao.length > 0 && !podeEntrar(p);
       var abrir = function () {
+        if (bloqueada) return;
         if (modoSelecao) { alternaSelecao(p.id); render(); return; }
         // location.search mantinha o #minhas-pecas, por isso a página
         // recarregava DE VOLTA na lista em vez de abrir a análise
@@ -1270,10 +1312,15 @@
         tipo: rotulo, nota: p.nota, cor: cor,
         role: modoSelecao ? 'checkbox' : 'button',
         ariaChecked: modoSelecao ? (escolhida ? 'true' : 'false') : '',
-        tabIx: 0, cursor: 'pointer',
+        tabIx: 0, cursor: bloqueada ? 'not-allowed' : 'pointer',
+        ariaDisabled: bloqueada ? 'true' : '',
+        bloqueada: bloqueada,
+        opacidade: bloqueada ? '.35' : '1',
+        filtro: bloqueada ? 'grayscale(1)' : 'none',
         ariaLabel: modoSelecao
           ? rotulo + ', nota ' + p.nota + ' de 100. ' + (escolhida
               ? 'Escolhida para comparar, ' + ordem + ' de 2.'
+              : bloqueada ? 'Outro tipo de peça, não compara com a escolhida.'
               : 'Escolher para comparar.')
           : rotulo + ', nota ' + p.nota + ' de 100' + (p.verdict ? ' — ' + p.verdict : ''),
         // A cor não pode ser o único sinal de que o cartão está escolhido:
@@ -1590,7 +1637,9 @@
       listaTitulo: (modoSelecao ? 'Pra comparar · ' : 'Minhas peças · ')
         + guardadas.length + (guardadas.length === 1 ? ' peça' : ' peças'),
       historicoSub: modoSelecao
-        ? (candidatos().some(function (p) { return p.estaAberta; })
+        ? (selecao.length && guardadas.some(function (g) { return g.bloqueada; })
+            ? 'Só se comparam peças do mesmo tipo: um casaco com outro agasalho, uma calça com outra calça. As outras ficam apagadas.'
+          : candidatos().some(function (p) { return p.estaAberta; })
             ? 'Toque em duas pra ver lado a lado. A que você acabou de analisar já entra aqui, mesmo sem salvar.'
             : 'Toque em duas pra ver lado a lado.')
         : 'Tudo que você salvou fica aqui, só neste navegador.',

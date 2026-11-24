@@ -849,18 +849,48 @@ teste('num empate total, NINGUÉM é marcado (selo falso mentiria)', () => {
    com uma camiseta dá "calor 90 contra 20": verdade e ruído. Quando as duas
    são de famílias diferentes, a comparação segue, mas uma linha avisa. Mesma
    família (dois agasalhos) ou tipo desconhecido não avisam. */
-console.log('\n── 14. Aviso de tipos diferentes ───────────────────\n');
+console.log('\n── 14. Tipos diferentes não se comparam ─────────────\n');
 
 const DIMS_OK = { calor:60, qualidade:70, durabilidade:70, conforto:70, custo:70, versatilidade:70, manutencao:70, viagem:70, score:70 };
 
-teste('sobretudo vs camiseta: avisa, nomeando os dois tipos', () => {
+/* DESDE 24/11/2026 TIPOS DIFERENTES NÃO SE COMPARAM. O aviso dizia "são
+   peças de tipos diferentes" e comparava na mesma — e coroava "A escolha"
+   umas calças de bombazina contra um sobretudo de lã (print da Nathalia).
+   Agora, escolhida a primeira peça, as de outra família ficam apagadas e
+   não entram. */
+function escolher(lista, quais) {
+  const r = montar('', { guardadas: lista, hash: '#comparar' });
+  quais.forEach((i) => r.clicarItem('guardadas', i, 'h.abrir'));
+  return r;
+}
+
+teste('sobretudo + camiseta: depois do sobretudo, a camiseta fica apagada e não entra', () => {
   const casaco = pecaSintetica('Casaco', 't1', '120', Object.assign({}, DIMS_OK, { calor:90 }), 'casaco');
   const tee = pecaSintetica('Camiseta', 't2', '30', Object.assign({}, DIMS_OK, { calor:20 }), 'camiseta');
-  const r = compararGuardadas([casaco, tee]);
-  if (r.display.cmpTiposDiferentes !== 'contents') return 'não avisou tipos diferentes';
-  const aviso = r.txt.cmpAvisoTipos || '';
-  return (/casaco/.test(aviso) && /camiseta/.test(aviso))
-    || 'o aviso não nomeia os dois tipos: "' + aviso + '"';
+  const r = escolher([casaco, tee], [0]);
+  const vis = r.itens('guardadas').map((l) => l['?h.bloqueada']);
+  if (vis[1] !== 'contents') return 'a camiseta não ficou marcada como outro tipo: ' + vis.join(', ');
+  r.clicarItem('guardadas', 1, 'h.abrir');
+  if (r.display.selecaoCompleta === 'contents') return 'deixou escolher a camiseta e acender "Comparar"';
+  return /mesmo tipo/.test(r.txt.historicoSub || '') || 'a frase não explica: "' + r.txt.historicoSub + '"';
+});
+
+teste('o caso do print: "CALÇAS DE BOMBAZINA" guardada sem tipo não compara com um sobretudo', () => {
+  // peças antigas não traziam o tipo; o bloqueio tem de ler o nome
+  const sobretudo = pecaSintetica('Sobretudo de lã Manteco com cinto', 'p1', '179,99', DIMS_OK, 'casaco');
+  const calcas = pecaSintetica('CALÇAS DE BOMBAZINA BARREL', 'p2', '29,95', DIMS_OK, 'clothing');
+  const r = escolher([sobretudo, calcas], [0, 1]);
+  if (r.display.selecaoCompleta === 'contents') return 'as calças entraram na comparação com o sobretudo';
+  return r.itens('guardadas')[1]['?h.bloqueada'] === 'contents' || 'as calças não aparecem apagadas';
+});
+
+teste('com duas escolhidas, a terceira de outro tipo não empurra nenhuma para fora', () => {
+  const c1 = pecaSintetica('Casaco A', 'e1', '120', DIMS_OK, 'casaco');
+  const c2 = pecaSintetica('Malha B', 'e2', '80', DIMS_OK, 'malha');
+  const calca = pecaSintetica('Calça C', 'e3', '40', DIMS_OK, 'calca');
+  const r = escolher([c1, c2, calca], [0, 1, 2]);
+  const nums = r.itens('guardadas').map((l) => l['h.selNum']);
+  return (nums[0] === '1' && nums[1] === '2' && !nums[2]) || 'escolhidas ficaram: ' + nums.join(', ');
 });
 
 teste('dois agasalhos (casaco e malha): NÃO avisa — mesma família', () => {
@@ -877,12 +907,11 @@ teste('tipo desconhecido (peça antiga) NÃO avisa', () => {
     || 'avisou com um tipo desconhecido (clothing)';
 });
 
-teste('o aviso NÃO bloqueia: a resposta e as barras continuam a aparecer', () => {
-  const casaco = pecaSintetica('Casaco', 't7', '120', Object.assign({}, DIMS_OK, { calor:90 }), 'casaco');
-  const tee = pecaSintetica('Camiseta', 't8', '30', Object.assign({}, DIMS_OK, { calor:20 }), 'camiseta');
-  const r = compararGuardadas([casaco, tee]);
-  return ((r.txt.cmpResposta || '').length > 20 && r.itens('cmpLinhas').length > 0)
-    || 'o aviso escondeu a comparação';
+teste('peças sem tipo nem nome reconhecível continuam a comparar (não há como saber)', () => {
+  const a = pecaSintetica('Peça X', 'u1', '50', DIMS_OK, 'clothing');
+  const b = pecaSintetica('Peça Y', 'u2', '60', DIMS_OK, 'clothing');
+  const r = compararGuardadas([a, b]);
+  return r.display.isComparar === 'contents' || 'bloqueou duas peças de tipo desconhecido';
 });
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -915,13 +944,14 @@ teste('numa calça, o decisor (durabilidade) sobe para o 1º chip e a dica o nom
     || 'a dica não nomeia a durabilidade: "' + r.txt.cmpDicaCategoria + '"';
 });
 
-teste('tipos diferentes NÃO ganham dica de categoria (quem fala é o aviso)', () => {
+teste('dois agasalhos de tipos diferentes (casaco e malha) NÃO ganham dica de um tipo só', () => {
   const r = compararGuardadas([
     pecaSintetica('Casaco', 'c5', '120', DIMS_OK, 'casaco'),
-    pecaSintetica('Camiseta', 'c6', '30', DIMS_OK, 'camiseta')
+    pecaSintetica('Malha', 'c6', '80', DIMS_OK, 'malha')
   ]);
-  return r.display.cmpTemDicaCategoria !== 'contents'
-    || 'sugeriu categoria com tipos diferentes';
+  if (r.display.isComparar !== 'contents') return 'casaco e malha deixaram de comparar';
+  return !/Num casaco|Numa malha/.test(r.txt.cmpDicaCategoria || '') || r.display.cmpTemDicaCategoria !== 'contents'
+    || 'deu a dica de um tipo só: "' + r.txt.cmpDicaCategoria + '"';
 });
 
 teste('tipo desconhecido NÃO ganha dica', () => {
